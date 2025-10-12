@@ -2,15 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { LogOut, Trophy, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
+import { TradingCalendar } from "@/components/TradingCalendar";
+import { TradeDialog } from "@/components/TradeDialog";
 
 const Dashboard = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
   const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalPnL: 0,
+    winRate: 0,
+    totalTrades: 0,
+  });
+  const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +25,7 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchStats();
       }
     });
 
@@ -27,11 +34,30 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchStats();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, refreshKey]);
+
+  const fetchStats = async () => {
+    const { data, error } = await supabase
+      .from("trades")
+      .select("pips, outcome");
+
+    if (error) {
+      console.error("Error fetching stats:", error);
+      return;
+    }
+
+    const totalPnL = data?.reduce((sum, trade) => sum + (trade.pips || 0), 0) || 0;
+    const wins = data?.filter((trade) => trade.outcome === "Win").length || 0;
+    const totalTrades = data?.length || 0;
+    const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+
+    setStats({ totalPnL, winRate, totalTrades });
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -68,8 +94,10 @@ const Dashboard = () => {
                 <TrendingUp className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total P&L</p>
-                <p className="text-2xl font-bold text-success">+$0.00</p>
+                <p className="text-sm text-muted-foreground">Total Pips</p>
+                <p className={`text-2xl font-bold ${stats.totalPnL >= 0 ? "text-success" : "text-destructive"}`}>
+                  {stats.totalPnL >= 0 ? "+" : ""}{stats.totalPnL.toFixed(1)}
+                </p>
               </div>
             </div>
           </Card>
@@ -81,7 +109,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Win Rate</p>
-                <p className="text-2xl font-bold">0%</p>
+                <p className="text-2xl font-bold">{stats.winRate.toFixed(1)}%</p>
               </div>
             </div>
           </Card>
@@ -93,27 +121,18 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Trades</p>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">{stats.totalTrades}</p>
               </div>
             </div>
           </Card>
         </div>
 
         <Card className="p-8 bg-card border-border">
-          <h2 className="text-2xl font-bold mb-6">Trading Calendar</h2>
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border border-border"
-            />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Trading Calendar</h2>
+            <TradeDialog onTradeAdded={() => setRefreshKey((prev) => prev + 1)} />
           </div>
-          <div className="mt-6 text-center">
-            <Button className="bg-primary hover:bg-primary/90">
-              Log Today's Trade
-            </Button>
-          </div>
+          <TradingCalendar key={refreshKey} />
         </Card>
       </main>
     </div>
