@@ -6,18 +6,35 @@ import { Card } from "@/components/ui/card";
 import { LogOut, Trophy, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
-import { TradingCalendar } from "@/components/TradingCalendar";
 import { TradeDialog } from "@/components/TradeDialog";
+import { TradingCalendar } from "@/components/TradingCalendar";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({
-    totalPnL: 0,
-    winRate: 0,
-    totalTrades: 0,
-  });
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [stats, setStats] = useState({ totalPL: 0, winRate: 0, totalTrades: 0 });
   const navigate = useNavigate();
+
+  const fetchStats = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("trades")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (!error && data) {
+      const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const wins = data.filter(t => t.outcome === "Win").length;
+      const winRate = data.length > 0 ? (wins / data.length) * 100 : 0;
+      
+      setStats({
+        totalPL: totalPips,
+        winRate: Math.round(winRate),
+        totalTrades: data.length
+      });
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -25,7 +42,6 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
-        fetchStats();
       }
     });
 
@@ -34,30 +50,17 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
-        fetchStats();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, refreshKey]);
+  }, [navigate]);
 
-  const fetchStats = async () => {
-    const { data, error } = await supabase
-      .from("trades")
-      .select("pips, outcome");
-
-    if (error) {
-      console.error("Error fetching stats:", error);
-      return;
+  useEffect(() => {
+    if (user) {
+      fetchStats();
     }
-
-    const totalPnL = data?.reduce((sum, trade) => sum + (trade.pips || 0), 0) || 0;
-    const wins = data?.filter((trade) => trade.outcome === "Win").length || 0;
-    const totalTrades = data?.length || 0;
-    const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
-
-    setStats({ totalPnL, winRate, totalTrades });
-  };
+  }, [user]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -94,9 +97,9 @@ const Dashboard = () => {
                 <TrendingUp className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Pips</p>
-                <p className={`text-2xl font-bold ${stats.totalPnL >= 0 ? "text-success" : "text-destructive"}`}>
-                  {stats.totalPnL >= 0 ? "+" : ""}{stats.totalPnL.toFixed(1)}
+                <p className="text-sm text-muted-foreground">Total P&L</p>
+                <p className={`text-2xl font-bold ${stats.totalPL >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips
                 </p>
               </div>
             </div>
@@ -109,7 +112,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Win Rate</p>
-                <p className="text-2xl font-bold">{stats.winRate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">{stats.winRate}%</p>
               </div>
             </div>
           </Card>
@@ -130,9 +133,10 @@ const Dashboard = () => {
         <Card className="p-8 bg-card border-border">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Trading Calendar</h2>
-            <TradeDialog onTradeAdded={() => setRefreshKey((prev) => prev + 1)} />
+            <TradeDialog onTradeAdded={fetchStats} />
           </div>
-          <TradingCalendar key={refreshKey} />
+          
+          <TradingCalendar />
         </Card>
       </main>
     </div>

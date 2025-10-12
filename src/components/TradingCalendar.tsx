@@ -1,156 +1,135 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Trade {
   id: string;
   trade_date: string;
-  pips: number;
+  pips: number | null;
   outcome: string;
+  pair: string;
 }
 
-interface DayData {
+interface DayStats {
   date: Date;
   trades: Trade[];
   totalPips: number;
-  winRate: number;
+  outcome: 'profit' | 'loss' | 'neutral';
 }
 
 export const TradingCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [dayData, setDayData] = useState<Map<string, DayData>>(new Map());
-  const [loading, setLoading] = useState(true);
+  const [trades, setTrades] = useState<Trade[]>([]);
 
   useEffect(() => {
     fetchTrades();
   }, [currentMonth]);
 
   const fetchTrades = async () => {
-    setLoading(true);
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
 
     const { data, error } = await supabase
       .from("trades")
       .select("*")
-      .gte("trade_date", format(start, "yyyy-MM-dd"))
-      .lte("trade_date", format(end, "yyyy-MM-dd"))
+      .eq("user_id", user.id)
+      .gte("trade_date", monthStart.toISOString().split('T')[0])
+      .lte("trade_date", monthEnd.toISOString().split('T')[0])
       .order("trade_date", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching trades:", error);
-      setLoading(false);
-      return;
+    if (!error && data) {
+      setTrades(data);
     }
-
-    const tradesByDay = new Map<string, DayData>();
-    const daysInMonth = eachDayOfInterval({ start, end });
-
-    daysInMonth.forEach((day) => {
-      const dateKey = format(day, "yyyy-MM-dd");
-      const dayTrades = data?.filter((t) => t.trade_date === dateKey) || [];
-      const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
-      const wins = dayTrades.filter((t) => t.outcome === "Win").length;
-      const winRate = dayTrades.length > 0 ? (wins / dayTrades.length) * 100 : 0;
-
-      tradesByDay.set(dateKey, {
-        date: day,
-        trades: dayTrades,
-        totalPips,
-        winRate,
-      });
-    });
-
-    setDayData(tradesByDay);
-    setLoading(false);
   };
 
-  const goToPreviousMonth = () => {
+  const getDayStats = (date: Date): DayStats => {
+    const dayTrades = trades.filter(t => isSameDay(new Date(t.trade_date), date));
+    const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
+    
+    let outcome: 'profit' | 'loss' | 'neutral' = 'neutral';
+    if (totalPips > 0) outcome = 'profit';
+    else if (totalPips < 0) outcome = 'loss';
+    
+    return { date, trades: dayTrades, totalPips, outcome };
+  };
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   };
 
-  const goToNextMonth = () => {
+  const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  const firstDayOfWeek = monthStart.getDay();
-  const emptyDays = Array(firstDayOfWeek).fill(null);
-
-  const getDayColor = (totalPips: number, tradesCount: number) => {
-    if (tradesCount === 0) return "bg-card border-border";
-    if (totalPips > 0) return "bg-success/10 border-success/30";
-    if (totalPips < 0) return "bg-destructive/10 border-destructive/30";
-    return "bg-primary/10 border-primary/30";
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <button
-          onClick={goToPreviousMonth}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-        >
-          ←
-        </button>
-        <h2 className="text-2xl font-bold">{format(currentMonth, "MMMM yyyy")}</h2>
-        <button
-          onClick={goToNextMonth}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-        >
-          →
-        </button>
+    <div>
+      <div className="flex items-center justify-center gap-4 mb-6">
+        <Button variant="outline" size="icon" onClick={previousMonth}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="text-xl font-semibold min-w-[200px] text-center">
+          {format(currentMonth, 'MMMM yyyy')}
+        </h3>
+        <Button variant="outline" size="icon" onClick={nextMonth}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {daysOfWeek.map((day) => (
-          <div
-            key={day}
-            className="text-center text-sm font-medium text-muted-foreground py-2"
-          >
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
             {day}
           </div>
         ))}
-
-        {emptyDays.map((_, index) => (
-          <div key={`empty-${index}`} className="aspect-square" />
+        
+        {Array.from({ length: monthStart.getDay() }).map((_, i) => (
+          <div key={`empty-${i}`} className="min-h-[100px]" />
         ))}
-
-        {calendarDays.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd");
-          const data = dayData.get(dateKey);
-          const tradesCount = data?.trades.length || 0;
-          const totalPips = data?.totalPips || 0;
-          const winRate = data?.winRate || 0;
-
+        
+        {daysInMonth.map(day => {
+          const dayStats = getDayStats(day);
+          const hasTradesClass = dayStats.trades.length > 0
+            ? dayStats.outcome === 'profit'
+              ? 'border-success/50 bg-success/10 shadow-success'
+              : dayStats.outcome === 'loss'
+              ? 'border-destructive/50 bg-destructive/10 shadow-danger'
+              : 'border-primary/50 bg-primary/5'
+            : '';
+          
           return (
             <div
-              key={dateKey}
-              className={`aspect-square border rounded-lg p-2 transition-all hover:shadow-lg ${getDayColor(
-                totalPips,
-                tradesCount
-              )}`}
+              key={day.toISOString()}
+              className={`min-h-[100px] p-3 rounded-lg border border-border ${hasTradesClass} transition-all hover:shadow-lg hover:scale-[1.02]`}
             >
-              <div className="flex flex-col h-full">
-                <div className="text-sm font-medium mb-1">{format(day, "d")}</div>
-                {tradesCount > 0 && (
-                  <div className="flex-1 flex flex-col justify-center items-center text-xs">
-                    <div className={`text-lg font-bold ${totalPips > 0 ? "text-success" : totalPips < 0 ? "text-destructive" : "text-primary"}`}>
-                      {totalPips > 0 ? "+" : ""}{totalPips.toFixed(1)}
-                    </div>
-                    <div className="text-muted-foreground">
-                      {tradesCount} trade{tradesCount !== 1 ? "s" : ""}
-                    </div>
-                    <div className="text-muted-foreground">
-                      {winRate.toFixed(0)}%
-                    </div>
-                  </div>
-                )}
+              <div className="text-sm font-medium text-muted-foreground mb-2">
+                {format(day, 'd')}
               </div>
+              {dayStats.trades.length > 0 && (
+                <div className="space-y-1">
+                  <div className={`text-lg font-bold ${
+                    dayStats.outcome === 'profit' ? 'text-success' :
+                    dayStats.outcome === 'loss' ? 'text-destructive' :
+                    'text-foreground'
+                  }`}>
+                    {dayStats.totalPips >= 0 ? '+' : ''}{dayStats.totalPips.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {dayStats.trades.length} trade{dayStats.trades.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="text-xs opacity-70">
+                    {Math.round((dayStats.trades.filter(t => t.outcome === 'Win').length / dayStats.trades.length) * 100)}%
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

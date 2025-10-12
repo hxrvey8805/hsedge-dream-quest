@@ -23,37 +23,50 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const tradeData = {
-      trade_date: formData.get("trade_date") as string,
-      pair: formData.get("pair") as string,
-      buy_sell: formData.get("buy_sell") as string,
-      outcome: formData.get("outcome") as string,
-      pips: parseFloat(formData.get("pips") as string) || 0,
-      time_opened: formData.get("time_opened") as string || null,
-      time_closed: formData.get("time_closed") as string || null,
-      session: formData.get("session") as string || null,
-      strategy_type: formData.get("strategy_type") as string || null,
-      entry_type: formData.get("entry_type") as string || null,
-      notes: formData.get("notes") as string || null,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-    };
+    const tradeDate = formData.get("trade_date") as string;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-    const { error } = await supabase.from("trades").insert([tradeData]);
+      const { error } = await supabase.from("trades").insert({
+        user_id: user.id,
+        trade_date: tradeDate,
+        day_of_week: new Date(tradeDate).toLocaleDateString('en-US', { weekday: 'long' }),
+        pair: formData.get("pair") as string,
+        time_opened: formData.get("time_opened") as string || null,
+        time_closed: formData.get("time_closed") as string || null,
+        duration: formData.get("duration") as string || null,
+        buy_sell: formData.get("buy_sell") as string,
+        session: formData.get("session") as string || null,
+        strategy_type: formData.get("strategy_type") as string || null,
+        entry_type: formData.get("entry_type") as string || null,
+        entry_timeframe: formData.get("entry_timeframe") as string || null,
+        risk_to_pay: formData.get("risk_to_pay") ? parseFloat(formData.get("risk_to_pay") as string) : null,
+        total_pips_secured: formData.get("total_pips_secured") ? parseFloat(formData.get("total_pips_secured") as string) : null,
+        max_drawdown_pips: formData.get("max_drawdown_pips") ? parseFloat(formData.get("max_drawdown_pips") as string) : null,
+        pips: formData.get("pips") ? parseFloat(formData.get("pips") as string) : null,
+        original_take_profit_percent: formData.get("original_take_profit_percent") ? parseFloat(formData.get("original_take_profit_percent") as string) : null,
+        outcome: formData.get("outcome") as string,
+        notes: formData.get("notes") as string || null,
+      });
 
-    if (error) {
-      toast.error("Failed to log trade");
-      console.error(error);
-    } else {
+      if (error) throw error;
+
       toast.success("Trade logged successfully!");
       setOpen(false);
       onTradeAdded?.();
       (e.target as HTMLFormElement).reset();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to log trade");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const defaultDate = selectedDate?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0];
+  const defaultDate = selectedDate
+    ? selectedDate.toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -71,31 +84,31 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="trade_date">Date *</Label>
-              <Input
-                id="trade_date"
-                name="trade_date"
-                type="date"
-                defaultValue={defaultDate}
-                required
-              />
+              <Input id="trade_date" name="trade_date" type="date" defaultValue={defaultDate} required />
             </div>
             <div>
               <Label htmlFor="pair">Pair *</Label>
-              <Input
-                id="pair"
-                name="pair"
-                placeholder="EUR/USD"
-                required
-              />
+              <Input id="pair" name="pair" placeholder="e.g., EUR/USD" required />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="buy_sell">Direction *</Label>
+              <Label htmlFor="time_opened">Time Opened</Label>
+              <Input id="time_opened" name="time_opened" type="time" />
+            </div>
+            <div>
+              <Label htmlFor="time_closed">Time Closed</Label>
+              <Input id="time_closed" name="time_closed" type="time" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="buy_sell">Buy/Sell *</Label>
               <Select name="buy_sell" required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select direction" />
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Buy">Buy</SelectItem>
@@ -107,33 +120,14 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
               <Label htmlFor="outcome">Outcome *</Label>
               <Select name="outcome" required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select outcome" />
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Win">Win</SelectItem>
                   <SelectItem value="Loss">Loss</SelectItem>
-                  <SelectItem value="Breakeven">Breakeven</SelectItem>
+                  <SelectItem value="Break Even">Break Even</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="time_opened">Time Opened</Label>
-              <Input
-                id="time_opened"
-                name="time_opened"
-                type="time"
-              />
-            </div>
-            <div>
-              <Label htmlFor="time_closed">Time Closed</Label>
-              <Input
-                id="time_closed"
-                name="time_closed"
-                type="time"
-              />
             </div>
           </div>
 
@@ -142,53 +136,39 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
               <Label htmlFor="session">Session</Label>
               <Select name="session">
                 <SelectTrigger>
-                  <SelectValue placeholder="Select session" />
+                  <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="London">London</SelectItem>
                   <SelectItem value="New York">New York</SelectItem>
-                  <SelectItem value="Asian">Asian</SelectItem>
+                  <SelectItem value="Asia">Asia</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="strategy_type">Strategy</Label>
-              <Input
-                id="strategy_type"
-                name="strategy_type"
-                placeholder="SMC, ICT, etc."
-              />
+              <Input id="strategy_type" name="strategy_type" placeholder="e.g., Breakout" />
             </div>
             <div>
               <Label htmlFor="entry_type">Entry Type</Label>
-              <Input
-                id="entry_type"
-                name="entry_type"
-                placeholder="Market, Limit"
-              />
+              <Input id="entry_type" name="entry_type" placeholder="e.g., Limit" />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="pips">Pips *</Label>
-            <Input
-              id="pips"
-              name="pips"
-              type="number"
-              step="0.1"
-              placeholder="0.0"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="pips">Pips</Label>
+              <Input id="pips" name="pips" type="number" step="0.1" placeholder="0.0" />
+            </div>
+            <div>
+              <Label htmlFor="risk_to_pay">Risk to Pay</Label>
+              <Input id="risk_to_pay" name="risk_to_pay" type="number" step="0.01" placeholder="0.00" />
+            </div>
           </div>
 
           <div>
             <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              placeholder="What went well? What could be improved?"
-              rows={3}
-            />
+            <Textarea id="notes" name="notes" placeholder="Trade notes..." rows={3} />
           </div>
 
           <div className="flex justify-end gap-2">
