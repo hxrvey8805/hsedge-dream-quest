@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,16 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
 
 interface TradeDialogProps {
-  selectedDate?: Date;
+  selectedDate?: Date | null;
   onTradeAdded?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: TradeDialogProps) => {
   const [loading, setLoading] = useState(false);
+
+  const defaultDate = selectedDate
+    ? selectedDate.toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,6 +50,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
         total_pips_secured: formData.get("total_pips_secured") ? parseFloat(formData.get("total_pips_secured") as string) : null,
         max_drawdown_pips: formData.get("max_drawdown_pips") ? parseFloat(formData.get("max_drawdown_pips") as string) : null,
         pips: formData.get("pips") ? parseFloat(formData.get("pips") as string) : null,
+        profit: formData.get("profit") ? parseFloat(formData.get("profit") as string) : null,
         original_take_profit_percent: formData.get("original_take_profit_percent") ? parseFloat(formData.get("original_take_profit_percent") as string) : null,
         outcome: formData.get("outcome") as string,
         notes: formData.get("notes") as string || null,
@@ -54,7 +59,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
       if (error) throw error;
 
       toast.success("Trade logged successfully!");
-      setOpen(false);
+      onOpenChange(false);
       onTradeAdded?.();
       (e.target as HTMLFormElement).reset();
     } catch (error: any) {
@@ -64,18 +69,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
     }
   };
 
-  const defaultDate = selectedDate
-    ? selectedDate.toISOString().split('T')[0]
-    : new Date().toISOString().split('T')[0];
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" />
-          Log Trade
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Log New Trade</DialogTitle>
@@ -161,8 +156,19 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
               <Input id="pips" name="pips" type="number" step="0.1" placeholder="0.0" />
             </div>
             <div>
+              <Label htmlFor="profit">Profit ($)</Label>
+              <Input id="profit" name="profit" type="number" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="risk_to_pay">Risk to Pay</Label>
               <Input id="risk_to_pay" name="risk_to_pay" type="number" step="0.01" placeholder="0.00" />
+            </div>
+            <div>
+              <Label htmlFor="total_pips_secured">Total Pips Secured</Label>
+              <Input id="total_pips_secured" name="total_pips_secured" type="number" step="0.1" placeholder="0.0" />
             </div>
           </div>
 
@@ -172,7 +178,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded }: TradeDialogProps) =>
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

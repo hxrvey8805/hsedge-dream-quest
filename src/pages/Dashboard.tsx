@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({ totalPL: 0, winRate: 0, totalTrades: 0 });
+  const [stats, setStats] = useState({ totalPL: 0, totalProfit: 0, winRate: 0, totalTrades: 0 });
+  const [viewMode, setViewMode] = useState<'pips' | 'profit'>('pips');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchStats = async () => {
@@ -25,15 +30,22 @@ const Dashboard = () => {
 
     if (!error && data) {
       const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
       const winRate = data.length > 0 ? (wins / data.length) * 100 : 0;
       
       setStats({
         totalPL: totalPips,
+        totalProfit: totalProfit,
         winRate: Math.round(winRate),
         totalTrades: data.length
       });
     }
+  };
+
+  const handleDaySelect = (date: Date) => {
+    setSelectedDate(date);
+    setDialogOpen(true);
   };
 
   useEffect(() => {
@@ -98,8 +110,12 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total P&L</p>
-                <p className={`text-2xl font-bold ${stats.totalPL >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips
+                <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {viewMode === 'pips' ? (
+                    <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</>
+                  ) : (
+                    <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>
+                  )}
                 </p>
               </div>
             </div>
@@ -133,12 +149,28 @@ const Dashboard = () => {
         <Card className="p-8 bg-card border-border">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Trading Calendar</h2>
-            <TradeDialog onTradeAdded={fetchStats} />
+            <div className="flex items-center gap-4">
+              <Label htmlFor="view-toggle" className="text-sm font-medium">
+                {viewMode === 'pips' ? 'Pips' : 'P&L ($)'}
+              </Label>
+              <Switch
+                id="view-toggle"
+                checked={viewMode === 'profit'}
+                onCheckedChange={(checked) => setViewMode(checked ? 'profit' : 'pips')}
+              />
+            </div>
           </div>
           
-          <TradingCalendar />
+          <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} />
         </Card>
       </main>
+
+      <TradeDialog 
+        onTradeAdded={fetchStats} 
+        selectedDate={selectedDate}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 };

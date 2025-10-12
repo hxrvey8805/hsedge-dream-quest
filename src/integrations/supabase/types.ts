@@ -29,6 +29,7 @@ export type Database = {
           outcome: string
           pair: string
           pips: number | null
+          profit: number | null
           risk_to_pay: number | null
           session: string | null
           strategy_type: string | null
@@ -53,6 +54,7 @@ export type Database = {
           outcome: string
           pair: string
           pips?: number | null
+          profit?: number | null
           risk_to_pay?: number | null
           session?: string | null
           strategy_type?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           outcome?: string
           pair?: string
           pips?: number | null
+          profit?: number | null
           risk_to_pay?: number | null
           session?: string | null
           strategy_type?: string | null
