@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      dream_profiles: {
+        Row: {
+          created_at: string
+          diet_lifestyle: string | null
+          dream_type: string
+          id: string
+          living_image_url: string | null
+          living_situation: string | null
+          luxury_approach: string | null
+          professional_help: string | null
+          style: string | null
+          style_image_url: string | null
+          timescale: string | null
+          title: string
+          travel: string | null
+          travel_image_url: string | null
+          updated_at: string
+          user_id: string
+          vehicle: string | null
+          vehicle_image_url: string | null
+          why_motivation: string | null
+        }
+        Insert: {
+          created_at?: string
+          diet_lifestyle?: string | null
+          dream_type: string
+          id?: string
+          living_image_url?: string | null
+          living_situation?: string | null
+          luxury_approach?: string | null
+          professional_help?: string | null
+          style?: string | null
+          style_image_url?: string | null
+          timescale?: string | null
+          title: string
+          travel?: string | null
+          travel_image_url?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle?: string | null
+          vehicle_image_url?: string | null
+          why_motivation?: string | null
+        }
+        Update: {
+          created_at?: string
+          diet_lifestyle?: string | null
+          dream_type?: string
+          id?: string
+          living_image_url?: string | null
+          living_situation?: string | null
+          luxury_approach?: string | null
+          professional_help?: string | null
+          style?: string | null
+          style_image_url?: string | null
+          timescale?: string | null
+          title?: string
+          travel?: string | null
+          travel_image_url?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle?: string | null
+          vehicle_image_url?: string | null
+          why_motivation?: string | null
+        }
+        Relationships: []
+      }
+      dream_purchases: {
+        Row: {
+          created_at: string
+          down_payment: number | null
+          dream_profile_id: string
+          id: string
+          image_url: string | null
+          is_selected: boolean | null
+          item_name: string
+          payment_period_years: number | null
+          price: number
+          tax_interest_buffer: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          down_payment?: number | null
+          dream_profile_id: string
+          id?: string
+          image_url?: string | null
+          is_selected?: boolean | null
+          item_name: string
+          payment_period_years?: number | null
+          price: number
+          tax_interest_buffer?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          down_payment?: number | null
+          dream_profile_id?: string
+          id?: string
+          image_url?: string | null
+          is_selected?: boolean | null
+          item_name?: string
+          payment_period_years?: number | null
+          price?: number
+          tax_interest_buffer?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dream_purchases_dream_profile_id_fkey"
+            columns: ["dream_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dream_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           asset_class: string | null
@@ -118,6 +237,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trading_income_sources: {
+        Row: {
+          account_size: number
+          created_at: string
+          dream_profile_id: string
+          id: string
+          monthly_return_percent: number
+          profit_split_percent: number
+          source_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_size: number
+          created_at?: string
+          dream_profile_id: string
+          id?: string
+          monthly_return_percent: number
+          profit_split_percent: number
+          source_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_size?: number
+          created_at?: string
+          dream_profile_id?: string
+          id?: string
+          monthly_return_percent?: number
+          profit_split_percent?: number
+          source_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trading_income_sources_dream_profile_id_fkey"
+            columns: ["dream_profile_id"]
+            isOneToOne: false
+            referencedRelation: "dream_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
