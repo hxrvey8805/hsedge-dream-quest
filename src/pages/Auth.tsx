@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,11 @@ import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const priceId = searchParams.get("price");
+  const planName = searchParams.get("plan");
+  
+  const [isLogin, setIsLogin] = useState(!priceId); // Default to signup if coming from pricing
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,7 +45,7 @@ const Auth = () => {
         if (error) throw error;
         toast.success("Welcome back!");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -49,7 +53,25 @@ const Auth = () => {
           }
         });
         if (error) throw error;
-        toast.success("Account created! Please check your email to verify.");
+        toast.success("Account created!");
+        
+        // If user signed up from pricing page, redirect to checkout
+        if (priceId && data.session) {
+          const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+            body: { priceId }
+          });
+          
+          if (checkoutError) {
+            toast.error("Failed to create checkout session");
+            console.error(checkoutError);
+            return;
+          }
+          
+          if (checkoutData?.url) {
+            window.location.href = checkoutData.url;
+            return;
+          }
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -65,7 +87,9 @@ const Auth = () => {
           <div className="flex justify-center">
             <img src={logo} alt="HS-Edge" className="h-16 w-16" />
           </div>
-          <CardTitle className="text-2xl font-bold">{isLogin ? "Welcome Back" : "Create Account"}</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {isLogin ? "Welcome Back" : planName ? `Get Started with ${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan` : "Create Account"}
+          </CardTitle>
           <CardDescription>
             {isLogin ? "Sign in to continue your trading journey" : "Start your gamified trading journey"}
           </CardDescription>

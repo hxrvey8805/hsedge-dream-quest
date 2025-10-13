@@ -55,7 +55,7 @@ const Pricing = () => {
                 <span>Dream Builder (1 dream)</span>
               </li>
             </ul>
-            <Button className="w-full" onClick={() => navigate("/auth")}>Get Started</Button>
+            <Button className="w-full" onClick={() => navigate("/auth?plan=starter&price=price_1SHmnDGy16OK5lK5SSg65pn5")}>Get Started</Button>
           </div>
 
           <div className="p-8 rounded-2xl border-2 border-primary bg-card relative hover:shadow-glow transition-all">
@@ -89,7 +89,7 @@ const Pricing = () => {
                 <span>Export data</span>
               </li>
             </ul>
-            <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>Get Started</Button>
+            <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/auth?plan=pro&price=price_1SHmo8Gy16OK5lK57G2EmGQR")}>Get Started</Button>
           </div>
 
           <div className="p-8 rounded-2xl border-2 border-border bg-card hover:border-primary transition-all">
@@ -116,7 +116,7 @@ const Pricing = () => {
                 <span>Advanced goal tracking</span>
               </li>
             </ul>
-            <Button className="w-full" onClick={() => navigate("/auth")}>Get Started</Button>
+            <Button className="w-full" onClick={() => navigate("/auth?plan=elite&price=price_1SHmoZGy16OK5lK5lIQu6ZLF")}>Get Started</Button>
           </div>
         </div>
 
