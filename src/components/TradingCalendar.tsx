@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Trade {
   id: string;
@@ -37,6 +48,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tradeToDelete, setTradeToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTrades();
@@ -89,6 +102,31 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
     const reward = trade.total_pips_secured;
     const risk = trade.risk_to_pay;
     return `1:${(reward / risk).toFixed(2)}`;
+  };
+
+  const handleDeleteTrade = async () => {
+    if (!tradeToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("trades")
+        .delete()
+        .eq("id", tradeToDelete);
+
+      if (error) throw error;
+
+      toast.success("Trade deleted successfully!");
+      setDeleteDialogOpen(false);
+      setTradeToDelete(null);
+      fetchTrades(); // Refresh the calendar
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete trade");
+    }
+  };
+
+  const confirmDelete = (tradeId: string) => {
+    setTradeToDelete(tradeId);
+    setDeleteDialogOpen(true);
   };
 
   const monthStart = startOfMonth(currentMonth);
@@ -190,10 +228,20 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
                     <h4 className="font-semibold text-lg">{trade.pair}</h4>
                     <p className="text-sm text-muted-foreground">{trade.buy_sell}</p>
                   </div>
-                  <div className={`text-xl font-bold ${
-                    trade.outcome === 'Win' ? 'text-success' : 'text-destructive'
-                  }`}>
-                    {trade.outcome}
+                  <div className="flex items-center gap-2">
+                    <div className={`text-xl font-bold ${
+                      trade.outcome === 'Win' ? 'text-success' : 'text-destructive'
+                    }`}>
+                      {trade.outcome}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => confirmDelete(trade.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -225,6 +273,26 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Trade</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this trade? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTrade}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
