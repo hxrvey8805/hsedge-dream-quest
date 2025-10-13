@@ -35,7 +35,7 @@ const Index = () => {
               Your Gamified, Dream-Driven Path to Trading Excellence
             </h1>
             <p className="text-xl text-muted-foreground mb-8 animate-fade-in">
-              Transform your trading journey with HS-Edge. Track every trade, build your dreams, and level up your skills with our gamified trading journal.
+              Transform your trading journey with HS Journal. Track every trade, build your dreams, and level up your skills with our gamified trading journal.
             </p>
             <div className="flex gap-4 justify-center animate-fade-in">
               <Button size="lg" className="bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
@@ -89,7 +89,7 @@ const Index = () => {
               <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
               <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Trading?</h2>
               <p className="text-xl text-muted-foreground mb-8">
-                Join HS-Edge today and start your journey to becoming a consistently profitable trader.
+                Join HS Journal today and start your journey to becoming a consistently profitable trader.
               </p>
               <Button size="lg" className="bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
                 Start Free Today
@@ -101,7 +101,7 @@ const Index = () => {
 
       <footer className="border-t border-border bg-card mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-          <p>© 2025 HS-Edge. All rights reserved.</p>
+          <p>© 2025 HS Journal. All rights reserved.</p>
         </div>
       </footer>
     </div>
