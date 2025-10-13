@@ -38,7 +38,8 @@ const Index = () => {
               Your Gamified, Dream-Driven Path to Trading Excellence
             </h1>
             <p className="text-xl text-muted-foreground mb-8 animate-fade-in">
-              Transform your trading journey with HS Journal. Track every trade, build your dreams, and level up your skills with our gamified trading journal.
+              Transform your trading journey with HS Journal. Track every trade, build your dreams, and level up your
+              skills with our gamified trading journal.
             </p>
             <div className="flex gap-4 justify-center animate-fade-in">
               <Button size="lg" className="bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
@@ -95,7 +96,7 @@ const Index = () => {
                 Join HS Journal today and start your journey to becoming a consistently profitable trader.
               </p>
               <Button size="lg" className="bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
-                Start Free Today
+                Start Free Trial Today
               </Button>
             </div>
           </div>
