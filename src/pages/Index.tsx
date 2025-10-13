@@ -14,7 +14,10 @@ const Index = () => {
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <span className="text-xl font-bold">HS Journal</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            <Button variant="ghost" onClick={() => navigate("/pricing")}>
+              Pricing
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/auth")}>
               Login
             </Button>
@@ -78,99 +81,6 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Deep insights into your trading patterns, win rates, and performance metrics.
               </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Choose Your Plan</h2>
-            <p className="text-xl text-muted-foreground">Start your journey to trading excellence</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="p-8 rounded-2xl border-2 border-border bg-card hover:border-primary transition-all">
-              <h3 className="text-2xl font-bold mb-2">Starter</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$9.99</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Up to 50 trades per month</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Basic statistics</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Dream Builder (1 dream)</span>
-                </li>
-              </ul>
-              <Button className="w-full" onClick={() => navigate("/auth")}>Get Started</Button>
-            </div>
-
-            <div className="p-8 rounded-2xl border-2 border-primary bg-card relative hover:shadow-glow transition-all">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                Most Popular
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Pro</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$29.99</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Unlimited trades</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Advanced analytics</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Unlimited dreams</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Calendar view</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Export data</span>
-                </li>
-              </ul>
-              <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>Get Started</Button>
-            </div>
-
-            <div className="p-8 rounded-2xl border-2 border-border bg-card hover:border-primary transition-all">
-              <h3 className="text-2xl font-bold mb-2">Elite</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">$99.99</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Everything in Pro</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Priority support</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Custom strategies</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-1">✓</span>
-                  <span>Advanced goal tracking</span>
-                </li>
-              </ul>
-              <Button className="w-full" onClick={() => navigate("/auth")}>Get Started</Button>
             </div>
           </div>
         </section>
