@@ -171,9 +171,9 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
           const isSelected = selectedDay && isSameDay(day, selectedDay);
           const hasTradesClass = dayStats.trades.length > 0
             ? dayStats.outcome === 'profit'
-              ? 'border-success/50 bg-success/10 shadow-success'
+              ? 'border-success bg-success/20 shadow-lg shadow-success/20'
               : dayStats.outcome === 'loss'
-              ? 'border-destructive/50 bg-destructive/10 shadow-danger'
+              ? 'border-destructive bg-destructive/20 shadow-lg shadow-destructive/20'
               : 'border-primary/50 bg-primary/5'
             : '';
           
@@ -184,7 +184,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
               key={day.toISOString()}
               onClick={() => handleDayClick(day, dayStats)}
               className={`min-h-[100px] p-3 rounded-lg border cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] ${
-                isSelected ? 'border-blue-500 bg-blue-500/10' : `border-border ${hasTradesClass}`
+                isSelected ? 'border-blue-500 bg-blue-500/10' : `${hasTradesClass || 'border-border'}`
               }`}
             >
               <div className="text-sm font-medium text-muted-foreground mb-2">
