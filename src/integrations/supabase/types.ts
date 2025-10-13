@@ -16,23 +16,32 @@ export type Database = {
     Tables: {
       trades: {
         Row: {
+          asset_class: string | null
           buy_sell: string
           created_at: string
           day_of_week: string | null
           duration: string | null
+          entry_price: number | null
           entry_timeframe: string | null
           entry_type: string | null
+          exit_price: number | null
+          fees: number | null
           id: string
           max_drawdown_pips: number | null
           notes: string | null
           original_take_profit_percent: number | null
           outcome: string
-          pair: string
+          pair: string | null
           pips: number | null
           profit: number | null
+          risk_reward_ratio: string | null
           risk_to_pay: number | null
+          screenshots: string[] | null
           session: string | null
+          size: number | null
+          stop_loss: number | null
           strategy_type: string | null
+          symbol: string | null
           time_closed: string | null
           time_opened: string | null
           total_pips_secured: number | null
@@ -41,23 +50,32 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          asset_class?: string | null
           buy_sell: string
           created_at?: string
           day_of_week?: string | null
           duration?: string | null
+          entry_price?: number | null
           entry_timeframe?: string | null
           entry_type?: string | null
+          exit_price?: number | null
+          fees?: number | null
           id?: string
           max_drawdown_pips?: number | null
           notes?: string | null
           original_take_profit_percent?: number | null
           outcome: string
-          pair: string
+          pair?: string | null
           pips?: number | null
           profit?: number | null
+          risk_reward_ratio?: string | null
           risk_to_pay?: number | null
+          screenshots?: string[] | null
           session?: string | null
+          size?: number | null
+          stop_loss?: number | null
           strategy_type?: string | null
+          symbol?: string | null
           time_closed?: string | null
           time_opened?: string | null
           total_pips_secured?: number | null
@@ -66,23 +84,32 @@ export type Database = {
           user_id: string
         }
         Update: {
+          asset_class?: string | null
           buy_sell?: string
           created_at?: string
           day_of_week?: string | null
           duration?: string | null
+          entry_price?: number | null
           entry_timeframe?: string | null
           entry_type?: string | null
+          exit_price?: number | null
+          fees?: number | null
           id?: string
           max_drawdown_pips?: number | null
           notes?: string | null
           original_take_profit_percent?: number | null
           outcome?: string
-          pair?: string
+          pair?: string | null
           pips?: number | null
           profit?: number | null
+          risk_reward_ratio?: string | null
           risk_to_pay?: number | null
+          screenshots?: string[] | null
           session?: string | null
+          size?: number | null
+          stop_loss?: number | null
           strategy_type?: string | null
+          symbol?: string | null
           time_closed?: string | null
           time_opened?: string | null
           total_pips_secured?: number | null

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [viewMode, setViewMode] = useState<'pips' | 'profit'>('pips');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
   const fetchStats = async () => {
@@ -46,6 +47,11 @@ const Dashboard = () => {
   const handleDaySelect = (date: Date) => {
     setSelectedDate(date);
     setDialogOpen(true);
+  };
+
+  const handleTradeAdded = () => {
+    fetchStats();
+    setRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -89,6 +95,10 @@ const Dashboard = () => {
             <h1 className="text-xl font-bold">HS-Edge</h1>
           </div>
           <nav className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate("/statistics")}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Statistics
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/dream-builder")}>
               <Trophy className="mr-2 h-4 w-4" />
               Dream Builder
@@ -161,12 +171,12 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} />
+          <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
         </Card>
       </main>
 
       <TradeDialog 
-        onTradeAdded={fetchStats} 
+        onTradeAdded={handleTradeAdded} 
         selectedDate={selectedDate}
         open={dialogOpen}
         onOpenChange={setDialogOpen}

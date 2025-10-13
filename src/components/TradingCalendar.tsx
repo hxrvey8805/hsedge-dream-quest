@@ -29,9 +29,10 @@ interface DayStats {
 interface TradingCalendarProps {
   onDaySelect: (date: Date) => void;
   viewMode: 'pips' | 'profit';
+  refreshTrigger?: number;
 }
 
-export const TradingCalendar = ({ onDaySelect, viewMode }: TradingCalendarProps) => {
+export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: TradingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -39,7 +40,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode }: TradingCalendarProps)
 
   useEffect(() => {
     fetchTrades();
-  }, [currentMonth]);
+  }, [currentMonth, refreshTrigger]);
 
   const fetchTrades = async () => {
     const { data: { user } } = await supabase.auth.getUser();

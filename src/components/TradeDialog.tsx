@@ -15,12 +15,79 @@ interface TradeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const ASSET_CLASSES = ["Forex", "Stocks", "Futures", "Crypto"] as const;
+const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
+
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: TradeDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [assetClass, setAssetClass] = useState<string>("Forex");
+  const [entryPrice, setEntryPrice] = useState<string>("");
+  const [exitPrice, setExitPrice] = useState<string>("");
+  const [stopLoss, setStopLoss] = useState<string>("");
+  const [size, setSize] = useState<string>("");
+  const [fees, setFees] = useState<string>("");
+
+  // Fix timezone issue by using local date components
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const defaultDate = selectedDate
-    ? selectedDate.toISOString().split('T')[0]
-    : new Date().toISOString().split('T')[0];
+    ? getLocalDateString(selectedDate)
+    : getLocalDateString(new Date());
+
+  // Calculate R:R automatically
+  const calculateRR = () => {
+    const entry = parseFloat(entryPrice);
+    const exit = parseFloat(exitPrice);
+    const stop = parseFloat(stopLoss);
+    
+    if (!entry || !exit || !stop) return "N/A";
+    
+    const risk = Math.abs(entry - stop);
+    const reward = Math.abs(exit - entry);
+    
+    if (risk === 0) return "N/A";
+    return `1:${(reward / risk).toFixed(2)}`;
+  };
+
+  // Calculate P&L based on asset class
+  const calculatePnL = () => {
+    const entry = parseFloat(entryPrice);
+    const exit = parseFloat(exitPrice);
+    const tradeSize = parseFloat(size);
+    const tradeFees = parseFloat(fees) || 0;
+    
+    if (!entry || !exit || !tradeSize) return { pips: 0, profit: 0 };
+    
+    let pips = 0;
+    let profit = 0;
+    
+    switch(assetClass) {
+      case "Forex":
+        pips = (exit - entry) * 10000; // Standard lot pip calculation
+        profit = pips * tradeSize * 10 - tradeFees; // $10 per pip per lot
+        break;
+      case "Stocks":
+        profit = (exit - entry) * tradeSize - tradeFees;
+        break;
+      case "Futures":
+        const ticks = exit - entry;
+        profit = ticks * tradeSize - tradeFees; // Size should include tick value
+        pips = ticks; // Store ticks as pips for futures
+        break;
+      case "Crypto":
+        profit = (exit - entry) * tradeSize - tradeFees;
+        pips = exit - entry; // Store points as pips
+        break;
+    }
+    
+    return { pips: parseFloat(pips.toFixed(2)), profit: parseFloat(profit.toFixed(2)) };
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +95,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
 
     const formData = new FormData(e.currentTarget);
     const tradeDate = formData.get("trade_date") as string;
+    const { pips: calculatedPips, profit: calculatedProfit } = calculatePnL();
+    const rrRatio = calculateRR();
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -37,11 +106,18 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
         user_id: user.id,
         trade_date: tradeDate,
         day_of_week: new Date(tradeDate).toLocaleDateString('en-US', { weekday: 'long' }),
-        pair: formData.get("pair") as string,
+        symbol: formData.get("symbol") as string,
+        asset_class: assetClass,
+        pair: formData.get("symbol") as string, // Keep for backward compatibility
+        buy_sell: formData.get("buy_sell") as string,
+        entry_price: parseFloat(entryPrice) || null,
+        exit_price: parseFloat(exitPrice) || null,
+        stop_loss: parseFloat(stopLoss) || null,
+        size: parseFloat(size) || null,
+        fees: parseFloat(fees) || null,
         time_opened: formData.get("time_opened") as string || null,
         time_closed: formData.get("time_closed") as string || null,
         duration: formData.get("duration") as string || null,
-        buy_sell: formData.get("buy_sell") as string,
         session: formData.get("session") as string || null,
         strategy_type: formData.get("strategy_type") as string || null,
         entry_type: formData.get("entry_type") as string || null,
@@ -49,10 +125,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
         risk_to_pay: formData.get("risk_to_pay") ? parseFloat(formData.get("risk_to_pay") as string) : null,
         total_pips_secured: formData.get("total_pips_secured") ? parseFloat(formData.get("total_pips_secured") as string) : null,
         max_drawdown_pips: formData.get("max_drawdown_pips") ? parseFloat(formData.get("max_drawdown_pips") as string) : null,
-        pips: formData.get("pips") ? parseFloat(formData.get("pips") as string) : null,
-        profit: formData.get("profit") ? parseFloat(formData.get("profit") as string) : null,
+        pips: calculatedPips,
+        profit: calculatedProfit,
+        risk_reward_ratio: rrRatio,
         original_take_profit_percent: formData.get("original_take_profit_percent") ? parseFloat(formData.get("original_take_profit_percent") as string) : null,
-        outcome: formData.get("outcome") as string,
+        outcome: calculatedProfit > 0 ? "Win" : calculatedProfit < 0 ? "Loss" : "Break Even",
         notes: formData.get("notes") as string || null,
       });
 
@@ -62,6 +139,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       onOpenChange(false);
       onTradeAdded?.();
       (e.target as HTMLFormElement).reset();
+      setEntryPrice("");
+      setExitPrice("");
+      setStopLoss("");
+      setSize("");
+      setFees("");
     } catch (error: any) {
       toast.error(error.message || "Failed to log trade");
     } finally {
@@ -69,21 +151,185 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
     }
   };
 
+  const { pips: previewPips, profit: previewProfit } = calculatePnL();
+  const previewRR = calculateRR();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Log New Trade</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Essential Info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="trade_date">Date *</Label>
               <Input id="trade_date" name="trade_date" type="date" defaultValue={defaultDate} required />
             </div>
             <div>
-              <Label htmlFor="pair">Pair *</Label>
-              <Input id="pair" name="pair" placeholder="e.g., EUR/USD" required />
+              <Label htmlFor="asset_class">Asset Class *</Label>
+              <Select value={assetClass} onValueChange={setAssetClass} required>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ASSET_CLASSES.map(ac => (
+                    <SelectItem key={ac} value={ac}>{ac}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="symbol">Symbol *</Label>
+              <Input 
+                id="symbol" 
+                name="symbol" 
+                placeholder={assetClass === "Forex" ? "EUR/USD" : assetClass === "Stocks" ? "AAPL" : assetClass === "Futures" ? "ES" : "BTC"} 
+                required 
+              />
+            </div>
+            <div>
+              <Label htmlFor="buy_sell">Side *</Label>
+              <Select name="buy_sell" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Buy">Long/Buy</SelectItem>
+                  <SelectItem value="Sell">Short/Sell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Price Levels */}
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            <h3 className="font-medium text-sm">Price Levels *</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="entry_price">Entry Price</Label>
+                <Input 
+                  id="entry_price" 
+                  type="number" 
+                  step="any" 
+                  placeholder="0.00"
+                  value={entryPrice}
+                  onChange={(e) => setEntryPrice(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="exit_price">Exit Price</Label>
+                <Input 
+                  id="exit_price" 
+                  type="number" 
+                  step="any" 
+                  placeholder="0.00"
+                  value={exitPrice}
+                  onChange={(e) => setExitPrice(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="stop_loss">Stop Loss</Label>
+                <Input 
+                  id="stop_loss" 
+                  type="number" 
+                  step="any" 
+                  placeholder="0.00"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="size">Size *</Label>
+                <Input 
+                  id="size" 
+                  type="number" 
+                  step="any" 
+                  placeholder={assetClass === "Forex" ? "Lots" : assetClass === "Stocks" ? "Shares" : "Contracts"}
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="fees">Fees/Comm</Label>
+                <Input 
+                  id="fees" 
+                  type="number" 
+                  step="0.01" 
+                  placeholder="0.00"
+                  value={fees}
+                  onChange={(e) => setFees(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            {/* Auto-calculated preview */}
+            {entryPrice && exitPrice && size && (
+              <div className="mt-4 p-3 bg-background rounded border">
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">R:R Ratio:</span>
+                    <p className="font-bold text-lg">{previewRR}</p>
+                  </div>
+                  {assetClass === "Forex" || assetClass === "Futures" ? (
+                    <div>
+                      <span className="text-muted-foreground">{assetClass === "Forex" ? "Pips" : "Ticks"}:</span>
+                      <p className={`font-bold text-lg ${previewPips >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {previewPips >= 0 ? '+' : ''}{previewPips.toFixed(1)}
+                      </p>
+                    </div>
+                  ) : null}
+                  <div>
+                    <span className="text-muted-foreground">P&L:</span>
+                    <p className={`font-bold text-lg ${previewProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      ${previewProfit >= 0 ? '+' : ''}{previewProfit.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Trade Details */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="session">Session</Label>
+              <Select name="session">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SESSIONS.map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="entry_timeframe">Entry Timeframe</Label>
+              <Select name="entry_timeframe">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEFRAMES.map(tf => (
+                    <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="strategy_type">Strategy</Label>
+              <Input id="strategy_type" name="strategy_type" placeholder="e.g., Breakout" />
             </div>
           </div>
 
@@ -98,83 +344,9 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="buy_sell">Buy/Sell *</Label>
-              <Select name="buy_sell" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Buy">Buy</SelectItem>
-                  <SelectItem value="Sell">Sell</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="outcome">Outcome *</Label>
-              <Select name="outcome" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Win">Win</SelectItem>
-                  <SelectItem value="Loss">Loss</SelectItem>
-                  <SelectItem value="Break Even">Break Even</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="session">Session</Label>
-              <Select name="session">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="London">London</SelectItem>
-                  <SelectItem value="New York">New York</SelectItem>
-                  <SelectItem value="Asia">Asia</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="strategy_type">Strategy</Label>
-              <Input id="strategy_type" name="strategy_type" placeholder="e.g., Breakout" />
-            </div>
-            <div>
-              <Label htmlFor="entry_type">Entry Type</Label>
-              <Input id="entry_type" name="entry_type" placeholder="e.g., Limit" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="pips">Pips</Label>
-              <Input id="pips" name="pips" type="number" step="0.1" placeholder="0.0" />
-            </div>
-            <div>
-              <Label htmlFor="profit">Profit ($)</Label>
-              <Input id="profit" name="profit" type="number" step="0.01" placeholder="0.00" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="risk_to_pay">Risk to Pay</Label>
-              <Input id="risk_to_pay" name="risk_to_pay" type="number" step="0.01" placeholder="0.00" />
-            </div>
-            <div>
-              <Label htmlFor="total_pips_secured">Total Pips Secured</Label>
-              <Input id="total_pips_secured" name="total_pips_secured" type="number" step="0.1" placeholder="0.0" />
-            </div>
-          </div>
-
           <div>
             <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" placeholder="Trade notes..." rows={3} />
+            <Textarea id="notes" name="notes" placeholder="Trade notes and observations..." rows={3} />
           </div>
 
           <div className="flex justify-end gap-2">
