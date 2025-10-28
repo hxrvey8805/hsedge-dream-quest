@@ -10,7 +10,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <span className="text-xl font-bold"></span>
@@ -30,9 +30,9 @@ const Index = () => {
       </header>
 
       <main>
-        <section className="container mx-auto px-4 pt-4 pb-12 text-center">
+        <section className="container mx-auto px-4 pt-0 pb-8 text-center">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex mb-4 animate-fade-in">
+            <div className="inline-flex mb-2 animate-fade-in">
               <img src={heroLogo} alt="HS Journal" className="h-80 w-auto" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
