@@ -30,9 +30,9 @@ const Index = () => {
       </header>
 
       <main>
-        <section className="container mx-auto px-4 py-8 text-center">
+        <section className="container mx-auto px-4 pt-4 pb-12 text-center">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex mb-6 animate-fade-in">
+            <div className="inline-flex mb-4 animate-fade-in">
               <img src={heroLogo} alt="HS Journal" className="h-80 w-auto" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
