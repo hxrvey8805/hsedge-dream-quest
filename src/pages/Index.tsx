@@ -33,7 +33,7 @@ const Index = () => {
         <section className="container mx-auto px-4 pt-0 pb-6 -mt-6 md:-mt-10 text-center">
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex mb-0 animate-fade-in">
-              <img src={heroLogo} alt="HS Journal" className="h-80 w-auto" />
+              <img src={heroLogo} alt="HS Journal" className="h-96 w-auto" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
               Your Gamified, Dream-Driven Path to Trading Excellence
