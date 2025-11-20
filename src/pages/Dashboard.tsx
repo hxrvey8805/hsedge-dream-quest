@@ -10,6 +10,9 @@ import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { LevelProgressCard } from "@/components/gamification/LevelProgressCard";
+import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
+import { MilestonesTracker } from "@/components/gamification/MilestonesTracker";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -112,6 +115,11 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Gamification Section */}
+        <div className="mb-8">
+          <LevelProgressCard />
+        </div>
+
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center gap-3">
@@ -154,6 +162,12 @@ const Dashboard = () => {
               </div>
             </div>
           </Card>
+        </div>
+
+        {/* Achievements and Milestones */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          <AchievementsPanel />
+          <MilestonesTracker />
         </div>
 
         <Card className="p-8 bg-card border-border">

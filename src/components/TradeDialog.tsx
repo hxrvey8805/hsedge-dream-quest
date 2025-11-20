@@ -135,6 +135,43 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
 
       if (error) throw error;
 
+      // Check achievements after successful trade
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const response = await supabase.functions.invoke('check-achievements', {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (response.data) {
+            const { newlyUnlocked, totalXPGained, leveledUp, newLevel } = response.data;
+            
+            // Show notifications for achievements
+            if (newlyUnlocked && newlyUnlocked.length > 0) {
+              newlyUnlocked.forEach((achievement: any) => {
+                toast.success(`🎉 Achievement Unlocked: ${achievement.name}!`, {
+                  description: `+${achievement.xp_reward} XP`,
+                });
+              });
+            }
+            
+            // Show level up notification
+            if (leveledUp) {
+              toast.success(`⭐ Level Up! You're now Level ${newLevel}!`, {
+                description: 'Keep up the great work!',
+              });
+            } else if (totalXPGained > 0) {
+              toast.success(`+${totalXPGained} XP earned!`);
+            }
+          }
+        }
+      } catch (achievementError) {
+        console.error('Error checking achievements:', achievementError);
+        // Don't throw - we don't want to interrupt the trade logging flow
+      }
+
       toast.success("Trade logged successfully!");
       onOpenChange(false);
       onTradeAdded?.();
