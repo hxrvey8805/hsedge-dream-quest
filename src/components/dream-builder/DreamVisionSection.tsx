@@ -76,6 +76,24 @@ export const DreamVisionSection = ({ dreamProfile, onSave }: DreamVisionSectionP
     },
   ];
 
+  const [activeField, setActiveField] = useState<string | null>(null);
+
+  const allQuestions = [
+    ...questions,
+    {
+      icon: Sparkles,
+      label: "What's your approach to luxury vs minimalism?",
+      field: "luxury_approach",
+      placeholder: "Your philosophy on wealth and possessions...",
+    },
+    {
+      icon: Heart,
+      label: "What's your WHY?",
+      field: "why_motivation",
+      placeholder: "This is the most important question. What truly drives you?",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <Card className="p-8 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border-primary/20">
@@ -132,57 +150,55 @@ export const DreamVisionSection = ({ dreamProfile, onSave }: DreamVisionSectionP
 
       <Card className="p-8 bg-card/50 backdrop-blur-sm">
         <h3 className="text-2xl font-bold mb-6">Visualize Your Life</h3>
-        <div className="space-y-6">
-          {questions.map(({ icon: Icon, label, field, placeholder }) => (
-            <div key={field}>
-              <Label htmlFor={field} className="flex items-center gap-2 text-base">
-                <Icon className="h-5 w-5 text-primary" />
-                {label}
-              </Label>
-              <Textarea
-                id={field}
-                value={formData[field as keyof typeof formData] || ""}
-                onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                placeholder={placeholder}
-                className="mt-2"
-                rows={3}
-              />
-            </div>
+        
+        {/* Horizontal Icon Row */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          {allQuestions.map(({ icon: Icon, field, label }) => (
+            <Button
+              key={field}
+              variant={activeField === field ? "default" : "outline"}
+              size="lg"
+              onClick={() => setActiveField(activeField === field ? null : field)}
+              className="flex flex-col items-center gap-2 h-auto py-4 px-6"
+              type="button"
+            >
+              <Icon className="h-6 w-6" />
+              <span className="text-xs text-center max-w-[100px] leading-tight">
+                {label.split("?")[0].replace(/What's your |What |Where do you /gi, "")}
+              </span>
+            </Button>
           ))}
-
-          <div>
-            <Label htmlFor="luxury_approach" className="flex items-center gap-2 text-base">
-              <Sparkles className="h-5 w-5 text-primary" />
-              What's your approach to luxury vs minimalism?
-            </Label>
-            <Textarea
-              id="luxury_approach"
-              value={formData.luxury_approach || ""}
-              onChange={(e) => setFormData({ ...formData, luxury_approach: e.target.value })}
-              placeholder="Your philosophy on wealth and possessions..."
-              className="mt-2"
-              rows={3}
-            />
-          </div>
-
-          <div className="border-t border-border/50 pt-6">
-            <Label htmlFor="why_motivation" className="flex items-center gap-2 text-lg font-semibold">
-              <Heart className="h-6 w-6 text-destructive" />
-              What's your WHY?
-            </Label>
-            <p className="text-sm text-muted-foreground mb-2">
-              The emotional or deeper reason behind your goals
-            </p>
-            <Textarea
-              id="why_motivation"
-              value={formData.why_motivation || ""}
-              onChange={(e) => setFormData({ ...formData, why_motivation: e.target.value })}
-              placeholder="This is the most important question. What truly drives you?"
-              className="mt-2"
-              rows={5}
-            />
-          </div>
         </div>
+
+        {/* Active Field Input */}
+        {activeField && (
+          <div className="space-y-2 animate-fade-in">
+            <Label htmlFor={activeField} className="flex items-center gap-2 text-base font-semibold">
+              {allQuestions.find((q) => q.field === activeField)?.icon && 
+                (() => {
+                  const Icon = allQuestions.find((q) => q.field === activeField)!.icon;
+                  return <Icon className="h-5 w-5 text-primary" />;
+                })()
+              }
+              {allQuestions.find((q) => q.field === activeField)?.label}
+            </Label>
+            <Textarea
+              id={activeField}
+              value={formData[activeField as keyof typeof formData] || ""}
+              onChange={(e) => setFormData({ ...formData, [activeField]: e.target.value })}
+              placeholder={allQuestions.find((q) => q.field === activeField)?.placeholder}
+              className="mt-2"
+              rows={activeField === "why_motivation" ? 5 : 4}
+              autoFocus
+            />
+          </div>
+        )}
+
+        {!activeField && (
+          <p className="text-center text-muted-foreground py-8">
+            Click an icon above to add details about your dream life
+          </p>
+        )}
       </Card>
 
       <div className="flex justify-center">
