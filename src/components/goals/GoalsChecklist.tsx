@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { Target, Plus, X } from "lucide-react";
+import { Target, Plus, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Goal {
@@ -18,6 +18,7 @@ export const GoalsChecklist = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [newGoalCategory, setNewGoalCategory] = useState("Learn");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["Learn", "Implement", "Backtest", "Avoid"]));
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,6 +91,16 @@ export const GoalsChecklist = () => {
     fetchGoals();
   };
 
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
   const categories = ["Learn", "Implement", "Backtest", "Avoid"];
   const goalsByCategory = categories.reduce((acc, cat) => {
     acc[cat] = goals.filter(g => g.category === cat);
@@ -97,48 +108,69 @@ export const GoalsChecklist = () => {
   }, {} as Record<string, Goal[]>);
 
   return (
-    <Card className="bg-card/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
-          GOALS
+    <Card className="bg-gradient-to-br from-card to-card/50 border-border/50 shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Target className="h-5 w-5 text-primary" />
+          </div>
+          Goals Checklist
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {categories.map(category => (
-          <div key={category} className="space-y-2">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-muted-foreground">≡</span> {category}
-            </h3>
-            <div className="space-y-2 pl-6">
-              {goalsByCategory[category].map(goal => (
-                <div key={goal.id} className="flex items-center gap-2 group">
-                  <Checkbox
-                    checked={goal.is_completed}
-                    onCheckedChange={() => toggleGoal(goal.id, goal.is_completed)}
-                  />
-                  <span className={goal.is_completed ? "line-through text-muted-foreground" : ""}>
-                    {goal.text}
+      <CardContent className="space-y-4">
+        {categories.map(category => {
+          const categoryGoals = goalsByCategory[category];
+          const isExpanded = expandedCategories.has(category);
+          const completedCount = categoryGoals.filter(g => g.is_completed).length;
+          
+          return (
+            <div key={category} className="space-y-2">
+              <button
+                onClick={() => toggleCategory(category)}
+                className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  <span className="font-semibold text-foreground">{category}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {completedCount}/{categoryGoals.length}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                    onClick={() => deleteGoal(goal.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
                 </div>
-              ))}
+              </button>
+              
+              {isExpanded && (
+                <div className="space-y-2 pl-8 animate-in fade-in slide-in-from-top-2">
+                  {categoryGoals.map(goal => (
+                    <div key={goal.id} className="flex items-center gap-2 group p-2 rounded-md hover:bg-accent/30 transition-colors">
+                      <Checkbox
+                        checked={goal.is_completed}
+                        onCheckedChange={() => toggleGoal(goal.id, goal.is_completed)}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                      <span className={`flex-1 text-sm ${goal.is_completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                        {goal.text}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => deleteGoal(goal.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         
-        <div className="flex gap-2 pt-4">
+        <div className="flex gap-2 pt-4 border-t border-border/50">
           <select
             value={newGoalCategory}
             onChange={(e) => setNewGoalCategory(e.target.value)}
-            className="px-3 py-2 rounded-md border bg-background"
+            className="px-3 py-2 rounded-md border border-input bg-background text-sm"
           >
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
@@ -149,8 +181,9 @@ export const GoalsChecklist = () => {
             value={newGoalText}
             onChange={(e) => setNewGoalText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addGoal()}
+            className="text-sm"
           />
-          <Button onClick={addGoal} size="icon">
+          <Button onClick={addGoal} size="icon" className="shrink-0">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
