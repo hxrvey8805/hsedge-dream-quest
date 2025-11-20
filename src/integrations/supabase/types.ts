@@ -172,6 +172,72 @@ export type Database = {
           },
         ]
       }
+      evaluations: {
+        Row: {
+          account_size: string
+          company: string
+          created_at: string
+          id: string
+          profit_target: number
+          running_pl: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_size: string
+          company: string
+          created_at?: string
+          id?: string
+          profit_target: number
+          running_pl?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_size?: string
+          company?: string
+          created_at?: string
+          id?: string
+          profit_target?: number
+          running_pl?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      funded_accounts: {
+        Row: {
+          account_size: string
+          company: string
+          created_at: string
+          funded_accounts_count: number
+          funded_accounts_goal: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_size: string
+          company: string
+          created_at?: string
+          funded_accounts_count?: number
+          funded_accounts_goal: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_size?: string
+          company?: string
+          created_at?: string
+          funded_accounts_count?: number
+          funded_accounts_goal?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goals_checklist: {
         Row: {
           category: string
