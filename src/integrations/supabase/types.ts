@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          badge_color: string
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          xp_reward: number
+        }
+        Insert: {
+          badge_color: string
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          xp_reward: number
+        }
+        Update: {
+          badge_color?: string
+          category?: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       dream_profiles: {
         Row: {
           created_at: string
@@ -132,6 +171,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      milestones: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_value: number
+          id: string
+          is_completed: boolean
+          milestone_type: Database["public"]["Enums"]["milestone_type"]
+          target_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          is_completed?: boolean
+          milestone_type: Database["public"]["Enums"]["milestone_type"]
+          target_value: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          is_completed?: boolean
+          milestone_type?: Database["public"]["Enums"]["milestone_type"]
+          target_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       trades: {
         Row: {
@@ -282,6 +357,77 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          progress: number
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          progress?: number
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          progress?: number
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          current_streak_days: number
+          experience_points: number
+          last_trade_date: string | null
+          level: number
+          longest_streak: number
+          total_achievements_unlocked: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak_days?: number
+          experience_points?: number
+          last_trade_date?: string | null
+          level?: number
+          longest_streak?: number
+          total_achievements_unlocked?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak_days?: number
+          experience_points?: number
+          last_trade_date?: string | null
+          level?: number
+          longest_streak?: number
+          total_achievements_unlocked?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -290,7 +436,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      achievement_category: "trading" | "consistency" | "profit" | "streak"
+      milestone_type: "profit_target" | "trade_count" | "win_rate" | "streak"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -417,6 +564,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      achievement_category: ["trading", "consistency", "profit", "streak"],
+      milestone_type: ["profit_target", "trade_count", "win_rate", "streak"],
+    },
   },
 } as const
