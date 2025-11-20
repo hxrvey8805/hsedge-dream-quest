@@ -33,13 +33,13 @@ export const Evaluations = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {evaluations.map((eval, i) => (
+            {evaluations.map((evaluation, i) => (
               <TableRow key={i}>
-                <TableCell>{eval.company}</TableCell>
-                <TableCell>{eval.accountSize}</TableCell>
-                <TableCell>{eval.runningPL}</TableCell>
-                <TableCell>{eval.profitTarget}</TableCell>
-                <TableCell>{eval.progress}</TableCell>
+                <TableCell>{evaluation.company}</TableCell>
+                <TableCell>{evaluation.accountSize}</TableCell>
+                <TableCell>{evaluation.runningPL}</TableCell>
+                <TableCell>{evaluation.profitTarget}</TableCell>
+                <TableCell>{evaluation.progress}</TableCell>
               </TableRow>
             ))}
           </TableBody>

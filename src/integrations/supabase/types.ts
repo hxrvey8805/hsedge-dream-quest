@@ -172,6 +172,36 @@ export type Database = {
           },
         ]
       }
+      goals_checklist: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_completed: boolean
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       milestones: {
         Row: {
           completed_at: string | null
