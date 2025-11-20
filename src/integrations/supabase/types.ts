@@ -208,6 +208,66 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_management_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          rule_order: number
+          rule_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          rule_order?: number
+          rule_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          rule_order?: number
+          rule_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      strategy_checklist: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          rule_order: number
+          rule_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          rule_order?: number
+          rule_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          rule_order?: number
+          rule_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           asset_class: string | null
@@ -356,36 +416,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      trading_rules: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          rule_order: number
-          rule_text: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          rule_order?: number
-          rule_text: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          rule_order?: number
-          rule_text?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       user_achievements: {
         Row: {

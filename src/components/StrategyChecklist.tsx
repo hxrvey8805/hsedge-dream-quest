@@ -6,137 +6,137 @@ import { Input } from "@/components/ui/input";
 import { Plus, X, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
-interface TradingRule {
+interface StrategyItem {
   id: string;
   rule_text: string;
   rule_order: number;
   is_active: boolean;
 }
 
-export const TradingRules = () => {
-  const [rules, setRules] = useState<TradingRule[]>([]);
-  const [newRule, setNewRule] = useState("");
+export const StrategyChecklist = () => {
+  const [items, setItems] = useState<StrategyItem[]>([]);
+  const [newItem, setNewItem] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    fetchRules();
+    fetchItems();
   }, []);
 
-  const fetchRules = async () => {
+  const fetchItems = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("trading_rules")
+      .from("strategy_checklist")
       .select("*")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .order("rule_order", { ascending: true });
 
     if (error) {
-      toast.error("Failed to load trading rules");
+      toast.error("Failed to load strategy checklist");
       return;
     }
 
     if (data) {
-      setRules(data);
+      setItems(data);
     }
   };
 
-  const addRule = async () => {
-    if (!newRule.trim()) return;
+  const addItem = async () => {
+    if (!newItem.trim()) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const maxOrder = rules.length > 0 ? Math.max(...rules.map(r => r.rule_order)) : 0;
+    const maxOrder = items.length > 0 ? Math.max(...items.map(i => i.rule_order)) : 0;
 
     const { error } = await supabase
-      .from("trading_rules")
+      .from("strategy_checklist")
       .insert({
         user_id: user.id,
-        rule_text: newRule.trim(),
+        rule_text: newItem.trim(),
         rule_order: maxOrder + 1,
         is_active: true,
       });
 
     if (error) {
-      toast.error("Failed to add rule");
+      toast.error("Failed to add item");
       return;
     }
 
-    toast.success("Rule added");
-    setNewRule("");
+    toast.success("Item added");
+    setNewItem("");
     setIsAdding(false);
-    fetchRules();
+    fetchItems();
   };
 
-  const removeRule = async (id: string) => {
+  const removeItem = async (id: string) => {
     const { error } = await supabase
-      .from("trading_rules")
+      .from("strategy_checklist")
       .update({ is_active: false })
       .eq("id", id);
 
     if (error) {
-      toast.error("Failed to remove rule");
+      toast.error("Failed to remove item");
       return;
     }
 
-    toast.success("Rule removed");
-    fetchRules();
+    toast.success("Item removed");
+    fetchItems();
   };
 
   return (
     <Card className="p-6 bg-card border-border">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Trading Rules</h2>
+        <h2 className="text-2xl font-bold">Strategy Checklist</h2>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setIsAdding(!isAdding)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Rule
+          Add Item
         </Button>
       </div>
 
       {isAdding && (
         <div className="flex gap-2 mb-4">
           <Input
-            placeholder="Enter your trading rule..."
-            value={newRule}
-            onChange={(e) => setNewRule(e.target.value)}
+            placeholder="Enter checklist item..."
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                addRule();
+                addItem();
               }
             }}
           />
-          <Button onClick={addRule} size="sm">
+          <Button onClick={addItem} size="sm">
             Add
           </Button>
         </div>
       )}
 
       <div className="space-y-2">
-        {rules.length === 0 ? (
+        {items.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            No trading rules yet. Add your first rule to stay disciplined!
+            No checklist items yet. Add items to follow your strategy!
           </p>
         ) : (
-          rules.map((rule, index) => (
+          items.map((item, index) => (
             <div
-              key={rule.id}
+              key={item.id}
               className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg group hover:bg-muted transition-colors"
             >
               <GripVertical className="h-4 w-4 text-muted-foreground" />
               <span className="font-semibold text-primary mr-2">{index + 1}.</span>
-              <span className="flex-1">{rule.rule_text}</span>
+              <span className="flex-1">{item.rule_text}</span>
               <Button
                 variant="ghost"
                 size="icon"
                 className="opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removeRule(rule.id)}
+                onClick={() => removeItem(item.id)}
               >
                 <X className="h-4 w-4" />
               </Button>
