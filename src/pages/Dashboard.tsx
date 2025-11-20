@@ -11,8 +11,8 @@ import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LevelProgressCard } from "@/components/gamification/LevelProgressCard";
-import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
 import { MilestonesTracker } from "@/components/gamification/MilestonesTracker";
+import { TradingRules } from "@/components/TradingRules";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -102,6 +102,10 @@ const Dashboard = () => {
               <BarChart3 className="mr-2 h-4 w-4" />
               Statistics
             </Button>
+            <Button variant="ghost" onClick={() => navigate("/achievements")}>
+              <Trophy className="mr-2 h-4 w-4" />
+              Achievements
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/dream-builder")}>
               <Trophy className="mr-2 h-4 w-4" />
               Dream Builder
@@ -116,8 +120,10 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Gamification Section */}
-        <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <LevelProgressCard />
+          <MilestonesTracker />
+          <TradingRules />
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -164,11 +170,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Achievements and Milestones */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          <AchievementsPanel />
-          <MilestonesTracker />
-        </div>
 
         <Card className="p-8 bg-card border-border">
           <div className="flex items-center justify-between mb-6">
