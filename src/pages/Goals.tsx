@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { GoalsChecklist } from "@/components/goals/GoalsChecklist";
+import { WeeklyCalendar } from "@/components/goals/WeeklyCalendar";
+import { PropFirmTracker } from "@/components/goals/PropFirmTracker";
+import { FundedAccounts } from "@/components/goals/FundedAccounts";
+import { Evaluations } from "@/components/goals/Evaluations";
 import { MilestonesTracker } from "@/components/gamification/MilestonesTracker";
 
 const Goals = () => {
@@ -44,6 +49,20 @@ const Goals = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl font-bold">Goals</h1>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <GoalsChecklist />
+          <WeeklyCalendar />
+        </div>
+
+        <div className="mb-6">
+          <PropFirmTracker />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <FundedAccounts />
+          <Evaluations />
         </div>
 
         <MilestonesTracker />
