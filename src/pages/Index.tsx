@@ -35,7 +35,7 @@ const Index = () => {
             <div className="inline-flex mb-0 animate-fade-in">
               <img src={heroLogo} alt="HS Journal" className="h-96 w-auto" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
+            <h1 className="-mt-4 text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
               Your Gamified, Dream-Driven Path to Trading Excellence
             </h1>
             <p className="text-xl text-muted-foreground mb-8 animate-fade-in">
