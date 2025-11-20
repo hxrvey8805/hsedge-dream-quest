@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import DreamBuilder from "./pages/DreamBuilder";
 import Statistics from "./pages/Statistics";
 import Achievements from "./pages/Achievements";
+import Goals from "./pages/Goals";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/achievements" element={<Achievements />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/dream-builder" element={<DreamBuilder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -11,8 +11,8 @@ import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LevelProgressCard } from "@/components/gamification/LevelProgressCard";
-import { MilestonesTracker } from "@/components/gamification/MilestonesTracker";
-import { TradingRules } from "@/components/TradingRules";
+import { RiskManagement } from "@/components/RiskManagement";
+import { StrategyChecklist } from "@/components/StrategyChecklist";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -106,6 +106,10 @@ const Dashboard = () => {
               <Trophy className="mr-2 h-4 w-4" />
               Achievements
             </Button>
+            <Button variant="ghost" onClick={() => navigate("/goals")}>
+              <Trophy className="mr-2 h-4 w-4" />
+              Goals
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/dream-builder")}>
               <Trophy className="mr-2 h-4 w-4" />
               Dream Builder
@@ -169,10 +173,10 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Milestones and Trading Rules */}
+        {/* Risk Management and Strategy Checklist */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          <MilestonesTracker />
-          <TradingRules />
+          <RiskManagement />
+          <StrategyChecklist />
         </div>
 
         <Card className="p-8 bg-card border-border">
