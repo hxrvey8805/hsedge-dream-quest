@@ -152,21 +152,19 @@ export const DreamVisionSection = ({ dreamProfile, onSave }: DreamVisionSectionP
         <h3 className="text-2xl font-bold mb-6">Visualize Your Life</h3>
         
         {/* Horizontal Icon Row */}
-        <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex flex-wrap gap-6 mb-6">
           {allQuestions.map(({ icon: Icon, field, label }) => (
-            <Button
+            <button
               key={field}
-              variant={activeField === field ? "default" : "outline"}
-              size="lg"
               onClick={() => setActiveField(activeField === field ? null : field)}
-              className="flex flex-col items-center gap-2 h-auto py-4 px-6"
+              className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent/50 transition-colors group cursor-pointer"
               type="button"
             >
-              <Icon className="h-6 w-6" />
-              <span className="text-xs text-center max-w-[100px] leading-tight">
+              <Icon className={`h-6 w-6 ${activeField === field ? 'text-primary' : 'text-primary/70 group-hover:text-primary'}`} />
+              <span className="text-xs text-center max-w-[100px] leading-tight text-muted-foreground group-hover:text-foreground">
                 {label.split("?")[0].replace(/What's your |What |Where do you /gi, "")}
               </span>
-            </Button>
+            </button>
           ))}
         </div>
 
