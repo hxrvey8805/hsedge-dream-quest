@@ -76,7 +76,19 @@ export const DreamVisionSection = ({ dreamProfile, onSave }: DreamVisionSectionP
     },
   ];
 
-  const [activeField, setActiveField] = useState<string | null>(null);
+  const [activeFields, setActiveFields] = useState<Set<string>>(new Set());
+
+  const toggleField = (field: string) => {
+    setActiveFields(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(field)) {
+        newSet.delete(field);
+      } else {
+        newSet.add(field);
+      }
+      return newSet;
+    });
+  };
 
   const allQuestions = [
     ...questions,
@@ -150,51 +162,80 @@ export const DreamVisionSection = ({ dreamProfile, onSave }: DreamVisionSectionP
 
       <Card className="p-8 bg-card/50 backdrop-blur-sm">
         <h3 className="text-2xl font-bold mb-6">Visualize Your Life</h3>
+        <p className="text-sm text-muted-foreground mb-6">Click icons below to add details about different aspects of your dream life</p>
         
-        {/* Horizontal Icon Row */}
-        <div className="flex flex-wrap gap-6 mb-6">
-          {allQuestions.map(({ icon: Icon, field, label }) => (
-            <button
-              key={field}
-              onClick={() => setActiveField(activeField === field ? null : field)}
-              className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-accent/50 transition-colors group cursor-pointer"
-              type="button"
-            >
-              <Icon className={`h-6 w-6 ${activeField === field ? 'text-primary' : 'text-primary/70 group-hover:text-primary'}`} />
-              <span className="text-xs text-center max-w-[100px] leading-tight text-muted-foreground group-hover:text-foreground">
-                {label.split("?")[0].replace(/What's your |What |Where do you /gi, "")}
-              </span>
-            </button>
-          ))}
+        {/* Icon Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+          {allQuestions.map(({ icon: Icon, field, label }) => {
+            const isActive = activeFields.has(field);
+            const shortLabel = label.split("?")[0].replace(/What's your |What |Where do you /gi, "").trim();
+            
+            return (
+              <button
+                key={field}
+                onClick={() => toggleField(field)}
+                className={`
+                  relative flex flex-col items-center gap-2 p-4 rounded-xl
+                  transition-all duration-300 group
+                  ${isActive 
+                    ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
+                    : 'bg-card hover:bg-accent border border-border hover:border-primary/50 hover:scale-105'
+                  }
+                `}
+                type="button"
+              >
+                <Icon className={`h-6 w-6 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+                <span className={`text-xs text-center leading-tight font-medium ${isActive ? '' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                  {shortLabel}
+                </span>
+                
+                {/* Active Indicator Dot */}
+                {isActive && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background animate-pulse" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Active Field Input */}
-        {activeField && (
-          <div className="space-y-2 animate-fade-in">
-            <Label htmlFor={activeField} className="flex items-center gap-2 text-base font-semibold">
-              {allQuestions.find((q) => q.field === activeField)?.icon && 
-                (() => {
-                  const Icon = allQuestions.find((q) => q.field === activeField)!.icon;
-                  return <Icon className="h-5 w-5 text-primary" />;
-                })()
-              }
-              {allQuestions.find((q) => q.field === activeField)?.label}
-            </Label>
-            <Textarea
-              id={activeField}
-              value={formData[activeField as keyof typeof formData] || ""}
-              onChange={(e) => setFormData({ ...formData, [activeField]: e.target.value })}
-              placeholder={allQuestions.find((q) => q.field === activeField)?.placeholder}
-              className="mt-2"
-              rows={activeField === "why_motivation" ? 5 : 4}
-              autoFocus
-            />
+        {/* Active Fields Inputs - Stacked */}
+        {activeFields.size > 0 && (
+          <div className="space-y-4 pt-4 border-t border-border">
+            {allQuestions.map(({ field, label, placeholder }) => {
+              if (!activeFields.has(field)) return null;
+              
+              return (
+                <div key={field} className="space-y-2 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={field} className="text-base font-semibold">{label}</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleField(field)}
+                      className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                      type="button"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                  <Textarea
+                    id={field}
+                    value={formData[field as keyof typeof formData] as string}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field]: e.target.value })
+                    }
+                    placeholder={placeholder}
+                    className="min-h-[120px] resize-none"
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {!activeField && (
+        {activeFields.size === 0 && (
           <p className="text-center text-muted-foreground py-8">
-            Click an icon above to add details about your dream life
+            Click icons above to start building your dream life vision
           </p>
         )}
       </Card>
