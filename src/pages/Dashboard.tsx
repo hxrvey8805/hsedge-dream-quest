@@ -119,13 +119,12 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Gamification Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Level Progress */}
+        <div className="mb-8">
           <LevelProgressCard />
-          <MilestonesTracker />
-          <TradingRules />
         </div>
 
+        {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center gap-3">
@@ -170,6 +169,11 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Milestones and Trading Rules */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          <MilestonesTracker />
+          <TradingRules />
+        </div>
 
         <Card className="p-8 bg-card border-border">
           <div className="flex items-center justify-between mb-6">
