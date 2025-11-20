@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
 
 const Achievements = () => {
@@ -47,15 +46,7 @@ const Achievements = () => {
           <h1 className="text-3xl font-bold">Achievements</h1>
         </div>
 
-        <Tabs defaultValue="achievements" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="achievements">
-            <AchievementsPanel />
-          </TabsContent>
-        </Tabs>
+        <AchievementsPanel />
       </div>
     </div>
   );

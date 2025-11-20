@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MilestonesTracker } from "@/components/gamification/MilestonesTracker";
 
 const Goals = () => {
@@ -47,15 +46,7 @@ const Goals = () => {
           <h1 className="text-3xl font-bold">Goals</h1>
         </div>
 
-        <Tabs defaultValue="milestones" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="milestones">Milestones</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="milestones">
-            <MilestonesTracker />
-          </TabsContent>
-        </Tabs>
+        <MilestonesTracker />
       </div>
     </div>
   );
