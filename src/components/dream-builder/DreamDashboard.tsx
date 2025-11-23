@@ -149,13 +149,13 @@ export const DreamDashboard = ({
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-semibold">Dream Coverage</h3>
             <span className="text-2xl font-bold text-primary">
-              {coveragePercent.toFixed(0)}%
+              {Math.min(coveragePercent, 100).toFixed(0)}%
             </span>
           </div>
           <Progress value={Math.min(coveragePercent, 100)} className="h-3 mb-2" />
           {netMonthly >= 0 ? (
             <p className="text-success font-medium">
-              ✨ You can currently afford {coveragePercent.toFixed(0)}% of your selected
+              ✨ You can currently afford {Math.min(coveragePercent, 100).toFixed(0)}% of your selected
               dream lifestyle!
             </p>
           ) : (
