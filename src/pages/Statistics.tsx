@@ -156,7 +156,6 @@ const Statistics = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
-            <h1 className="text-xl font-bold">HS-Edge Statistics</h1>
           </div>
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
