@@ -6,58 +6,56 @@ import { ArrowLeft, Plus, Sparkles, Eye } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
 import { DreamList } from "@/components/dream-builder/DreamList";
 import { DreamEditor } from "@/components/dream-builder/DreamEditor";
-
 type ViewMode = "list" | "create" | "edit";
-
 const DreamBuilder = () => {
   const [user, setUser] = useState<any>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedDreamId, setSelectedDreamId] = useState<string | null>(null);
   const navigate = useNavigate();
-
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleCreateNew = () => {
     setSelectedDreamId(null);
     setViewMode("create");
   };
-
   const handleEditDream = (dreamId: string) => {
     setSelectedDreamId(dreamId);
     setViewMode("edit");
   };
-
   const handleBackToList = () => {
     setSelectedDreamId(null);
     setViewMode("list");
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <div>
-              <h1 className="text-xl font-bold">HS Dream Builder</h1>
+              
               <p className="text-xs text-muted-foreground">Visualize, Plan, Manifest</p>
             </div>
           </div>
@@ -69,8 +67,7 @@ const DreamBuilder = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {viewMode === "list" ? (
-          <>
+        {viewMode === "list" ? <>
             <div className="mb-8 text-center max-w-3xl mx-auto">
               <div className="inline-flex p-4 rounded-full bg-primary/10 mb-4 animate-pulse">
                 <Sparkles className="h-10 w-10 text-primary" />
@@ -91,16 +88,8 @@ const DreamBuilder = () => {
             </div>
 
             <DreamList onEditDream={handleEditDream} />
-          </>
-        ) : (
-          <DreamEditor 
-            dreamId={selectedDreamId} 
-            onBack={handleBackToList}
-          />
-        )}
+          </> : <DreamEditor dreamId={selectedDreamId} onBack={handleBackToList} />}
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default DreamBuilder;
