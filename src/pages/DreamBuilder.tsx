@@ -56,7 +56,7 @@ const DreamBuilder = () => {
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <div>
               
-              <p className="text-xs text-muted-foreground">Visualize, Plan, Manifest</p>
+              
             </div>
           </div>
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
