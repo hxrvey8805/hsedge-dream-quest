@@ -13,31 +13,35 @@ import { Switch } from "@/components/ui/switch";
 import { LevelProgressCard } from "@/components/gamification/LevelProgressCard";
 import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
-
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({ totalPL: 0, totalProfit: 0, winRate: 0, totalTrades: 0 });
+  const [stats, setStats] = useState({
+    totalPL: 0,
+    totalProfit: 0,
+    winRate: 0,
+    totalTrades: 0
+  });
   const [viewMode, setViewMode] = useState<'pips' | 'profit'>('pips');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
-
   const fetchStats = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     if (!user) return;
-
-    const { data, error } = await supabase
-      .from("trades")
-      .select("*")
-      .eq("user_id", user.id);
-
+    const {
+      data,
+      error
+    } = await supabase.from("trades").select("*").eq("user_id", user.id);
     if (!error && data) {
       const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
-      const winRate = data.length > 0 ? (wins / data.length) * 100 : 0;
-      
+      const winRate = data.length > 0 ? wins / data.length * 100 : 0;
       setStats({
         totalPL: totalPips,
         totalProfit: totalProfit,
@@ -46,56 +50,56 @@ const Dashboard = () => {
       });
     }
   };
-
   const handleDaySelect = (date: Date) => {
     setSelectedDate(date);
     setDialogOpen(true);
   };
-
   const handleTradeAdded = () => {
     fetchStats();
     setRefreshTrigger(prev => prev + 1);
   };
-
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   useEffect(() => {
     if (user) {
       fetchStats();
     }
   }, [user]);
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
     navigate("/");
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="HS-Edge" className="h-10 w-10" />
-            <h1 className="text-xl font-bold">HS-Edge</h1>
+            <h1 className="text-xl font-bold">
+          </h1>
           </div>
           <nav className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate("/statistics")}>
@@ -138,11 +142,7 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Total P&L</p>
                 <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {viewMode === 'pips' ? (
-                    <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</>
-                  ) : (
-                    <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>
-                  )}
+                  {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
                 </p>
               </div>
             </div>
@@ -186,11 +186,7 @@ const Dashboard = () => {
               <Label htmlFor="view-toggle" className="text-sm font-medium">
                 Pips
               </Label>
-              <Switch
-                id="view-toggle"
-                checked={viewMode === 'profit'}
-                onCheckedChange={(checked) => setViewMode(checked ? 'profit' : 'pips')}
-              />
+              <Switch id="view-toggle" checked={viewMode === 'profit'} onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')} />
               <Label htmlFor="view-toggle" className="text-sm font-medium">
                 P&L ($)
               </Label>
@@ -201,14 +197,7 @@ const Dashboard = () => {
         </Card>
       </main>
 
-      <TradeDialog 
-        onTradeAdded={handleTradeAdded} 
-        selectedDate={selectedDate}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
-    </div>
-  );
+      <TradeDialog onTradeAdded={handleTradeAdded} selectedDate={selectedDate} open={dialogOpen} onOpenChange={setDialogOpen} />
+    </div>;
 };
-
 export default Dashboard;
