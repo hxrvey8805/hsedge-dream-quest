@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -167,50 +166,149 @@ export const DreamDashboard = ({
           )}
         </Card>
 
-        <div className="space-y-3">
-          <h3 className="text-xl font-semibold mb-4">Select Dream Items</h3>
-          {purchases.map((purchase) => {
-            const monthly = calculateMonthlyCost(
-              purchase.price,
-              purchase.down_payment,
-              purchase.tax_interest_buffer,
-              purchase.payment_period_years
-            );
+        {/* Vision Board Section */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold mb-4">Your Dream Vision Board</h3>
+          
+          {/* Selected Items Vision Board */}
+          {selectedPurchases.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-medium mb-4 text-primary">Selected Dreams</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {selectedPurchases.map((purchase) => {
+                  const monthly = calculateMonthlyCost(
+                    purchase.price,
+                    purchase.down_payment,
+                    purchase.tax_interest_buffer,
+                    purchase.payment_period_years
+                  );
 
-            return (
-              <Card
-                key={purchase.id}
-                className={`p-4 transition-all ${
-                  purchase.is_selected
-                    ? "border-primary bg-primary/5"
-                    : "border-border"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={purchase.is_selected}
-                      onCheckedChange={() =>
-                        handleTogglePurchase(purchase.id, purchase.is_selected)
-                      }
-                    />
-                    <div>
-                      <h4 className="font-semibold">{purchase.item_name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        £{purchase.price.toLocaleString()} total
-                      </p>
+                  return (
+                    <Card
+                      key={purchase.id}
+                      className="group relative overflow-hidden border-2 border-primary/50 bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <div className="relative aspect-square">
+                        {purchase.image_url ? (
+                          <img
+                            src={purchase.image_url}
+                            alt={purchase.item_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                            <div className="text-center p-4">
+                              <div className="text-4xl mb-2">✨</div>
+                              <p className="text-sm font-medium text-muted-foreground">
+                                {purchase.item_name}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Overlay on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h4 className="font-bold text-lg mb-1 text-foreground">
+                              {purchase.item_name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              £{purchase.price.toLocaleString()}
+                            </p>
+                            {monthly > 0 && (
+                              <p className="text-xs font-semibold text-primary">
+                                £{monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* All Items Selection Grid */}
+          <div>
+            <h4 className="text-lg font-medium mb-4">All Dream Items</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {purchases.map((purchase) => {
+                const monthly = calculateMonthlyCost(
+                  purchase.price,
+                  purchase.down_payment,
+                  purchase.tax_interest_buffer,
+                  purchase.payment_period_years
+                );
+
+                return (
+                  <Card
+                    key={purchase.id}
+                    className={`group relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer ${
+                      purchase.is_selected
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    onClick={() =>
+                      handleTogglePurchase(purchase.id, purchase.is_selected)
+                    }
+                  >
+                    <div className="relative aspect-square">
+                      {purchase.image_url ? (
+                        <img
+                          src={purchase.image_url}
+                          alt={purchase.item_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/20 to-muted/10">
+                          <div className="text-center p-4">
+                            <div className="text-4xl mb-2">✨</div>
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {purchase.item_name}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Checkbox overlay */}
+                      <div className="absolute top-2 right-2">
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                            purchase.is_selected
+                              ? "bg-primary border-primary"
+                              : "bg-background/80 border-border backdrop-blur-sm"
+                          }`}
+                        >
+                          {purchase.is_selected && (
+                            <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                          <h4 className="font-bold text-lg mb-1 text-foreground">
+                            {purchase.item_name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            £{purchase.price.toLocaleString()}
+                          </p>
+                          {monthly > 0 && (
+                            <p className="text-xs font-semibold text-primary">
+                              £{monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg">
-                      £{monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">per month</p>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </Card>
     </div>

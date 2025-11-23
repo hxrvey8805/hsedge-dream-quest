@@ -184,13 +184,16 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold">Trading Calendar</h2>
             <div className="flex items-center gap-4">
               <Label htmlFor="view-toggle" className="text-sm font-medium">
-                {viewMode === 'pips' ? 'Pips' : 'P&L ($)'}
+                Pips
               </Label>
               <Switch
                 id="view-toggle"
                 checked={viewMode === 'profit'}
                 onCheckedChange={(checked) => setViewMode(checked ? 'profit' : 'pips')}
               />
+              <Label htmlFor="view-toggle" className="text-sm font-medium">
+                P&L ($)
+              </Label>
             </div>
           </div>
           
