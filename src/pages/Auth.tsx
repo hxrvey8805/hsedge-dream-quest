@@ -41,18 +41,41 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Welcome back!");
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+          email: email.trim(), 
+          password 
+        });
+        
+        if (error) {
+          console.error("Sign in error:", error);
+          if (error.message.includes("Invalid login credentials")) {
+            toast.error("Invalid email or password");
+          } else if (error.message.includes("Email not confirmed")) {
+            toast.error("Please confirm your email address");
+          } else {
+            toast.error(error.message);
+          }
+          return;
+        }
+        
+        if (data.session) {
+          toast.success("Welcome back!");
+        }
       } else {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`
           }
         });
-        if (error) throw error;
+        
+        if (error) {
+          console.error("Sign up error:", error);
+          toast.error(error.message);
+          return;
+        }
+        
         toast.success("Account created!");
         
         // If user signed up from pricing page, redirect to checkout
@@ -74,7 +97,12 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
+      console.error("Auth error:", error);
+      if (error.message.includes("fetch")) {
+        toast.error("Network error - please check your connection");
+      } else {
+        toast.error(error.message || "Authentication failed");
+      }
     } finally {
       setLoading(false);
     }
