@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
+import logo from "@/assets/hs-logo.png";
 
 const Achievements = () => {
   const navigate = useNavigate();
@@ -34,20 +35,21 @@ const Achievements = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-          >
-            <ArrowLeft className="h-5 w-5" />
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
+          </div>
+          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold">Achievements</h1>
         </div>
+      </header>
 
+      <main className="container mx-auto px-4 py-8">
         <AchievementsPanel />
-      </div>
+      </main>
     </div>
   );
 };

@@ -81,58 +81,98 @@ export const LevelProgressCard = () => {
   const xpForPreviousLevel = profile.level === 1 ? 0 : getXPForLevel(profile.level - 1);
   const totalXPNeeded = xpForCurrentLevel - xpForPreviousLevel;
   const currentLevelXP = profile.experience_points - xpForPreviousLevel;
-  const progressPercent = (currentLevelXP / totalXPNeeded) * 100;
+  const progressPercent = Math.min((currentLevelXP / totalXPNeeded) * 100, 100);
+  const xpForNextLevel = getXPForLevel(profile.level + 1);
+  const xpNeededForNextLevel = Math.max(0, xpForNextLevel - profile.experience_points);
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-border">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+    <Card className="p-8 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm border-primary/10 shadow-lg">
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-4">
           <div 
-            className="p-3 rounded-full" 
-            style={{ backgroundColor: `${getLevelColor(profile.level)}20` }}
+            className="relative p-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105"
+            style={{ 
+              backgroundColor: `${getLevelColor(profile.level)}15`,
+              border: `2px solid ${getLevelColor(profile.level)}30`
+            }}
           >
             <Star 
-              className="h-6 w-6" 
+              className="h-8 w-8" 
               style={{ color: getLevelColor(profile.level) }}
               fill={getLevelColor(profile.level)}
             />
+            <div 
+              className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md"
+              style={{ backgroundColor: getLevelColor(profile.level) }}
+            >
+              {profile.level}
+            </div>
           </div>
           <div>
-            <h3 className="text-2xl font-bold">Level {profile.level}</h3>
-            <p className="text-sm text-muted-foreground">{getLevelTitle(profile.level)}</p>
+            <h3 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              {getLevelTitle(profile.level)}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">Level {profile.level} Trader</p>
           </div>
         </div>
         <div className="text-right">
-          <div className="flex items-center gap-1 text-primary">
-            <Zap className="h-4 w-4" />
-            <span className="text-sm font-medium">{profile.experience_points} XP</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
+            <Zap className="h-5 w-5 text-primary" />
+            <span className="text-lg font-bold text-primary">{profile.experience_points}</span>
+            <span className="text-sm font-medium text-muted-foreground">XP</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {xpForCurrentLevel - profile.experience_points} XP to next level
+          <p className="text-xs text-muted-foreground mt-2 font-medium">
+            {xpNeededForNextLevel} XP to Level {profile.level + 1}
           </p>
         </div>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Progress</span>
-          <span className="font-medium">{Math.round(progressPercent)}%</span>
+          <span className="text-sm font-semibold text-foreground">Level Progress</span>
+          <span className="text-lg font-bold text-primary">{Math.round(progressPercent)}%</span>
         </div>
-        <Progress value={progressPercent} className="h-2" />
+        <div className="relative">
+          <Progress 
+            value={progressPercent} 
+            className="h-3 bg-muted/50"
+          />
+          <div 
+            className="absolute inset-0 rounded-full opacity-20 blur-sm"
+            style={{ 
+              background: `linear-gradient(90deg, ${getLevelColor(profile.level)} 0%, transparent 100%)`
+            }}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border">
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">{profile.current_streak_days}</p>
-          <p className="text-xs text-muted-foreground">Day Streak 🔥</p>
+      <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border/50">
+        <div className="text-center p-4 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 hover:border-primary/30 transition-all hover:shadow-md group">
+          <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-1 group-hover:scale-110 transition-transform">
+            {profile.current_streak_days}
+          </p>
+          <div className="flex items-center justify-center gap-1 text-xs font-medium text-muted-foreground">
+            <span>🔥</span>
+            <span>Day Streak</span>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">{profile.total_achievements_unlocked}</p>
-          <p className="text-xs text-muted-foreground">Achievements 🏆</p>
+        <div className="text-center p-4 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 hover:border-primary/30 transition-all hover:shadow-md group">
+          <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-1 group-hover:scale-110 transition-transform">
+            {profile.total_achievements_unlocked}
+          </p>
+          <div className="flex items-center justify-center gap-1 text-xs font-medium text-muted-foreground">
+            <span>🏆</span>
+            <span>Achievements</span>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold text-primary">+{currentLevelXP}</p>
-          <p className="text-xs text-muted-foreground">Level XP ⭐</p>
+        <div className="text-center p-4 rounded-xl bg-gradient-to-br from-card to-card/50 border border-border/50 hover:border-primary/30 transition-all hover:shadow-md group">
+          <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-1 group-hover:scale-110 transition-transform">
+            {currentLevelXP}
+          </p>
+          <div className="flex items-center justify-center gap-1 text-xs font-medium text-muted-foreground">
+            <span>⭐</span>
+            <span>Level XP</span>
+          </div>
         </div>
       </div>
     </Card>
