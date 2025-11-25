@@ -10,7 +10,7 @@ import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { LevelProgressCard } from "@/components/gamification/LevelProgressCard";
+import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
 import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
 const Dashboard = () => {
@@ -126,75 +126,81 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Level Progress */}
-        <div className="mb-8">
-          <LevelProgressCard />
-        </div>
+      <main className="container mx-auto px-4 py-8 max-w-[1600px]">
+        {/* Stats Cards - Centered at Top */}
+        <div className="flex justify-center mb-6">
+          <div className="grid md:grid-cols-3 gap-6 w-full max-w-4xl">
+            <Card className="p-6 bg-card border-border">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-success/10">
+                  <TrendingUp className="h-6 w-6 text-success" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total P&L</p>
+                  <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
+                  </p>
+                </div>
+              </div>
+            </Card>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 bg-card border-border">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-success/10">
-                <TrendingUp className="h-6 w-6 text-success" />
+            <Card className="p-6 bg-card border-border">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Trophy className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Win Rate</p>
+                  <p className="text-2xl font-bold">{stats.winRate}%</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total P&L</p>
-                <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-6 bg-card border-border">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Trophy className="h-6 w-6 text-primary" />
+            <Card className="p-6 bg-card border-border">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Trophy className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Trades</p>
+                  <p className="text-2xl font-bold">{stats.totalTrades}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Win Rate</p>
-                <p className="text-2xl font-bold">{stats.winRate}%</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-card border-border">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Trophy className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Trades</p>
-                <p className="text-2xl font-bold">{stats.totalTrades}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Risk Management and Strategy Checklist */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          <RiskManagement />
-          <StrategyChecklist />
-        </div>
-
-        <Card className="p-8 bg-card border-border">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Trading Calendar</h2>
-            <div className="flex items-center gap-4">
-              <Label htmlFor="view-toggle" className="text-sm font-medium">
-                Pips
-              </Label>
-              <Switch id="view-toggle" checked={viewMode === 'profit'} onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')} />
-              <Label htmlFor="view-toggle" className="text-sm font-medium">
-                P&L ($)
-              </Label>
-            </div>
+            </Card>
           </div>
-          
-          <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
-        </Card>
+        </div>
+
+        {/* Minimal Progress Bar - Centered */}
+        <div className="mb-8">
+          <MinimalProgressBar />
+        </div>
+
+        {/* Main Content - Two Column Layout */}
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-6">
+          {/* Left Column - Trading Calendar */}
+          <Card className="p-8 bg-card border-border">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Trading Calendar</h2>
+              <div className="flex items-center gap-4">
+                <Label htmlFor="view-toggle" className="text-sm font-medium">
+                  Pips
+                </Label>
+                <Switch id="view-toggle" checked={viewMode === 'profit'} onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')} />
+                <Label htmlFor="view-toggle" className="text-sm font-medium">
+                  P&L ($)
+                </Label>
+              </div>
+            </div>
+            
+            <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
+          </Card>
+
+          {/* Right Column - Risk Management and Strategy Checklist */}
+          <div className="space-y-6">
+            <RiskManagement />
+            <StrategyChecklist />
+          </div>
+        </div>
       </main>
 
       <TradeDialog onTradeAdded={handleTradeAdded} selectedDate={selectedDate} open={dialogOpen} onOpenChange={setDialogOpen} />
