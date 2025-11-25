@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
+import { Zap } from "lucide-react";
 
 interface UserProfile {
   level: number;
@@ -66,18 +67,59 @@ export const MinimalProgressBar = () => {
   const xpNeededForNextLevel = Math.max(0, xpForNextLevel - profile.experience_points);
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Level {profile.level}</span>
-        <span className="font-semibold text-primary">{Math.round(progressPercent)}%</span>
+    <div className="w-full max-w-lg mx-auto mb-8">
+      <div className="relative p-6 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 backdrop-blur-sm shadow-lg">
+        {/* Electric glow effect */}
+        <div 
+          className="absolute inset-0 rounded-xl opacity-30 blur-xl"
+          style={{
+            background: `linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progressPercent}%, transparent ${progressPercent}%)`
+          }}
+        />
+        
+        <div className="relative space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary animate-pulse" fill="currentColor" />
+              <span className="text-sm font-semibold text-foreground">Level {profile.level}</span>
+            </div>
+            <span className="text-lg font-bold bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+              {Math.round(progressPercent)}%
+            </span>
+          </div>
+          
+          {/* Custom progress bar with electric effect */}
+          <div className="relative h-3 bg-muted/30 rounded-full overflow-hidden border border-primary/10">
+            <div 
+              className="absolute inset-0 rounded-full transition-all duration-500 ease-out"
+              style={{
+                width: `${progressPercent}%`,
+                background: `linear-gradient(90deg, 
+                  hsl(var(--primary)) 0%, 
+                  hsl(var(--primary)) 50%, 
+                  hsl(var(--primary)) 100%)`,
+                boxShadow: `0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--primary))`,
+              }}
+            >
+              {/* Animated shine effect */}
+              <div 
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, 
+                    transparent 0%, 
+                    rgba(255, 255, 255, 0.4) 50%, 
+                    transparent 100%)`,
+                  animation: 'shimmer 2s ease-in-out infinite',
+                }}
+              />
+            </div>
+          </div>
+          
+          <p className="text-xs text-center text-muted-foreground font-medium">
+            {xpNeededForNextLevel} XP to Level {profile.level + 1}
+          </p>
+        </div>
       </div>
-      <Progress 
-        value={progressPercent} 
-        className="h-2 bg-muted/50"
-      />
-      <p className="text-xs text-center text-muted-foreground">
-        {xpNeededForNextLevel} XP to Level {profile.level + 1}
-      </p>
     </div>
   );
 };

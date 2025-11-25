@@ -126,9 +126,14 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-[1600px]">
-        {/* Stats Cards - Centered at Top */}
-        <div className="flex justify-center mb-6">
+      <main className="w-full px-6 py-8">
+        {/* Minimal Progress Bar - Above Stats */}
+        <div className="mb-8">
+          <MinimalProgressBar />
+        </div>
+
+        {/* Stats Cards - Centered */}
+        <div className="flex justify-center mb-8">
           <div className="grid md:grid-cols-3 gap-6 w-full max-w-4xl">
             <Card className="p-6 bg-card border-border">
               <div className="flex items-center gap-3">
@@ -170,13 +175,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Minimal Progress Bar - Centered */}
-        <div className="mb-8">
-          <MinimalProgressBar />
-        </div>
-
-        {/* Main Content - Two Column Layout */}
-        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-6">
+        {/* Main Content - Two Column Layout with larger calendar */}
+        <div className="grid lg:grid-cols-[2fr_1fr] gap-6 max-w-[1800px] mx-auto">
           {/* Left Column - Trading Calendar */}
           <Card className="p-8 bg-card border-border">
             <div className="flex items-center justify-between mb-6">
