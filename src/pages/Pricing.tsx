@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import logo from "@/assets/hs-logo.png";
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const [isYearly, setIsYearly] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,107 +31,158 @@ const Pricing = () => {
       </header>
 
       <main className="container mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-muted-foreground">Start your journey to trading excellence</p>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="p-8 rounded-2xl border-2 border-border bg-card hover:border-primary transition-all">
-            <h3 className="text-2xl font-bold mb-2">Starter</h3>
-            <div className="mb-6">
-              <span className="text-4xl font-bold">$9.99</span>
-              <span className="text-muted-foreground">/month</span>
+        <div className="text-center mb-12 max-w-4xl mx-auto">
+          <h1 className="text-5xl font-bold mb-4">Our Pricing</h1>
+          <p className="text-xl text-muted-foreground mb-8">Sign up now.</p>
+          <p className="text-2xl font-bold mb-8">Get used to winning</p>
+          <p className="text-lg text-muted-foreground mb-8">
+            Our subscription options give you access to everything that HS-Edge has to offer.
+          </p>
+          
+          {/* Yearly Discount Banner */}
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20">
+              <span className="text-sm font-semibold text-primary">Get 36% Off When You Pay Yearly</span>
             </div>
-            <ul className="space-y-3 mb-8 text-left">
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Up to 50 trades per month</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Basic statistics</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Dream Builder (1 dream)</span>
-              </li>
-            </ul>
-            <Button className="w-full" onClick={() => navigate("/auth?plan=starter&price=price_1SHmnDGy16OK5lK5SSg65pn5")}>Get Started</Button>
           </div>
 
-          <div className="p-8 rounded-2xl border-2 border-primary bg-card relative hover:shadow-glow transition-all">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-              Most Popular
-            </div>
-            <h3 className="text-2xl font-bold mb-2">Pro</h3>
-            <div className="mb-6">
-              <span className="text-4xl font-bold">$29.99</span>
-              <span className="text-muted-foreground">/month</span>
-            </div>
-            <ul className="space-y-3 mb-8 text-left">
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Unlimited trades</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Advanced analytics</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Unlimited dreams</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Calendar view</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Export data</span>
-              </li>
-            </ul>
-            <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/auth?plan=pro&price=price_1SHmo8Gy16OK5lK57G2EmGQR")}>Get Started</Button>
-          </div>
-
-          <div className="p-8 rounded-2xl border-2 border-border bg-card hover:border-primary transition-all">
-            <h3 className="text-2xl font-bold mb-2">Elite</h3>
-            <div className="mb-6">
-              <span className="text-4xl font-bold">$99.99</span>
-              <span className="text-muted-foreground">/month</span>
-            </div>
-            <ul className="space-y-3 mb-8 text-left">
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Everything in Pro</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Priority support</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Custom strategies</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-1">✓</span>
-                <span>Advanced goal tracking</span>
-              </li>
-            </ul>
-            <Button className="w-full" onClick={() => navigate("/auth?plan=elite&price=price_1SHmoZGy16OK5lK5lIQu6ZLF")}>Get Started</Button>
+          {/* Toggle Switch */}
+          <div className="flex items-center justify-center gap-4 mb-12">
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={!isYearly}
+              onCheckedChange={(checked) => setIsYearly(!checked)}
+            />
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Monthly
+            </Label>
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto mt-20 p-12 rounded-2xl border border-primary/20 bg-card relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"></div>
-          <div className="relative text-center">
-            <h2 className="text-3xl font-bold mb-4">Need a Custom Plan?</h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Contact us for enterprise solutions and custom pricing tailored to your trading needs.
-            </p>
-            <Button size="lg" variant="outline">Contact Sales</Button>
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* Yearly Plan */}
+          <div className={`p-8 rounded-2xl border-2 ${isYearly ? 'border-primary bg-card' : 'border-border bg-card/50'} relative hover:shadow-lg transition-all`}>
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold mb-2">Yearly</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold">$29</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Unlock the full power of HS-Edge with a discount.
+              </p>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>All features +</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Trading Calendar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Statistics & Analytics</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Dream Builder</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Achievements & Levels</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Goals Tracking</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Risk Management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Strategy Checklist</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Equity Curve</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Log Your Trade</span>
+              </div>
+            </div>
+            
+            <Button className={`w-full ${isYearly ? 'bg-primary hover:bg-primary/90' : ''}`} size="lg" variant={isYearly ? "default" : "outline"} onClick={() => navigate("/auth")}>
+              Choose the plan
+            </Button>
+          </div>
+
+          {/* Monthly Plan */}
+          <div className={`p-8 rounded-2xl border-2 ${!isYearly ? 'border-primary bg-card' : 'border-border bg-card/50'} relative hover:shadow-lg transition-all`}>
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold mb-2">Monthly</h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold">$19</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Best for users looking to try out the platform.
+              </p>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>All features +</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Trading Calendar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Statistics & Analytics</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Dream Builder</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Achievements & Levels</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Goals Tracking</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Risk Management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Strategy Checklist</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Equity Curve</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>Log Your Trade</span>
+              </div>
+            </div>
+            
+            <Button className={`w-full ${!isYearly ? 'bg-primary hover:bg-primary/90' : ''}`} size="lg" variant={!isYearly ? "default" : "outline"} onClick={() => navigate("/auth")}>
+              Choose the plan
+            </Button>
           </div>
         </div>
       </main>
