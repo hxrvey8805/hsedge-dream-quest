@@ -234,25 +234,25 @@ export const DreamDashboard = ({
           <div>
             <h4 className="text-lg font-medium mb-4">All Dream Items</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {purchases.map((purchase) => {
-                const monthly = calculateMonthlyCost(
-                  purchase.price,
-                  purchase.down_payment,
-                  purchase.tax_interest_buffer,
-                  purchase.payment_period_years
-                );
+          {purchases.map((purchase) => {
+            const monthly = calculateMonthlyCost(
+              purchase.price,
+              purchase.down_payment,
+              purchase.tax_interest_buffer,
+              purchase.payment_period_years
+            );
 
-                return (
-                  <Card
-                    key={purchase.id}
+            return (
+              <Card
+                key={purchase.id}
                     className={`group relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer ${
-                      purchase.is_selected
+                  purchase.is_selected
                         ? "border-primary bg-primary/5 shadow-md"
                         : "border-border hover:border-primary/50"
-                    }`}
+                }`}
                     onClick={() =>
-                      handleTogglePurchase(purchase.id, purchase.is_selected)
-                    }
+                        handleTogglePurchase(purchase.id, purchase.is_selected)
+                      }
                   >
                     <div className="relative aspect-square">
                       {purchase.image_url ? (
@@ -267,9 +267,9 @@ export const DreamDashboard = ({
                             <div className="text-4xl mb-2">✨</div>
                             <p className="text-sm font-medium text-muted-foreground">
                               {purchase.item_name}
-                            </p>
-                          </div>
-                        </div>
+                      </p>
+                    </div>
+                  </div>
                       )}
                       
                       {/* Checkbox overlay */}
@@ -302,11 +302,11 @@ export const DreamDashboard = ({
                             </p>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
             </div>
           </div>
         </div>

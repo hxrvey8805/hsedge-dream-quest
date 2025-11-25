@@ -11,12 +11,11 @@ const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
+      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="HS Journal" className="h-10 w-10" />
-            <span className="text-xl font-bold">HS Journal</span>
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
           </div>
           <div className="flex gap-4">
             <Button variant="ghost" onClick={() => navigate("/")}>
@@ -32,23 +31,25 @@ const Pricing = () => {
 
       <main className="container mx-auto px-4 py-20">
         <div className="text-center mb-12 max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold mb-4">Our Pricing</h1>
-          <p className="text-xl text-muted-foreground mb-8">Sign up now.</p>
-          <p className="text-2xl font-bold mb-8">Get used to winning</p>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+            Our Pricing
+          </h1>
+          <p className="text-xl text-muted-foreground mb-4">Sign up now.</p>
+          <p className="text-2xl font-bold mb-6">Get used to winning</p>
           <p className="text-lg text-muted-foreground mb-8">
             Our subscription options give you access to everything that HS-Edge has to offer.
           </p>
           
           {/* Yearly Discount Banner */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20">
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20 backdrop-blur-sm shadow-lg shadow-primary/10">
               <span className="text-sm font-semibold text-primary">Get 36% Off When You Pay Yearly</span>
             </div>
           </div>
 
           {/* Toggle Switch */}
           <div className="flex items-center justify-center gap-4 mb-12">
-            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer transition-colors ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
               Yearly
             </Label>
             <Switch
@@ -56,7 +57,7 @@ const Pricing = () => {
               checked={!isYearly}
               onCheckedChange={(checked) => setIsYearly(!checked)}
             />
-            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer transition-colors ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
               Monthly
             </Label>
           </div>
@@ -64,11 +65,16 @@ const Pricing = () => {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Yearly Plan */}
-          <div className={`p-8 rounded-2xl border-2 ${isYearly ? 'border-primary bg-card' : 'border-border bg-card/50'} relative hover:shadow-lg transition-all`}>
+          <div className={`p-8 rounded-2xl border-2 ${isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
+            {isYearly && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-semibold shadow-lg">
+                Best Value
+              </div>
+            )}
             <div className="mb-6">
               <h3 className="text-2xl font-bold mb-2">Yearly</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold">$29</span>
+                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">$12</span>
                 <span className="text-muted-foreground">/month</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -76,46 +82,66 @@ const Pricing = () => {
               </p>
             </div>
             
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>All features +</span>
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">All features +</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Trading Calendar</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Trading Calendar</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Statistics & Analytics</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Statistics & Analytics</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Dream Builder</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Dream Builder</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Achievements & Levels</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Achievements & Levels</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Goals Tracking</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Goals Tracking</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Risk Management</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Risk Management</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Strategy Checklist</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Strategy Checklist</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Equity Curve</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Equity Curve</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Log Your Trade</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Log Your Trade</span>
               </div>
             </div>
             
@@ -125,11 +151,16 @@ const Pricing = () => {
           </div>
 
           {/* Monthly Plan */}
-          <div className={`p-8 rounded-2xl border-2 ${!isYearly ? 'border-primary bg-card' : 'border-border bg-card/50'} relative hover:shadow-lg transition-all`}>
+          <div className={`p-8 rounded-2xl border-2 ${!isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
+            {!isYearly && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-semibold shadow-lg">
+                Popular
+              </div>
+            )}
             <div className="mb-6">
               <h3 className="text-2xl font-bold mb-2">Monthly</h3>
               <div className="mb-4">
-                <span className="text-4xl font-bold">$19</span>
+                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">$19</span>
                 <span className="text-muted-foreground">/month</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -137,46 +168,66 @@ const Pricing = () => {
               </p>
             </div>
             
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>All features +</span>
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">All features +</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Trading Calendar</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Trading Calendar</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Statistics & Analytics</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Statistics & Analytics</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Dream Builder</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Dream Builder</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Achievements & Levels</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Achievements & Levels</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Goals Tracking</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Goals Tracking</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Risk Management</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Risk Management</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Strategy Checklist</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Strategy Checklist</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Equity Curve</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Equity Curve</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>Log Your Trade</span>
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="p-1.5 rounded-md bg-primary/10">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                </div>
+                <span className="text-sm">Log Your Trade</span>
               </div>
             </div>
             
@@ -187,9 +238,9 @@ const Pricing = () => {
         </div>
       </main>
 
-      <footer className="border-t border-border bg-card mt-20">
+      <footer className="border-t border-border/50 bg-card/50 mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-          <p>© 2025 HS Journal. All rights reserved.</p>
+          <p>© 2025 HS-Edge. All rights reserved.</p>
         </div>
       </footer>
     </div>
