@@ -66,7 +66,7 @@ export const MinimalProgressBar = () => {
   const xpNeededForNextLevel = Math.max(0, xpForNextLevel - profile.experience_points);
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-2 mb-8">
+    <div className="w-full space-y-2">
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Level {profile.level}</span>
         <span className="font-semibold text-primary">{Math.round(progressPercent)}%</span>

@@ -209,7 +209,7 @@ export const StrategyChecklist = () => {
         <h2 className="text-2xl font-bold">Strategy Checklist</h2>
         <div className="flex items-center gap-2">
           <Select value={selectedStrategyId} onValueChange={setSelectedStrategyId}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-fit">
               <SelectValue placeholder="Select strategy" />
             </SelectTrigger>
             <SelectContent>

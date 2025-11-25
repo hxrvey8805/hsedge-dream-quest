@@ -128,13 +128,15 @@ const Dashboard = () => {
 
       <main className="w-full px-6 py-8">
         {/* Minimal Progress Bar - Above Stats */}
-        <div className="mb-8">
-          <MinimalProgressBar />
+        <div className="mb-8 flex justify-center">
+          <div className="w-full max-w-[1800px]">
+            <MinimalProgressBar />
+          </div>
         </div>
 
-        {/* Stats Cards - Centered */}
+        {/* Stats Cards - Matching width with calendar + risk management */}
         <div className="flex justify-center mb-8">
-          <div className="grid md:grid-cols-3 gap-6 w-full max-w-4xl">
+          <div className="grid md:grid-cols-3 gap-6 w-full max-w-[1800px]">
             <Card className="p-6 bg-card border-border">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-lg bg-success/10">
