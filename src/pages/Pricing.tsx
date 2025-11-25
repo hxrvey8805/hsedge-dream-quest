@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import logo from "@/assets/hs-logo.png";
 
 const Pricing = () => {
@@ -41,31 +39,19 @@ const Pricing = () => {
           </p>
           
           {/* Yearly Discount Banner */}
-          <div className="mb-8">
+          <div className="mb-12">
             <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/20 backdrop-blur-sm shadow-lg shadow-primary/10">
               <span className="text-sm font-semibold text-primary">Get 36% Off When You Pay Yearly</span>
             </div>
-          </div>
-
-          {/* Toggle Switch */}
-          <div className="flex items-center justify-center gap-4 mb-12">
-            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer transition-colors ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Yearly
-            </Label>
-            <Switch
-              id="billing-toggle"
-              checked={!isYearly}
-              onCheckedChange={(checked) => setIsYearly(!checked)}
-            />
-            <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer transition-colors ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Monthly
-            </Label>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Yearly Plan */}
-          <div className={`p-8 rounded-2xl border-2 ${isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
+          <div 
+            className={`p-8 rounded-2xl border-2 ${isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+            onMouseEnter={() => setIsYearly(true)}
+          >
             {isYearly && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-semibold shadow-lg">
                 Best Value
@@ -151,7 +137,10 @@ const Pricing = () => {
           </div>
 
           {/* Monthly Plan */}
-          <div className={`p-8 rounded-2xl border-2 ${!isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
+          <div 
+            className={`p-8 rounded-2xl border-2 ${!isYearly ? 'border-primary/50 bg-gradient-to-br from-card via-card/95 to-card/80 backdrop-blur-sm shadow-lg shadow-primary/10' : 'border-border/50 bg-card/50'} relative hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+            onMouseEnter={() => setIsYearly(false)}
+          >
             {!isYearly && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-semibold shadow-lg">
                 Popular
