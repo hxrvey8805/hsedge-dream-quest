@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
 import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
+import { EquityCurve } from "@/components/EquityCurve";
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -197,10 +198,11 @@ const Dashboard = () => {
             <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
           </Card>
 
-          {/* Right Column - Risk Management and Strategy Checklist */}
+          {/* Right Column - Risk Management, Strategy Checklist, and Equity Curve */}
           <div className="space-y-6">
             <RiskManagement />
             <StrategyChecklist />
+            <EquityCurve refreshTrigger={refreshTrigger} />
           </div>
         </div>
       </main>
