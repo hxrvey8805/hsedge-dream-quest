@@ -107,29 +107,43 @@ export const RiskManagement = () => {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("trading_strategies")
-      .insert({
-        user_id: user.id,
-        name: newStrategyName.trim(),
-        type: "risk_management",
-        is_active: true,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast.error("Failed to create strategy");
+    if (!user) {
+      toast.error("You must be logged in to create a strategy");
       return;
     }
 
-    toast.success("Strategy created");
-    setNewStrategyName("");
-    fetchStrategies();
-    if (data) {
-      setSelectedStrategyId(data.id);
+    try {
+      const { data, error } = await supabase
+        .from("trading_strategies")
+        .insert({
+          user_id: user.id,
+          name: newStrategyName.trim(),
+          type: "risk_management",
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Strategy creation error:", error);
+        // Check if it's a unique constraint violation
+        if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
+          toast.error("A strategy with this name already exists. Please choose a different name.");
+        } else {
+          toast.error(`Failed to create strategy: ${error.message || 'Unknown error'}`);
+        }
+        return;
+      }
+
+      toast.success("Strategy created successfully");
+      setNewStrategyName("");
+      fetchStrategies();
+      if (data) {
+        setSelectedStrategyId(data.id);
+      }
+    } catch (err: any) {
+      console.error("Unexpected error creating strategy:", err);
+      toast.error(`Failed to create strategy: ${err.message || 'Unknown error'}`);
     }
   };
 

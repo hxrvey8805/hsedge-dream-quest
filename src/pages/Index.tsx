@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
-import heroLogo from "@/assets/hsjournal-2.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,12 +31,22 @@ const Index = () => {
       <main>
         <section className="container mx-auto px-4 pt-0 pb-6 -mt-6 md:-mt-10 text-center">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex mb-0 animate-fade-in">
-              <img src={heroLogo} alt="HS Journal" className="h-96 w-auto" />
+            <div className="mb-8 animate-fade-in">
+              <h1 
+                className="text-7xl md:text-8xl font-light italic text-blue-500"
+                style={{ 
+                  fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
+                  textShadow: '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.2)',
+                  letterSpacing: '0.08em',
+                  fontWeight: 300
+                }}
+              >
+                LucidTrades
+              </h1>
             </div>
-            <h1 className="-mt-12 text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
               Your Gamified, Dream-Driven Path to Trading Excellence
-            </h1>
+            </h2>
             <p className="text-xl text-muted-foreground mb-8 animate-fade-in">
               Transform your trading journey with HS Journal. Track every trade, build your dreams, and level up your
               skills with our gamified trading journal.

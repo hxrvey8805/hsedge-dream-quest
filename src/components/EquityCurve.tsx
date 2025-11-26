@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Dot } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
@@ -9,6 +8,7 @@ import { format, isToday, parseISO } from "date-fns";
 interface Trade {
   trade_date: string;
   profit: number | null;
+  pips: number | null;
 }
 
 interface EquityPoint {
@@ -18,24 +18,25 @@ interface EquityPoint {
   index?: number;
 }
 
-const chartConfig = {
-  cumulative: {
-    label: "Cumulative P&L",
-    color: "hsl(var(--primary))",
-  },
-};
-
 interface EquityCurveProps {
   refreshTrigger?: number;
+  viewMode?: 'pips' | 'profit';
 }
 
-export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
+export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurveProps) => {
   const [data, setData] = useState<EquityPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const chartConfig = {
+    cumulative: {
+      label: viewMode === 'pips' ? "Cumulative Pips" : "Cumulative P&L",
+      color: "hsl(var(--primary))",
+    },
+  };
+
   useEffect(() => {
     fetchEquityData();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, viewMode]);
 
   const fetchEquityData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,7 +47,7 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
 
     const { data: trades, error } = await supabase
       .from("trades")
-      .select("trade_date, profit")
+      .select("trade_date, profit, pips")
       .eq("user_id", user.id)
       .order("trade_date", { ascending: true });
 
@@ -59,11 +60,14 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
     if (trades && trades.length > 0) {
       let cumulative = 0;
       const equityPoints: EquityPoint[] = trades.map((trade: Trade, index: number) => {
-        cumulative += trade.profit || 0;
+        const value = viewMode === 'pips' ? (trade.pips || 0) : (trade.profit || 0);
+        cumulative += value;
         const date = parseISO(trade.trade_date);
         return {
           date: format(date, "MMM d"),
-          cumulative: parseFloat(cumulative.toFixed(2)),
+          cumulative: viewMode === 'pips' 
+            ? parseFloat(cumulative.toFixed(1)) 
+            : parseFloat(cumulative.toFixed(2)),
           isToday: isToday(date),
           index,
         };
@@ -77,7 +81,7 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
 
   if (loading) {
     return (
-      <Card className="p-6 bg-card border-border">
+      <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Equity Curve</h3>
@@ -85,13 +89,13 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
         <div className="h-32 flex items-center justify-center">
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <Card className="p-6 bg-card border-border">
+      <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Equity Curve</h3>
@@ -99,7 +103,7 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
         <div className="h-32 flex items-center justify-center">
           <p className="text-sm text-muted-foreground">No trading data yet</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
@@ -144,7 +148,7 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
   };
 
   return (
-    <Card className="p-6 bg-card border-border">
+    <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
@@ -153,7 +157,10 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Current</p>
           <p className={`text-lg font-bold ${todayValue >= 0 ? 'text-success' : 'text-destructive'}`}>
-            ${todayValue >= 0 ? '+' : ''}{todayValue.toFixed(2)}
+            {viewMode === 'pips' 
+              ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(1)} pips`
+              : `$${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}`
+            }
           </p>
         </div>
       </div>
@@ -184,7 +191,10 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-primary" />
                           <span className="text-sm font-medium">
-                            ${value >= 0 ? '+' : ''}{value.toFixed(2)}
+                            {viewMode === 'pips'
+                              ? `${value >= 0 ? '+' : ''}${value.toFixed(1)} pips`
+                              : `$${value >= 0 ? '+' : ''}${value.toFixed(2)}`
+                            }
                           </span>
                         </div>
                       </div>
@@ -216,7 +226,7 @@ export const EquityCurve = ({ refreshTrigger }: EquityCurveProps) => {
           </ResponsiveContainer>
         </ChartContainer>
       </div>
-    </Card>
+    </div>
   );
 };
 

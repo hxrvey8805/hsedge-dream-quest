@@ -198,12 +198,16 @@ const Dashboard = () => {
             <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
           </Card>
 
-          {/* Right Column - Risk Management, Strategy Checklist, and Equity Curve */}
+          {/* Right Column - Risk Management and Strategy Checklist */}
           <div className="space-y-6">
             <RiskManagement />
             <StrategyChecklist />
-            <EquityCurve refreshTrigger={refreshTrigger} />
           </div>
+        </div>
+
+        {/* Equity Curve - Separate entity below main content */}
+        <div className="mt-8 max-w-[1800px] mx-auto">
+          <EquityCurve refreshTrigger={refreshTrigger} viewMode={viewMode} />
         </div>
       </main>
 
