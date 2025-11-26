@@ -29,7 +29,7 @@ const Index = () => {
       </header>
 
       <main>
-        <section className="container mx-auto px-4 pt-0 pb-6 -mt-6 md:-mt-10 text-center">
+        <section className="container mx-auto px-4 pt-16 md:pt-24 pb-6 text-center">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 animate-fade-in">
               <h1 
