@@ -152,7 +152,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
   };
 
   return (
-    <div className="flex-1 mt-auto">
+    <div className="flex-1 mt-auto pt-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
