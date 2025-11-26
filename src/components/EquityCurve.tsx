@@ -81,13 +81,15 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
 
   if (loading) {
     return (
-      <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Equity Curve</h3>
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Equity Curve</h3>
+          </div>
         </div>
         <div className="h-32 flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-xs text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -95,13 +97,15 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
 
   if (data.length === 0) {
     return (
-      <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Equity Curve</h3>
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Equity Curve</h3>
+          </div>
         </div>
         <div className="h-32 flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">No trading data yet</p>
+          <p className="text-xs text-muted-foreground">No trading data yet</p>
         </div>
       </div>
     );
@@ -148,15 +152,15 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 rounded-2xl">
-      <div className="flex items-center justify-between mb-4">
+    <div className="flex-1 mt-auto">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Equity Curve</h3>
+          <TrendingUp className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Equity Curve</h3>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Current</p>
-          <p className={`text-lg font-bold ${todayValue >= 0 ? 'text-success' : 'text-destructive'}`}>
+          <p className={`text-sm font-bold ${todayValue >= 0 ? 'text-success' : 'text-destructive'}`}>
             {viewMode === 'pips' 
               ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(1)} pips`
               : `$${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}`
