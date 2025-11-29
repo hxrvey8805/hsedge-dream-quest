@@ -2,12 +2,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
-
 const Index = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-1 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -32,17 +29,12 @@ const Index = () => {
         <section className="container mx-auto px-4 pt-16 md:pt-24 pb-6 text-center">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 animate-fade-in">
-              <h1 
-                className="text-7xl md:text-8xl font-light italic text-blue-500"
-                style={{ 
-                  fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
-                  textShadow: '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.2)',
-                  letterSpacing: '0.08em',
-                  fontWeight: 300
-                }}
-              >
-                LucidTrades
-              </h1>
+              <h1 className="text-7xl md:text-8xl font-light italic text-blue-500" style={{
+              fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
+              textShadow: '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.2)',
+              letterSpacing: '0.08em',
+              fontWeight: 300
+            }}>TradeLucid</h1>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent animate-fade-in">
               Your Gamified, Dream-Driven Path to Trading Excellence
@@ -118,8 +110,6 @@ const Index = () => {
           <p>© 2025 HS Journal. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
