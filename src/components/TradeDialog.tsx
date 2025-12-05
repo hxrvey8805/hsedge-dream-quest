@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { TrendingUp, Calendar, Target, Clock, DollarSign, ArrowUpDown, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -193,62 +195,98 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Log New Trade</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Essential Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="trade_date">Date *</Label>
-              <Input id="trade_date" name="trade_date" type="date" defaultValue={defaultDate} required />
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Enhanced Header */}
+        <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent backdrop-blur-sm border-b border-primary/30 p-6 pb-4">
+          <DialogHeader className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <TrendingUp className="h-6 w-6 text-primary animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  Log New Trade
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Capture your trading performance
+                </p>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="asset_class">Asset Class *</Label>
-              <Select value={assetClass} onValueChange={setAssetClass} required>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ASSET_CLASSES.map(ac => (
-                    <SelectItem key={ac} value={ac}>{ac}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          </DialogHeader>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="symbol">Symbol *</Label>
-              <Input 
-                id="symbol" 
-                name="symbol" 
-                placeholder={assetClass === "Forex" ? "EUR/USD" : assetClass === "Stocks" ? "AAPL" : assetClass === "Futures" ? "ES" : "BTC"} 
-                required 
-              />
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Section 1: Trade Information */}
+          <Card className="p-6 bg-gradient-to-br from-card via-card/95 to-card/80 border-primary/10 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold">Trade Information</h3>
             </div>
-            <div>
-              <Label htmlFor="buy_sell">Side *</Label>
-              <Select name="buy_sell" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Buy">Long/Buy</SelectItem>
-                  <SelectItem value="Sell">Short/Sell</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Price Levels */}
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-            <h3 className="font-medium text-sm">Price Levels *</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="entry_price">Entry Price</Label>
+                <Label htmlFor="trade_date">Date *</Label>
+                <Input 
+                  id="trade_date" 
+                  name="trade_date" 
+                  type="date" 
+                  defaultValue={defaultDate} 
+                  required
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
+              <div>
+                <Label htmlFor="asset_class">Asset Class *</Label>
+                <Select value={assetClass} onValueChange={setAssetClass} required>
+                  <SelectTrigger className="transition-all duration-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ASSET_CLASSES.map(ac => (
+                      <SelectItem key={ac} value={ac}>{ac}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div>
+                <Label htmlFor="symbol">Symbol *</Label>
+                <Input 
+                  id="symbol" 
+                  name="symbol" 
+                  placeholder={assetClass === "Forex" ? "EUR/USD" : assetClass === "Stocks" ? "AAPL" : assetClass === "Futures" ? "ES" : "BTC"} 
+                  required
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
+              <div>
+                <Label htmlFor="buy_sell">Side *</Label>
+                <Select name="buy_sell" required>
+                  <SelectTrigger className="transition-all duration-200">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Buy">Long/Buy</SelectItem>
+                    <SelectItem value="Sell">Short/Sell</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+
+          {/* Section 2: Price & Risk Management */}
+          <Card className="p-6 bg-gradient-to-br from-card via-card/95 to-card/80 border-primary/10 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <Target className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold">Price & Risk Management</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="entry_price">Entry Price *</Label>
                 <Input 
                   id="entry_price" 
                   type="number" 
@@ -257,10 +295,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   value={entryPrice}
                   onChange={(e) => setEntryPrice(e.target.value)}
                   required
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
               <div>
-                <Label htmlFor="exit_price">Exit Price</Label>
+                <Label htmlFor="exit_price">Exit Price *</Label>
                 <Input 
                   id="exit_price" 
                   type="number" 
@@ -269,10 +308,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   value={exitPrice}
                   onChange={(e) => setExitPrice(e.target.value)}
                   required
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 mt-4">
               <div>
                 <Label htmlFor="stop_loss">Stop Loss</Label>
                 <Input 
@@ -282,6 +322,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   placeholder="0.00"
                   value={stopLoss}
                   onChange={(e) => setStopLoss(e.target.value)}
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
               <div>
@@ -294,6 +335,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   value={size}
                   onChange={(e) => setSize(e.target.value)}
                   required
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
               <div>
@@ -305,93 +347,166 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   placeholder="0.00"
                   value={fees}
                   onChange={(e) => setFees(e.target.value)}
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </div>
             </div>
-            
-            {/* Auto-calculated preview */}
-            {entryPrice && exitPrice && size && (
-              <div className="mt-4 p-3 bg-background rounded border">
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">R:R Ratio:</span>
-                    <p className="font-bold text-lg">{previewRR}</p>
+          </Card>
+
+          {/* Live Trade Preview */}
+          {entryPrice && exitPrice && size && (
+            <Card 
+              className={`p-6 border-2 shadow-lg animate-in fade-in-0 zoom-in-95 duration-300 ${
+                previewProfit >= 0 
+                  ? 'bg-gradient-to-br from-success/20 via-success/10 to-success/5 border-success/30' 
+                  : previewProfit < 0
+                  ? 'bg-gradient-to-br from-destructive/20 via-destructive/10 to-destructive/5 border-destructive/30'
+                  : 'bg-gradient-to-br from-card via-card/95 to-card/80 border-primary/30'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2 rounded-lg ${previewProfit >= 0 ? 'bg-success/20' : previewProfit < 0 ? 'bg-destructive/20' : 'bg-primary/20'}`}>
+                  <TrendingUp className={`h-5 w-5 ${previewProfit >= 0 ? 'text-success' : previewProfit < 0 ? 'text-destructive' : 'text-primary'}`} />
+                </div>
+                <h3 className="text-lg font-semibold">Live Trade Preview</h3>
+              </div>
+              <div className={`grid gap-4 ${(assetClass === "Forex" || assetClass === "Futures") ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <div className="text-center p-4 rounded-lg bg-background/50 backdrop-blur-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Target className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">Risk:Reward</span>
                   </div>
-                  {assetClass === "Forex" || assetClass === "Futures" ? (
-                    <div>
-                      <span className="text-muted-foreground">{assetClass === "Forex" ? "Pips" : "Ticks"}:</span>
-                      <p className={`font-bold text-lg ${previewPips >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {previewPips >= 0 ? '+' : ''}{previewPips.toFixed(1)}
-                      </p>
+                  <p className="text-2xl font-bold text-foreground">{previewRR}</p>
+                </div>
+                {(assetClass === "Forex" || assetClass === "Futures") && (
+                  <div className="text-center p-4 rounded-lg bg-background/50 backdrop-blur-sm">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {assetClass === "Forex" ? "Pips" : "Ticks"}
+                      </span>
                     </div>
-                  ) : null}
-                  <div>
-                    <span className="text-muted-foreground">P&L:</span>
-                    <p className={`font-bold text-lg ${previewProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      ${previewProfit >= 0 ? '+' : ''}{previewProfit.toFixed(2)}
+                    <p className={`text-2xl font-bold ${previewPips >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      {previewPips >= 0 ? '+' : ''}{previewPips.toFixed(1)}
                     </p>
                   </div>
+                )}
+                <div className="text-center p-4 rounded-lg bg-background/50 backdrop-blur-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">Profit & Loss</span>
+                  </div>
+                  <p className={`text-3xl font-bold ${previewProfit >= 0 ? 'text-success' : previewProfit < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                    ${previewProfit >= 0 ? '+' : ''}{previewProfit.toFixed(2)}
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
+            </Card>
+          )}
 
-          {/* Trade Details */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="session">Session</Label>
-              <Select name="session">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SESSIONS.map(s => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Section 3: Trade Details & Timing */}
+          <Card className="p-6 bg-gradient-to-br from-card via-card/95 to-card/80 border-primary/10 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold">Trade Details & Timing</h3>
             </div>
-            <div>
-              <Label htmlFor="entry_timeframe">Entry Timeframe</Label>
-              <Select name="entry_timeframe">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIMEFRAMES.map(tf => (
-                    <SelectItem key={tf} value={tf}>{tf}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label htmlFor="session">Session</Label>
+                <Select name="session">
+                  <SelectTrigger className="transition-all duration-200">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SESSIONS.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="entry_timeframe">Entry Timeframe</Label>
+                <Select name="entry_timeframe">
+                  <SelectTrigger className="transition-all duration-200">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIMEFRAMES.map(tf => (
+                      <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="strategy_type">Strategy</Label>
+                <Input 
+                  id="strategy_type" 
+                  name="strategy_type" 
+                  placeholder="e.g., Breakout"
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="strategy_type">Strategy</Label>
-              <Input id="strategy_type" name="strategy_type" placeholder="e.g., Breakout" />
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div>
+                <Label htmlFor="time_opened">Time Opened</Label>
+                <Input 
+                  id="time_opened" 
+                  name="time_opened" 
+                  type="time"
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
+              <div>
+                <Label htmlFor="time_closed">Time Closed</Label>
+                <Input 
+                  id="time_closed" 
+                  name="time_closed" 
+                  type="time"
+                  className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </div>
             </div>
-          </div>
+            <div className="mt-4">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea 
+                id="notes" 
+                name="notes" 
+                placeholder="Trade notes and observations..." 
+                rows={4}
+                className="transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary resize-none"
+              />
+            </div>
+          </Card>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="time_opened">Time Opened</Label>
-              <Input id="time_opened" name="time_opened" type="time" />
-            </div>
-            <div>
-              <Label htmlFor="time_closed">Time Closed</Label>
-              <Input id="time_closed" name="time_closed" type="time" />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" placeholder="Trade notes and observations..." rows={3} />
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="transition-all duration-200"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Trade"}
+            <Button 
+              type="submit" 
+              disabled={loading}
+              size="lg"
+              className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 min-w-[140px]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Save Trade
+                </>
+              )}
             </Button>
           </div>
         </form>
