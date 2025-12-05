@@ -3,92 +3,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, GripVertical, Trash2 } from "lucide-react";
+import { Plus, X, GripVertical } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface StrategyItem {
   id: string;
   rule_text: string;
   rule_order: number;
   is_active: boolean;
-  strategy_id?: string | null;
-}
-
-interface Strategy {
-  id: string;
-  name: string;
-  type: string;
 }
 
 export const StrategyChecklist = () => {
   const [items, setItems] = useState<StrategyItem[]>([]);
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>("default");
   const [newItem, setNewItem] = useState("");
-  const [newStrategyName, setNewStrategyName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    fetchStrategies();
     fetchItems();
-  }, [selectedStrategyId]);
-
-  const fetchStrategies = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("trading_strategies")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("type", "strategy_checklist")
-      .eq("is_active", true)
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Failed to load strategies", error);
-      return;
-    }
-
-    if (data) {
-      setStrategies(data);
-      if (data.length > 0 && selectedStrategyId === "default") {
-        setSelectedStrategyId(data[0].id);
-      }
-    }
-  };
+  }, []);
 
   const fetchItems = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let query = supabase
+    const { data, error } = await supabase
       .from("strategy_checklist")
       .select("*")
       .eq("user_id", user.id)
-      .eq("is_active", true);
-
-    if (selectedStrategyId && selectedStrategyId !== "default") {
-      query = query.eq("strategy_id", selectedStrategyId);
-    } else if (selectedStrategyId === "default") {
-      query = query.is("strategy_id", null);
-    }
-
-    const { data, error } = await query.order("rule_order", { ascending: true });
+      .eq("is_active", true)
+      .order("rule_order", { ascending: true });
 
     if (error) {
       toast.error("Failed to load strategy checklist");
@@ -100,74 +43,6 @@ export const StrategyChecklist = () => {
     }
   };
 
-  const createStrategy = async () => {
-    if (!newStrategyName.trim()) {
-      toast.error("Please enter a strategy name");
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("You must be logged in to create a strategy");
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("trading_strategies")
-        .insert({
-          user_id: user.id,
-          name: newStrategyName.trim(),
-          type: "strategy_checklist",
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Strategy creation error:", error);
-        // Check if it's a unique constraint violation
-        if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
-          toast.error("A strategy with this name already exists. Please choose a different name.");
-        } else {
-          toast.error(`Failed to create strategy: ${error.message || 'Unknown error'}`);
-        }
-        return;
-      }
-
-      toast.success("Strategy created successfully");
-      setNewStrategyName("");
-      fetchStrategies();
-      if (data) {
-        setSelectedStrategyId(data.id);
-      }
-    } catch (err: any) {
-      console.error("Unexpected error creating strategy:", err);
-      toast.error(`Failed to create strategy: ${err.message || 'Unknown error'}`);
-    }
-  };
-
-  const deleteStrategy = async (strategyId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from("trading_strategies")
-      .update({ is_active: false })
-      .eq("id", strategyId);
-
-    if (error) {
-      toast.error("Failed to delete strategy");
-      return;
-    }
-
-    toast.success("Strategy deleted");
-    fetchStrategies();
-    if (selectedStrategyId === strategyId) {
-      setSelectedStrategyId("default");
-    }
-  };
-
   const addItem = async () => {
     if (!newItem.trim()) return;
 
@@ -176,20 +51,14 @@ export const StrategyChecklist = () => {
 
     const maxOrder = items.length > 0 ? Math.max(...items.map(i => i.rule_order)) : 0;
 
-    const itemData: any = {
-      user_id: user.id,
-      rule_text: newItem.trim(),
-      rule_order: maxOrder + 1,
-      is_active: true,
-    };
-
-    if (selectedStrategyId && selectedStrategyId !== "default") {
-      itemData.strategy_id = selectedStrategyId;
-    }
-
     const { error } = await supabase
       .from("strategy_checklist")
-      .insert(itemData);
+      .insert({
+        user_id: user.id,
+        rule_text: newItem.trim(),
+        rule_order: maxOrder + 1,
+        is_active: true,
+      });
 
     if (error) {
       toast.error("Failed to add item");
@@ -221,73 +90,14 @@ export const StrategyChecklist = () => {
     <Card className="p-6 bg-card border-border">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Strategy Checklist</h2>
-        <div className="flex items-center gap-2">
-          <Select value={selectedStrategyId} onValueChange={setSelectedStrategyId}>
-            <SelectTrigger className="w-fit">
-              <SelectValue placeholder="Select strategy" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Default</SelectItem>
-              {strategies.map((strategy) => (
-                <SelectItem key={strategy.id} value={strategy.id}>
-                  {strategy.name}
-                </SelectItem>
-              ))}
-              <div className="px-2 py-1.5 border-t">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full justify-start">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Strategy
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Strategy</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Input
-                        placeholder="Strategy name"
-                        value={newStrategyName}
-                        onChange={(e) => setNewStrategyName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            createStrategy();
-                          }
-                        }}
-                      />
-                      <Button onClick={createStrategy} className="w-full">
-                        Create Strategy
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </SelectContent>
-          </Select>
-          {selectedStrategyId !== "default" && strategies.find(s => s.id === selectedStrategyId) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                if (confirm("Delete this strategy? All items will be moved to Default.")) {
-                  deleteStrategy(selectedStrategyId);
-                }
-              }}
-              className="h-9 w-9"
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAdding(!isAdding)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Item
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsAdding(!isAdding)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Item
+        </Button>
       </div>
 
       {isAdding && (
