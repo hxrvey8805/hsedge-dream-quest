@@ -32,7 +32,7 @@ export const TradingIncomeSection = ({
     monthly_return_percent: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editSourceName, setEditSourceName] = useState("");
+  const [editValues, setEditValues] = useState<Record<string, any>>({});
 
   const calculateMonthlyProfit = (
     accountSize: number,
@@ -107,34 +107,53 @@ export const TradingIncomeSection = ({
 
   const handleEditSource = (source: any) => {
     setEditingId(source.id);
-    setEditSourceName(source.source_name);
+    setEditValues({
+      source_name: source.source_name,
+      account_size: source.account_size.toString(),
+      profit_split_percent: source.profit_split_percent.toString(),
+      monthly_return_percent: source.monthly_return_percent.toString(),
+    });
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditSourceName("");
+    setEditValues({});
   };
 
   const handleSaveEdit = async (sourceId: string) => {
-    if (!editSourceName.trim()) {
+    if (!editValues.source_name?.trim()) {
       toast.error("Source name cannot be empty");
+      return;
+    }
+
+    if (
+      !editValues.account_size ||
+      !editValues.profit_split_percent ||
+      !editValues.monthly_return_percent
+    ) {
+      toast.error("Please fill in all fields");
       return;
     }
 
     try {
       const { error } = await supabase
         .from("trading_income_sources")
-        .update({ source_name: editSourceName.trim() })
+        .update({
+          source_name: editValues.source_name.trim(),
+          account_size: parseFloat(editValues.account_size),
+          profit_split_percent: parseFloat(editValues.profit_split_percent),
+          monthly_return_percent: parseFloat(editValues.monthly_return_percent),
+        })
         .eq("id", sourceId);
 
       if (error) throw error;
 
-      toast.success("Source name updated!");
+      toast.success("Income source updated!");
       setEditingId(null);
-      setEditSourceName("");
+      setEditValues({});
       onUpdate();
     } catch (error: any) {
-      toast.error("Failed to update source name");
+      toast.error("Failed to update income source");
       console.error(error);
     }
   };
@@ -174,36 +193,78 @@ export const TradingIncomeSection = ({
             </TableHeader>
             <TableBody>
               {incomeSources.map((source) => {
-                const monthlyProfit = calculateMonthlyProfit(
-                  source.account_size,
-                  source.profit_split_percent,
-                  source.monthly_return_percent
-                );
                 const isEditing = editingId === source.id;
+                const values = isEditing ? editValues : {
+                  source_name: source.source_name,
+                  account_size: source.account_size.toString(),
+                  profit_split_percent: source.profit_split_percent.toString(),
+                  monthly_return_percent: source.monthly_return_percent.toString(),
+                };
+
+                const monthlyProfit = calculateMonthlyProfit(
+                  isEditing ? parseFloat(values.account_size) || 0 : source.account_size,
+                  isEditing ? parseFloat(values.profit_split_percent) || 0 : source.profit_split_percent,
+                  isEditing ? parseFloat(values.monthly_return_percent) || 0 : source.monthly_return_percent
+                );
 
                 return (
                   <TableRow key={source.id}>
                     <TableCell>
                       {isEditing ? (
                         <Input
-                          value={editSourceName}
-                          onChange={(e) => setEditSourceName(e.target.value)}
+                          value={values.source_name}
+                          onChange={(e) =>
+                            setEditValues({ ...editValues, source_name: e.target.value })
+                          }
                           className="w-full"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleSaveEdit(source.id);
-                            } else if (e.key === "Escape") {
-                              handleCancelEdit();
-                            }
-                          }}
                         />
                       ) : (
                         <span className="font-medium">{source.source_name}</span>
                       )}
                     </TableCell>
-                    <TableCell>£{source.account_size.toLocaleString()}</TableCell>
-                    <TableCell>{source.profit_split_percent}%</TableCell>
-                    <TableCell>{source.monthly_return_percent}%</TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          value={values.account_size}
+                          onChange={(e) =>
+                            setEditValues({ ...editValues, account_size: e.target.value })
+                          }
+                          className="w-full"
+                        />
+                      ) : (
+                        `£${source.account_size.toLocaleString()}`
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          value={values.profit_split_percent}
+                          onChange={(e) =>
+                            setEditValues({ ...editValues, profit_split_percent: e.target.value })
+                          }
+                          className="w-full"
+                        />
+                      ) : (
+                        `${source.profit_split_percent}%`
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={values.monthly_return_percent}
+                          onChange={(e) =>
+                            setEditValues({ ...editValues, monthly_return_percent: e.target.value })
+                          }
+                          className="w-full"
+                        />
+                      ) : (
+                        `${source.monthly_return_percent}%`
+                      )}
+                    </TableCell>
                     <TableCell className="font-semibold text-success">
                       £{monthlyProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
                     </TableCell>
