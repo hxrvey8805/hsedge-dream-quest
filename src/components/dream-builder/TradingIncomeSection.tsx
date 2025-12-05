@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Trash2, TrendingUp, Edit2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -31,6 +31,8 @@ export const TradingIncomeSection = ({
     profit_split_percent: "",
     monthly_return_percent: "",
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSourceName, setEditSourceName] = useState("");
 
   const calculateMonthlyProfit = (
     accountSize: number,
@@ -103,6 +105,40 @@ export const TradingIncomeSection = ({
     }
   };
 
+  const handleEditSource = (source: any) => {
+    setEditingId(source.id);
+    setEditSourceName(source.source_name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditSourceName("");
+  };
+
+  const handleSaveEdit = async (sourceId: string) => {
+    if (!editSourceName.trim()) {
+      toast.error("Source name cannot be empty");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("trading_income_sources")
+        .update({ source_name: editSourceName.trim() })
+        .eq("id", sourceId);
+
+      if (error) throw error;
+
+      toast.success("Source name updated!");
+      setEditingId(null);
+      setEditSourceName("");
+      onUpdate();
+    } catch (error: any) {
+      toast.error("Failed to update source name");
+      console.error(error);
+    }
+  };
+
   const totalMonthlyIncome = incomeSources.reduce((sum, source) => {
     return sum + calculateMonthlyProfit(
       source.account_size,
@@ -143,10 +179,28 @@ export const TradingIncomeSection = ({
                   source.profit_split_percent,
                   source.monthly_return_percent
                 );
+                const isEditing = editingId === source.id;
 
                 return (
                   <TableRow key={source.id}>
-                    <TableCell className="font-medium">{source.source_name}</TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input
+                          value={editSourceName}
+                          onChange={(e) => setEditSourceName(e.target.value)}
+                          className="w-full"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleSaveEdit(source.id);
+                            } else if (e.key === "Escape") {
+                              handleCancelEdit();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="font-medium">{source.source_name}</span>
+                      )}
+                    </TableCell>
                     <TableCell>£{source.account_size.toLocaleString()}</TableCell>
                     <TableCell>{source.profit_split_percent}%</TableCell>
                     <TableCell>{source.monthly_return_percent}%</TableCell>
@@ -154,13 +208,43 @@ export const TradingIncomeSection = ({
                       £{monthlyProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteSource(source.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {isEditing ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleSaveEdit(source.id)}
+                            >
+                              <Save className="h-4 w-4 text-success" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleCancelEdit}
+                            >
+                              <X className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditSource(source)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteSource(source.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

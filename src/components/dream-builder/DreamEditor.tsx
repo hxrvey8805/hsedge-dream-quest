@@ -43,7 +43,8 @@ export const DreamEditor = ({ dreamId, onBack }: DreamEditorProps) => {
       const { data: purchaseData, error: purchaseError } = await supabase
         .from("dream_purchases")
         .select("*")
-        .eq("dream_profile_id", dreamId);
+        .eq("dream_profile_id", dreamId)
+        .order("created_at", { ascending: true });
 
       if (purchaseError) throw purchaseError;
       setPurchases(purchaseData || []);
