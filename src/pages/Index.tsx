@@ -7,17 +7,18 @@ import { useMemo } from "react";
 const Index = () => {
   const navigate = useNavigate();
 
-  // Generate blue illuminated floating particles
+  // Generate deep blue illuminated floating particles
   const lucidParticles = useMemo(() => {
     return Array.from({ length: 35 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
       delay: `${Math.random() * 10}s`,
-      duration: `${15 + Math.random() * 20}s`,
+      duration: `${20 + Math.random() * 25}s`,
       size: Math.random() * 5 + 3,
-      opacity: 0.4 + Math.random() * 0.6,
-      drift: Math.random() * 100 - 50, // Random horizontal drift
+      opacity: 0.5 + Math.random() * 0.5,
+      driftX: Math.random() * 150 - 75, // Random horizontal drift
+      driftY: Math.random() * 100 + 50, // Random vertical movement
     }));
   }, []);
 
@@ -35,7 +36,7 @@ const Index = () => {
         {/* Secondary subtle glow layers for depth */}
         <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(59, 130, 246, 0.05) 100%)' }} />
         
-        {/* Blue illuminated floating particles */}
+        {/* Deep blue illuminated floating particles */}
         {lucidParticles.map((particle) => (
           <div
             key={particle.id}
@@ -48,7 +49,8 @@ const Index = () => {
               width: `${particle.size}px`,
               height: `${particle.size}px`,
               opacity: particle.opacity,
-              '--drift': `${particle.drift}px`,
+              '--drift-x': `${particle.driftX}px`,
+              '--drift-y': `${particle.driftY}px`,
             } as React.CSSProperties}
           />
         ))}
