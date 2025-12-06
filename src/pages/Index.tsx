@@ -7,16 +7,17 @@ import { useMemo } from "react";
 const Index = () => {
   const navigate = useNavigate();
 
-  // Generate lucid stars/sparkles with random properties
-  const lucidStars = useMemo(() => {
-    return Array.from({ length: 40 }, (_, i) => ({
+  // Generate blue illuminated floating particles
+  const lucidParticles = useMemo(() => {
+    return Array.from({ length: 35 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 8}s`,
-      duration: `${3 + Math.random() * 4}s`,
-      size: Math.random() * 4 + 2,
-      opacity: 0.3 + Math.random() * 0.7,
+      delay: `${Math.random() * 10}s`,
+      duration: `${15 + Math.random() * 20}s`,
+      size: Math.random() * 5 + 3,
+      opacity: 0.4 + Math.random() * 0.6,
+      drift: Math.random() * 100 - 50, // Random horizontal drift
     }));
   }, []);
 
@@ -34,20 +35,21 @@ const Index = () => {
         {/* Secondary subtle glow layers for depth */}
         <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(59, 130, 246, 0.05) 100%)' }} />
         
-        {/* Lucid stars/sparkles */}
-        {lucidStars.map((star) => (
+        {/* Blue illuminated floating particles */}
+        {lucidParticles.map((particle) => (
           <div
-            key={star.id}
-            className="lucid-star"
+            key={particle.id}
+            className="lucid-particle"
             style={{
-              left: star.left,
-              top: star.top,
-              animationDelay: star.delay,
-              animationDuration: star.duration,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              opacity: star.opacity,
-            }}
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.delay,
+              animationDuration: `${particle.duration}s`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              opacity: particle.opacity,
+              '--drift': `${particle.drift}px`,
+            } as React.CSSProperties}
           />
         ))}
         
