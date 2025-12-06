@@ -43,8 +43,6 @@ const Index = () => {
           />
         ))}
         
-        {/* Subtle grid overlay for depth */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:80px_80px]" />
       </div>
       
       <header className="border-b border-blue-500/20 bg-slate-950/70 backdrop-blur-md sticky top-0 z-50 relative">

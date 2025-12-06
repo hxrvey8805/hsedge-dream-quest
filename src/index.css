@@ -140,10 +140,10 @@ All colors MUST be HSL.
 
 .lucid-bg {
   background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, hsl(220 80% 25% / 0.6), transparent),
-    radial-gradient(ellipse 60% 40% at 0% 100%, hsl(210 90% 20% / 0.4), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 100%, hsl(230 70% 20% / 0.4), transparent),
-    linear-gradient(180deg, hsl(220 50% 6%) 0%, hsl(215 60% 5%) 50%, hsl(210 50% 4%) 100%);
+    radial-gradient(ellipse 80% 50% at 50% -20%, hsl(220 90% 40% / 0.9), transparent),
+    radial-gradient(ellipse 60% 40% at 0% 100%, hsl(210 95% 35% / 0.7), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, hsl(230 85% 35% / 0.7), transparent),
+    linear-gradient(180deg, hsl(220 85% 18%) 0%, hsl(215 90% 15%) 50%, hsl(210 85% 12%) 100%);
 }
 
 .lucid-orb {
