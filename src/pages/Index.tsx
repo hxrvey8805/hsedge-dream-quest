@@ -22,7 +22,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen lucid-bg relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Dreamy lucid background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Primary ethereal orbs - enhanced deep blue illumination */}
