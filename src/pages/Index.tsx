@@ -22,11 +22,12 @@ const Index = () => {
     <div className="min-h-screen lucid-bg relative overflow-hidden">
       {/* Dreamy lucid background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary ethereal orbs - deep blue theme */}
-        <div className="lucid-orb absolute -top-20 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/30 via-blue-600/20 to-transparent rounded-full blur-3xl" />
-        <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[600px] h-[600px] bg-gradient-to-bl from-cyan-400/20 via-blue-500/15 to-transparent rounded-full blur-3xl" style={{ animationDelay: '2s' }} />
-        <div className="lucid-orb absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-indigo-500/25 via-blue-400/15 to-transparent rounded-full blur-3xl" style={{ animationDelay: '4s' }} />
-        <div className="lucid-orb-slow absolute top-1/2 right-1/4 w-[350px] h-[350px] bg-gradient-to-tl from-sky-400/20 via-blue-500/10 to-transparent rounded-full blur-3xl" style={{ animationDelay: '6s' }} />
+        {/* Primary ethereal orbs - deep blue illumination against darkness */}
+        <div className="lucid-orb absolute -top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/50 via-blue-600/40 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(59,130,246,0.4)]" />
+        <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[700px] h-[700px] bg-gradient-to-bl from-cyan-400/45 via-blue-500/35 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(34,211,238,0.3)]" style={{ animationDelay: '2s' }} />
+        <div className="lucid-orb absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-indigo-500/45 via-blue-400/35 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(99,102,241,0.4)]" style={{ animationDelay: '4s' }} />
+        <div className="lucid-orb-slow absolute top-1/2 right-1/4 w-[450px] h-[450px] bg-gradient-to-tl from-sky-400/40 via-blue-500/30 to-transparent rounded-full blur-3xl shadow-[0_0_180px_rgba(14,165,233,0.35)]" style={{ animationDelay: '6s' }} />
+        <div className="lucid-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-blue-400/35 via-cyan-500/25 to-transparent rounded-full blur-3xl shadow-[0_0_150px_rgba(96,165,250,0.3)]" style={{ animationDelay: '3s' }} />
         
         {/* Moving particles */}
         {particles.map((particle) => (
@@ -45,7 +46,7 @@ const Index = () => {
         
       </div>
       
-      <header className="border-b border-blue-500/20 bg-slate-950/70 backdrop-blur-md sticky top-0 z-50 relative">
+      <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
         <div className="container mx-auto px-4 py-1 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="TradeLucid" className="h-10 w-10" />
@@ -149,7 +150,7 @@ const Index = () => {
         </section>
       </main>
 
-      <footer className="border-t border-blue-500/20 bg-slate-950/70 backdrop-blur-sm mt-20 relative z-10">
+      <footer className="border-t border-blue-500/30 bg-black/40 backdrop-blur-sm mt-20 relative z-10">
         <div className="container mx-auto px-4 py-8 text-center text-blue-200/60">
           <p>© 2025 TradeLucid. All rights reserved.</p>
         </div>
