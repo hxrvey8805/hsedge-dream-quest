@@ -7,14 +7,16 @@ import { useMemo } from "react";
 const Index = () => {
   const navigate = useNavigate();
 
-  // Generate particles with random properties
-  const particles = useMemo(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
+  // Generate lucid stars/sparkles with random properties
+  const lucidStars = useMemo(() => {
+    return Array.from({ length: 40 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 15}s`,
-      duration: `${8 + Math.random() * 12}s`,
-      size: Math.random() * 3 + 2,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 8}s`,
+      duration: `${3 + Math.random() * 4}s`,
+      size: Math.random() * 4 + 2,
+      opacity: 0.3 + Math.random() * 0.7,
     }));
   }, []);
 
@@ -22,24 +24,29 @@ const Index = () => {
     <div className="min-h-screen lucid-bg relative overflow-hidden">
       {/* Dreamy lucid background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary ethereal orbs - deep blue illumination against darkness */}
-        <div className="lucid-orb absolute -top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/50 via-blue-600/40 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(59,130,246,0.4)]" />
-        <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[700px] h-[700px] bg-gradient-to-bl from-cyan-400/45 via-blue-500/35 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(34,211,238,0.3)]" style={{ animationDelay: '2s' }} />
-        <div className="lucid-orb absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-indigo-500/45 via-blue-400/35 to-transparent rounded-full blur-3xl shadow-[0_0_200px_rgba(99,102,241,0.4)]" style={{ animationDelay: '4s' }} />
-        <div className="lucid-orb-slow absolute top-1/2 right-1/4 w-[450px] h-[450px] bg-gradient-to-tl from-sky-400/40 via-blue-500/30 to-transparent rounded-full blur-3xl shadow-[0_0_180px_rgba(14,165,233,0.35)]" style={{ animationDelay: '6s' }} />
-        <div className="lucid-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-blue-400/35 via-cyan-500/25 to-transparent rounded-full blur-3xl shadow-[0_0_150px_rgba(96,165,250,0.3)]" style={{ animationDelay: '3s' }} />
+        {/* Primary ethereal orbs - enhanced deep blue illumination */}
+        <div className="lucid-orb absolute -top-20 left-1/4 w-[650px] h-[650px] bg-gradient-to-br from-blue-500/60 via-blue-600/50 via-cyan-500/40 to-transparent rounded-full blur-3xl" style={{ boxShadow: '0 0 250px rgba(59,130,246,0.5), 0 0 400px rgba(59,130,246,0.3), 0 0 600px rgba(59,130,246,0.15)' }} />
+        <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[750px] h-[750px] bg-gradient-to-bl from-cyan-400/55 via-blue-500/45 via-sky-400/35 to-transparent rounded-full blur-3xl" style={{ animationDelay: '2s', boxShadow: '0 0 250px rgba(34,211,238,0.45), 0 0 400px rgba(34,211,238,0.25), 0 0 550px rgba(34,211,238,0.15)' }} />
+        <div className="lucid-orb absolute bottom-0 left-0 w-[550px] h-[550px] bg-gradient-to-tr from-indigo-500/55 via-blue-400/45 via-violet-400/35 to-transparent rounded-full blur-3xl" style={{ animationDelay: '4s', boxShadow: '0 0 250px rgba(99,102,241,0.5), 0 0 400px rgba(99,102,241,0.3), 0 0 550px rgba(99,102,241,0.15)' }} />
+        <div className="lucid-orb-slow absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-sky-400/50 via-blue-500/40 via-cyan-400/30 to-transparent rounded-full blur-3xl" style={{ animationDelay: '6s', boxShadow: '0 0 220px rgba(14,165,233,0.45), 0 0 350px rgba(14,165,233,0.25), 0 0 500px rgba(14,165,233,0.15)' }} />
+        <div className="lucid-orb absolute top-2/3 left-1/2 w-[450px] h-[450px] bg-gradient-to-br from-blue-400/45 via-cyan-500/35 via-blue-300/25 to-transparent rounded-full blur-3xl" style={{ animationDelay: '3s', boxShadow: '0 0 200px rgba(96,165,250,0.45), 0 0 320px rgba(96,165,250,0.25), 0 0 450px rgba(96,165,250,0.15)' }} />
         
-        {/* Moving particles */}
-        {particles.map((particle) => (
+        {/* Secondary subtle glow layers for depth */}
+        <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(59, 130, 246, 0.05) 100%)' }} />
+        
+        {/* Lucid stars/sparkles */}
+        {lucidStars.map((star) => (
           <div
-            key={particle.id}
-            className="particle"
+            key={star.id}
+            className="lucid-star"
             style={{
-              left: particle.left,
-              animationDelay: particle.delay,
-              animationDuration: particle.duration,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
+              left: star.left,
+              top: star.top,
+              animationDelay: star.delay,
+              animationDuration: star.duration,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              opacity: star.opacity,
             }}
           />
         ))}
