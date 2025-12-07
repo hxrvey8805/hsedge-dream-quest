@@ -115,7 +115,10 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
     if (!newStrategyName.trim()) return;
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      toast.error("Not authenticated");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("strategies")
@@ -128,7 +131,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       .single();
 
     if (error) {
-      toast.error("Failed to add strategy");
+      console.error("Strategy insert error:", error);
+      toast.error(`Failed to add strategy: ${error.message || "Unknown error"}`);
       return;
     }
 
