@@ -42,18 +42,8 @@ const Index = () => {
           `
         }}
       />
-      {/* Dreamy lucid background elements */}
+      {/* Floating particles container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Primary ethereal orbs - enhanced deep blue illumination */}
-        <div className="lucid-orb absolute -top-20 left-1/4 w-[650px] h-[650px] bg-gradient-to-br from-blue-500/60 via-blue-600/50 via-cyan-500/40 to-transparent rounded-full blur-3xl" style={{ boxShadow: '0 0 250px rgba(59,130,246,0.5), 0 0 400px rgba(59,130,246,0.3), 0 0 600px rgba(59,130,246,0.15)' }} />
-        <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[750px] h-[750px] bg-gradient-to-bl from-cyan-400/55 via-blue-500/45 via-sky-400/35 to-transparent rounded-full blur-3xl" style={{ animationDelay: '2s', boxShadow: '0 0 250px rgba(34,211,238,0.45), 0 0 400px rgba(34,211,238,0.25), 0 0 550px rgba(34,211,238,0.15)' }} />
-        <div className="lucid-orb absolute bottom-0 left-0 w-[550px] h-[550px] bg-gradient-to-tr from-indigo-500/55 via-blue-400/45 via-violet-400/35 to-transparent rounded-full blur-3xl" style={{ animationDelay: '4s', boxShadow: '0 0 250px rgba(99,102,241,0.5), 0 0 400px rgba(99,102,241,0.3), 0 0 550px rgba(99,102,241,0.15)' }} />
-        <div className="lucid-orb-slow absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-sky-400/50 via-blue-500/40 via-cyan-400/30 to-transparent rounded-full blur-3xl" style={{ animationDelay: '6s', boxShadow: '0 0 220px rgba(14,165,233,0.45), 0 0 350px rgba(14,165,233,0.25), 0 0 500px rgba(14,165,233,0.15)' }} />
-        <div className="lucid-orb absolute top-2/3 left-1/2 w-[450px] h-[450px] bg-gradient-to-br from-blue-400/45 via-cyan-500/35 via-blue-300/25 to-transparent rounded-full blur-3xl" style={{ animationDelay: '3s', boxShadow: '0 0 200px rgba(96,165,250,0.45), 0 0 320px rgba(96,165,250,0.25), 0 0 450px rgba(96,165,250,0.15)' }} />
-        
-        {/* Secondary subtle glow layers for depth */}
-        <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(59, 130, 246, 0.05) 100%)' }} />
-        
         {/* Deep blue illuminated floating particles */}
         {lucidParticles.map((particle) => (
           <div
@@ -72,7 +62,6 @@ const Index = () => {
             } as React.CSSProperties}
           />
         ))}
-        
       </div>
       
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">

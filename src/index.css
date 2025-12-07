@@ -114,22 +114,19 @@ All colors MUST be HSL.
 
 @keyframes lucid-particle-float {
   0% {
-    transform: translateY(0) translateX(0);
+    transform: translate(0, 0);
   }
-  20% {
-    transform: translateY(calc(var(--drift-y) * -0.3)) translateX(calc(var(--drift-x) * 0.3));
+  25% {
+    transform: translate(calc(var(--drift-x) * 0.5), calc(var(--drift-y) * -0.5));
   }
-  40% {
-    transform: translateY(calc(var(--drift-y) * -0.6)) translateX(calc(var(--drift-x) * 0.6));
+  50% {
+    transform: translate(calc(var(--drift-x) * 1), calc(var(--drift-y) * -1));
   }
-  60% {
-    transform: translateY(calc(var(--drift-y) * -0.8)) translateX(calc(var(--drift-x) * 0.8));
-  }
-  80% {
-    transform: translateY(calc(var(--drift-y) * -0.6)) translateX(calc(var(--drift-x) * 0.6));
+  75% {
+    transform: translate(calc(var(--drift-x) * 0.5), calc(var(--drift-y) * -0.5));
   }
   100% {
-    transform: translateY(0) translateX(0);
+    transform: translate(0, 0);
   }
 }
 
