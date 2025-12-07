@@ -2,28 +2,62 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate deep blue illuminated floating particles
+  // Track mouse position
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Generate deep blue illuminated floating particles with base positions
   const lucidParticles = useMemo(() => {
-    return Array.from({ length: 35 }, (_, i) => ({
+    return Array.from({ length: 40 }, (_, i) => ({
       id: i,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${20 + Math.random() * 25}s`,
-      size: Math.random() * 5 + 3,
+      baseX: Math.random() * 100,
+      baseY: Math.random() * 100,
+      delay: Math.random() * 10,
+      duration: 20 + Math.random() * 25,
+      size: Math.random() * 6 + 3,
       opacity: 0.5 + Math.random() * 0.5,
-      driftX: Math.random() * 150 - 75, // Random horizontal drift
-      driftY: Math.random() * 100 + 50, // Random vertical movement
+      driftX: Math.random() * 150 - 75,
+      driftY: Math.random() * 100 + 50,
+      magnetStrength: 0.15 + Math.random() * 0.2, // How strongly attracted to mouse
     }));
   }, []);
 
+  // Calculate magnetic offset for each particle
+  const getParticleStyle = (particle: typeof lucidParticles[0]) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const particleX = (particle.baseX / 100) * rect.width;
+    const particleY = (particle.baseY / 100) * rect.height;
+    
+    const dx = mousePos.x - particleX;
+    const dy = mousePos.y - particleY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Magnetic effect with falloff (stronger when closer, max range ~300px)
+    const maxDistance = 350;
+    const strength = Math.max(0, 1 - distance / maxDistance) * particle.magnetStrength;
+    
+    return {
+      x: dx * strength * 0.5,
+      y: dy * strength * 0.5,
+    };
+  };
+
   return (
-    <div className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+    <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
       {/* Radial gradient overlay background */}
       <div 
         className="absolute inset-0 pointer-events-none z-0"
@@ -44,24 +78,29 @@ const Index = () => {
       />
       {/* Floating particles container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Deep blue illuminated floating particles */}
-        {lucidParticles.map((particle) => (
-          <div
-            key={particle.id}
-            className="lucid-particle"
-            style={{
-              left: particle.left,
-              top: particle.top,
-              animationDelay: particle.delay,
-              animationDuration: particle.duration,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              opacity: particle.opacity,
-              '--drift-x': `${particle.driftX}px`,
-              '--drift-y': `${particle.driftY}px`,
-            } as React.CSSProperties}
-          />
-        ))}
+        {/* Deep blue illuminated floating particles with magnetic effect */}
+        {lucidParticles.map((particle) => {
+          const magnetOffset = getParticleStyle(particle);
+          return (
+            <div
+              key={particle.id}
+              className="lucid-particle"
+              style={{
+                left: `${particle.baseX}%`,
+                top: `${particle.baseY}%`,
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                '--drift-x': `${particle.driftX}px`,
+                '--drift-y': `${particle.driftY}px`,
+                transform: `translate(${magnetOffset.x}px, ${magnetOffset.y}px)`,
+                transition: 'transform 0.3s ease-out',
+              } as React.CSSProperties}
+            />
+          );
+        })}
       </div>
       
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
