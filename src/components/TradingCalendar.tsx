@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -22,10 +26,23 @@ interface Trade {
   pips: number | null;
   profit: number | null;
   outcome: string;
-  pair: string;
+  pair: string | null;
+  symbol: string | null;
   buy_sell: string;
+  asset_class: string | null;
+  entry_price: number | null;
+  exit_price: number | null;
+  stop_loss: number | null;
+  size: number | null;
+  fees: number | null;
+  session: string | null;
+  entry_timeframe: string | null;
+  strategy_type: string | null;
+  time_opened: string | null;
+  time_closed: string | null;
   risk_to_pay: number | null;
   total_pips_secured: number | null;
+  risk_reward_ratio: string | null;
   notes: string | null;
 }
 
@@ -43,6 +60,16 @@ interface TradingCalendarProps {
   refreshTrigger?: number;
 }
 
+const ASSET_CLASSES = [
+  { value: "Forex", icon: Globe, label: "Forex" },
+  { value: "Stocks", icon: BarChart3, label: "Stocks" },
+  { value: "Futures", icon: Activity, label: "Futures" },
+  { value: "Crypto", icon: "₿", label: "Crypto" },
+] as const;
+
+const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
+
 export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: TradingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -50,6 +77,26 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tradeToDelete, setTradeToDelete] = useState<string | null>(null);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    symbol: "",
+    asset_class: "",
+    buy_sell: "",
+    entry_price: "",
+    exit_price: "",
+    stop_loss: "",
+    size: "",
+    fees: "",
+    session: "",
+    entry_timeframe: "",
+    strategy_type: "",
+    time_opened: "",
+    time_closed: "",
+    notes: "",
+  });
 
   useEffect(() => {
     fetchTrades();
@@ -98,10 +145,116 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
   };
 
   const calculateRiskReward = (trade: Trade) => {
+    if (trade.risk_reward_ratio) return trade.risk_reward_ratio;
     if (!trade.risk_to_pay || !trade.total_pips_secured) return 'N/A';
     const reward = trade.total_pips_secured;
     const risk = trade.risk_to_pay;
     return `1:${(reward / risk).toFixed(2)}`;
+  };
+
+  const handleEditTrade = (trade: Trade) => {
+    setEditingTrade(trade);
+    setEditForm({
+      symbol: trade.symbol || trade.pair || "",
+      asset_class: trade.asset_class || "Forex",
+      buy_sell: trade.buy_sell || "",
+      entry_price: trade.entry_price?.toString() || "",
+      exit_price: trade.exit_price?.toString() || "",
+      stop_loss: trade.stop_loss?.toString() || "",
+      size: trade.size?.toString() || "",
+      fees: trade.fees?.toString() || "",
+      session: trade.session || "",
+      entry_timeframe: trade.entry_timeframe || "",
+      strategy_type: trade.strategy_type || "",
+      time_opened: trade.time_opened || "",
+      time_closed: trade.time_closed || "",
+      notes: trade.notes || "",
+    });
+  };
+
+  const handleSaveTrade = async () => {
+    if (!editingTrade) return;
+    setIsSaving(true);
+
+    try {
+      const entry = parseFloat(editForm.entry_price);
+      const exit = parseFloat(editForm.exit_price);
+      const stop = parseFloat(editForm.stop_loss);
+      const tradeSize = parseFloat(editForm.size);
+      const tradeFees = parseFloat(editForm.fees) || 0;
+
+      // Calculate R:R
+      let rrRatio = "N/A";
+      if (entry && exit && stop) {
+        const risk = Math.abs(entry - stop);
+        const reward = Math.abs(exit - entry);
+        if (risk > 0) {
+          rrRatio = `1:${(reward / risk).toFixed(2)}`;
+        }
+      }
+
+      // Calculate P&L
+      let pips = 0;
+      let profit = 0;
+      if (entry && exit && tradeSize) {
+        const assetClass = editForm.asset_class || "Forex";
+        switch(assetClass) {
+          case "Forex":
+            pips = (exit - entry) * 10000;
+            profit = pips * tradeSize * 10 - tradeFees;
+            break;
+          case "Stocks":
+            profit = (exit - entry) * tradeSize - tradeFees;
+            break;
+          case "Futures":
+            const ticks = exit - entry;
+            profit = ticks * tradeSize - tradeFees;
+            pips = ticks;
+            break;
+          case "Crypto":
+            profit = (exit - entry) * tradeSize - tradeFees;
+            pips = exit - entry;
+            break;
+        }
+      }
+
+      const outcome = profit > 0 ? "Win" : profit < 0 ? "Loss" : "Break Even";
+
+      const { error } = await supabase
+        .from("trades")
+        .update({
+          symbol: editForm.symbol,
+          pair: editForm.symbol,
+          asset_class: editForm.asset_class,
+          buy_sell: editForm.buy_sell,
+          entry_price: entry || null,
+          exit_price: exit || null,
+          stop_loss: stop || null,
+          size: tradeSize || null,
+          fees: tradeFees || null,
+          session: editForm.session || null,
+          entry_timeframe: editForm.entry_timeframe || null,
+          strategy_type: editForm.strategy_type || null,
+          time_opened: editForm.time_opened || null,
+          time_closed: editForm.time_closed || null,
+          notes: editForm.notes || null,
+          pips: parseFloat(pips.toFixed(2)),
+          profit: parseFloat(profit.toFixed(2)),
+          risk_reward_ratio: rrRatio,
+          outcome: outcome,
+        })
+        .eq("id", editingTrade.id);
+
+      if (error) throw error;
+
+      toast.success("Trade updated successfully!");
+      setEditingTrade(null);
+      fetchTrades();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update trade");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteTrade = async () => {
@@ -173,7 +326,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
         ))}
         
         {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-          <div key={`empty-${i}`} className="min-h-[120px]" />
+          <div key={`empty-${i}`} className="min-h-[100px]" />
         ))}
         
         {daysInMonth.map(day => {
@@ -204,7 +357,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
             <div
               key={day.toISOString()}
               onClick={() => handleDayClick(day, dayStats)}
-              className={`min-h-[120px] p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary/60 ${dayClass} ${
+              className={`min-h-[100px] p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary/60 ${dayClass} ${
                 isToday && !hasTrades ? 'ring-2 ring-primary/20' : ''
               }`}
             >
@@ -246,62 +399,359 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
       </div>
 
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              Trades for {selectedDay && format(selectedDay, 'MMMM d, yyyy')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {selectedDay && getDayStats(selectedDay).trades.map((trade) => (
-              <div key={trade.id} className="border rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-semibold text-lg">{trade.pair}</h4>
-                    <p className="text-sm text-muted-foreground">{trade.buy_sell}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`text-xl font-bold ${
-                      trade.outcome === 'Win' ? 'text-success' : 'text-destructive'
-                    }`}>
-                      {trade.outcome}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => confirmDelete(trade.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-0 bg-gradient-to-b from-card to-background">
+          {/* Header */}
+          <div className="relative px-6 pt-6 pb-4">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/20">
+                  <Zap className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Pips: </span>
-                    <span className="font-semibold">{trade.pips?.toFixed(1) || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Profit: </span>
-                    <span className="font-semibold">${trade.profit?.toFixed(2) || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">R:R Ratio: </span>
-                    <span className="font-semibold">{calculateRiskReward(trade)}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Risk to Pay: </span>
-                    <span className="font-semibold">{trade.risk_to_pay?.toFixed(2) || 'N/A'}</span>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Trades for {selectedDay && format(selectedDay, 'MMMM d, yyyy')}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDay && getDayStats(selectedDay).trades.length} trade{selectedDay && getDayStats(selectedDay).trades.length !== 1 ? 's' : ''} • {selectedDay && viewMode === 'pips' ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)} pips` : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`}
+                  </p>
                 </div>
-                {trade.notes && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Notes: </span>
-                    <p className="mt-1">{trade.notes}</p>
-                  </div>
-                )}
               </div>
-            ))}
+            </div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+              {selectedDay && getDayStats(selectedDay).trades.map((trade) => {
+                const isWin = trade.outcome === 'Win';
+                const isLoss = trade.outcome === 'Loss';
+                const asset = ASSET_CLASSES.find(ac => ac.value === (trade.asset_class || "Forex"));
+                const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+
+                return editingTrade?.id === trade.id ? (
+                  // Edit Mode
+                  <div key={trade.id} className="p-5 rounded-xl border-2 border-primary/30 bg-card/50 space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold">Edit Trade</h3>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingTrade(null)}
+                          className="gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSaveTrade}
+                          disabled={isSaving}
+                          className="gap-2 bg-gradient-to-r from-primary to-accent"
+                        >
+                          <Save className="h-4 w-4" />
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Symbol</Label>
+                        <Input
+                          value={editForm.symbol}
+                          onChange={(e) => setEditForm({...editForm, symbol: e.target.value.toUpperCase()})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Asset Class</Label>
+                        <Select value={editForm.asset_class} onValueChange={(v) => setEditForm({...editForm, asset_class: v})}>
+                          <SelectTrigger className="bg-secondary/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ASSET_CLASSES.map(ac => (
+                              <SelectItem key={ac.value} value={ac.value}>{ac.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Direction</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            type="button"
+                            variant={editForm.buy_sell === "Buy" ? "default" : "outline"}
+                            onClick={() => setEditForm({...editForm, buy_sell: "Buy"})}
+                            className={editForm.buy_sell === "Buy" ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+                          >
+                            <ArrowUpRight className="h-4 w-4 mr-1" />
+                            Buy
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={editForm.buy_sell === "Sell" ? "default" : "outline"}
+                            onClick={() => setEditForm({...editForm, buy_sell: "Sell"})}
+                            className={editForm.buy_sell === "Sell" ? "bg-rose-500 hover:bg-rose-600" : ""}
+                          >
+                            <ArrowDownRight className="h-4 w-4 mr-1" />
+                            Sell
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Entry Price</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={editForm.entry_price}
+                          onChange={(e) => setEditForm({...editForm, entry_price: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Exit Price</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={editForm.exit_price}
+                          onChange={(e) => setEditForm({...editForm, exit_price: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Stop Loss</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={editForm.stop_loss}
+                          onChange={(e) => setEditForm({...editForm, stop_loss: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Size</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={editForm.size}
+                          onChange={(e) => setEditForm({...editForm, size: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Fees</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editForm.fees}
+                          onChange={(e) => setEditForm({...editForm, fees: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Session</Label>
+                        <Select value={editForm.session} onValueChange={(v) => setEditForm({...editForm, session: v})}>
+                          <SelectTrigger className="bg-secondary/50">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SESSIONS.map(s => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
+                        <Select value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})}>
+                          <SelectTrigger className="bg-secondary/50">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIMEFRAMES.map(tf => (
+                              <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Strategy</Label>
+                        <Input
+                          value={editForm.strategy_type}
+                          onChange={(e) => setEditForm({...editForm, strategy_type: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Time Opened</Label>
+                        <Input
+                          type="time"
+                          value={editForm.time_opened}
+                          onChange={(e) => setEditForm({...editForm, time_opened: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Time Closed</Label>
+                        <Input
+                          type="time"
+                          value={editForm.time_closed}
+                          onChange={(e) => setEditForm({...editForm, time_closed: e.target.value})}
+                          className="bg-secondary/50"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes</Label>
+                      <Textarea
+                        value={editForm.notes}
+                        onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                        rows={3}
+                        className="bg-secondary/50 resize-none"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  // View Mode
+                  <div
+                    key={trade.id}
+                    className={`p-5 rounded-xl border-2 transition-all hover:shadow-lg ${
+                      isWin
+                        ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5'
+                        : isLoss
+                        ? 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5'
+                        : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        {IconComponent ? (
+                          <IconComponent className="h-6 w-6 text-foreground" />
+                        ) : (
+                          <span className="text-2xl">{asset?.icon}</span>
+                        )}
+                        <div>
+                          <h3 className="text-lg font-bold">{trade.symbol || trade.pair}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {trade.asset_class || 'Forex'} • {trade.buy_sell} • {format(new Date(trade.trade_date), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`px-3 py-1 rounded-lg text-sm font-bold ${
+                          isWin ? 'bg-emerald-500/20 text-emerald-500' :
+                          isLoss ? 'bg-rose-500/20 text-rose-500' :
+                          'bg-primary/20 text-primary'
+                        }`}>
+                          {trade.outcome}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditTrade(trade)}
+                          className="h-8 w-8 hover:bg-primary/10"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => confirmDelete(trade.id)}
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">P&L</p>
+                        <p className={`text-xl font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
+                          ${trade.profit?.toFixed(2) || '0.00'}
+                        </p>
+                      </div>
+                      {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">{trade.asset_class === "Forex" ? "Pips" : "Ticks"}</p>
+                          <p className={`text-lg font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
+                            {trade.pips ? (trade.pips >= 0 ? '+' : '') + trade.pips.toFixed(1) : 'N/A'}
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">R:R Ratio</p>
+                        <p className="text-lg font-bold">{calculateRiskReward(trade)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Size</p>
+                        <p className="text-lg font-bold">{trade.size?.toFixed(2) || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
+                      <div>
+                        <span className="text-muted-foreground">Entry: </span>
+                        <span className="font-semibold">${trade.entry_price?.toFixed(4) || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Exit: </span>
+                        <span className="font-semibold">${trade.exit_price?.toFixed(4) || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Stop Loss: </span>
+                        <span className="font-semibold">${trade.stop_loss?.toFixed(4) || 'N/A'}</span>
+                      </div>
+                      {trade.session && (
+                        <div>
+                          <span className="text-muted-foreground">Session: </span>
+                          <span className="font-semibold">{trade.session}</span>
+                        </div>
+                      )}
+                      {trade.entry_timeframe && (
+                        <div>
+                          <span className="text-muted-foreground">Timeframe: </span>
+                          <span className="font-semibold">{trade.entry_timeframe}</span>
+                        </div>
+                      )}
+                      {trade.strategy_type && (
+                        <div>
+                          <span className="text-muted-foreground">Strategy: </span>
+                          <span className="font-semibold">{trade.strategy_type}</span>
+                        </div>
+                      )}
+                      {trade.time_opened && (
+                        <div>
+                          <span className="text-muted-foreground">Opened: </span>
+                          <span className="font-semibold">{trade.time_opened}</span>
+                        </div>
+                      )}
+                      {trade.time_closed && (
+                        <div>
+                          <span className="text-muted-foreground">Closed: </span>
+                          <span className="font-semibold">{trade.time_closed}</span>
+                        </div>
+                      )}
+                      {trade.fees && (
+                        <div>
+                          <span className="text-muted-foreground">Fees: </span>
+                          <span className="font-semibold">${trade.fees.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {trade.notes && (
+                      <div className="pt-4 border-t border-border/50">
+                        <p className="text-xs text-muted-foreground mb-2">Notes</p>
+                        <p className="text-sm">{trade.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
