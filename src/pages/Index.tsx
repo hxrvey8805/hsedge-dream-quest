@@ -53,7 +53,7 @@ const Index = () => {
               left: particle.left,
               top: particle.top,
               animationDelay: particle.delay,
-              animationDuration: `${particle.duration}s`,
+              animationDuration: particle.duration,
               width: `${particle.size}px`,
               height: `${particle.size}px`,
               opacity: particle.opacity,
