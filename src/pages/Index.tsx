@@ -23,9 +23,27 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+      {/* Radial gradient overlay background */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: `
+            radial-gradient(
+              80rem 40rem at 50% -10%,
+              rgba(16, 40, 90, 0.55),
+              transparent 60%
+            ),
+            radial-gradient(
+              60rem 30rem at 50% 120%,
+              rgba(7, 12, 26, 0.8),
+              transparent 60%
+            )
+          `
+        }}
+      />
       {/* Dreamy lucid background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {/* Primary ethereal orbs - enhanced deep blue illumination */}
         <div className="lucid-orb absolute -top-20 left-1/4 w-[650px] h-[650px] bg-gradient-to-br from-blue-500/60 via-blue-600/50 via-cyan-500/40 to-transparent rounded-full blur-3xl" style={{ boxShadow: '0 0 250px rgba(59,130,246,0.5), 0 0 400px rgba(59,130,246,0.3), 0 0 600px rgba(59,130,246,0.15)' }} />
         <div className="lucid-orb-slow absolute top-1/3 -right-20 w-[750px] h-[750px] bg-gradient-to-bl from-cyan-400/55 via-blue-500/45 via-sky-400/35 to-transparent rounded-full blur-3xl" style={{ animationDelay: '2s', boxShadow: '0 0 250px rgba(34,211,238,0.45), 0 0 400px rgba(34,211,238,0.25), 0 0 550px rgba(34,211,238,0.15)' }} />
