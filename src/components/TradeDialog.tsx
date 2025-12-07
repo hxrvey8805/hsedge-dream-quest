@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -291,12 +295,62 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                 {/* Date */}
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Trade Date</Label>
-                  <Input 
-                    type="date" 
-                    value={tradeDate}
-                    onChange={(e) => setTradeDate(e.target.value)}
-                    className="bg-secondary/50 border-border/50 focus:border-primary"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal bg-secondary/50 border-border/50 hover:bg-secondary/70 hover:border-primary/50 ${
+                          !tradeDate && "text-muted-foreground"
+                        }`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {tradeDate ? (
+                          format(new Date(tradeDate + "T00:00:00"), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 border-border/50 bg-card/95 backdrop-blur-sm" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={tradeDate ? new Date(tradeDate + "T00:00:00") : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            setTradeDate(`${year}-${month}-${day}`);
+                          }
+                        }}
+                        initialFocus
+                        className="bg-card/95"
+                        classNames={{
+                          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                          month: "space-y-4",
+                          caption: "flex justify-center pt-1 relative items-center",
+                          caption_label: "text-sm font-semibold text-foreground",
+                          nav: "space-x-1 flex items-center",
+                          nav_button: "h-8 w-8 bg-secondary/50 hover:bg-secondary border-border/50 hover:border-primary/50 text-foreground hover:text-primary transition-colors",
+                          nav_button_previous: "absolute left-1",
+                          nav_button_next: "absolute right-1",
+                          table: "w-full border-collapse space-y-1",
+                          head_row: "flex",
+                          head_cell: "text-muted-foreground rounded-md w-10 font-medium text-xs",
+                          row: "flex w-full mt-2",
+                          cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                          day: "h-10 w-10 p-0 font-normal rounded-md hover:bg-primary/20 hover:text-primary transition-colors aria-selected:opacity-100",
+                          day_range_end: "day-range-end",
+                          day_selected: "bg-gradient-to-br from-primary to-accent text-primary-foreground hover:bg-gradient-to-br hover:from-primary hover:to-accent hover:text-primary-foreground focus:bg-gradient-to-br focus:from-primary focus:to-accent focus:text-primary-foreground shadow-lg shadow-primary/30",
+                          day_today: "bg-primary/10 text-primary font-semibold border border-primary/30",
+                          day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                          day_disabled: "text-muted-foreground opacity-50",
+                          day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
+                          day_hidden: "invisible",
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* Asset Class Selection */}

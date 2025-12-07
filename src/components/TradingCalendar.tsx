@@ -399,21 +399,38 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
       </div>
 
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-0 bg-gradient-to-b from-card to-background">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-0 bg-gradient-to-b from-card to-background">
           {/* Header */}
-          <div className="relative px-6 pt-6 pb-4">
+          <div className="relative px-6 pt-6 pb-4 border-b border-border/50">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10" />
             <div className="relative">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/20">
-                  <Zap className="h-5 w-5 text-primary-foreground" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/20">
+                    <Zap className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">
+                      {selectedDay && format(selectedDay, 'MMMM d, yyyy')}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedDay && getDayStats(selectedDay).trades.length} trade{selectedDay && getDayStats(selectedDay).trades.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">
-                    Trades for {selectedDay && format(selectedDay, 'MMMM d, yyyy')}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDay && getDayStats(selectedDay).trades.length} trade{selectedDay && getDayStats(selectedDay).trades.length !== 1 ? 's' : ''} • {selectedDay && viewMode === 'pips' ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)} pips` : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`}
+                <div className={`text-right px-4 py-2 rounded-lg ${
+                  selectedDay && getDayStats(selectedDay).outcome === 'profit'
+                    ? 'bg-emerald-500/20 text-emerald-500'
+                    : selectedDay && getDayStats(selectedDay).outcome === 'loss'
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'bg-primary/20 text-primary'
+                }`}>
+                  <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'pips' ? 'Pips' : 'P&L'}</p>
+                  <p className="text-2xl font-bold">
+                    {selectedDay && viewMode === 'pips' 
+                      ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)}`
+                      : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
+                    }
                   </p>
                 </div>
               </div>
@@ -421,7 +438,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
           </div>
 
           <div className="px-6 pb-6">
-            <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <div className="space-y-3 max-h-[65vh] overflow-y-auto pt-4">
               {selectedDay && getDayStats(selectedDay).trades.map((trade) => {
                 const isWin = trade.outcome === 'Win';
                 const isLoss = trade.outcome === 'Loss';
@@ -614,140 +631,176 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
                     </div>
                   </div>
                 ) : (
-                  // View Mode
+                  // View Mode - Cleaner Design
                   <div
                     key={trade.id}
-                    className={`p-5 rounded-xl border-2 transition-all hover:shadow-lg ${
+                    className={`group rounded-xl border transition-all hover:shadow-lg ${
                       isWin
-                        ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5'
+                        ? 'border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-600/2 hover:border-emerald-500/40'
                         : isLoss
-                        ? 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5'
-                        : 'border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5'
+                        ? 'border-rose-500/20 bg-gradient-to-br from-rose-500/5 to-rose-600/2 hover:border-rose-500/40'
+                        : 'border-primary/20 bg-gradient-to-br from-primary/5 to-primary/2 hover:border-primary/40'
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        {IconComponent ? (
-                          <IconComponent className="h-6 w-6 text-foreground" />
-                        ) : (
-                          <span className="text-2xl">{asset?.icon}</span>
+                    {/* Header Section */}
+                    <div className="p-4 border-b border-border/30">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className={`p-2 rounded-lg ${
+                            isWin ? 'bg-emerald-500/20' :
+                            isLoss ? 'bg-rose-500/20' :
+                            'bg-primary/20'
+                          }`}>
+                            {IconComponent ? (
+                              <IconComponent className={`h-5 w-5 ${
+                                isWin ? 'text-emerald-500' :
+                                isLoss ? 'text-rose-500' :
+                                'text-primary'
+                              }`} />
+                            ) : (
+                              <span className="text-xl">{asset?.icon}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-lg font-bold truncate">{trade.symbol || trade.pair}</h3>
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                trade.buy_sell === "Buy" 
+                                  ? 'bg-emerald-500/20 text-emerald-500' 
+                                  : 'bg-rose-500/20 text-rose-500'
+                              }`}>
+                                {trade.buy_sell}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {trade.asset_class || 'Forex'} • {format(new Date(trade.trade_date), 'MMM d, yyyy')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-2">
+                          <div className={`px-3 py-1.5 rounded-lg text-sm font-bold ${
+                            isWin ? 'bg-emerald-500/20 text-emerald-500' :
+                            isLoss ? 'bg-rose-500/20 text-rose-500' :
+                            'bg-primary/20 text-primary'
+                          }`}>
+                            {trade.outcome}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditTrade(trade)}
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => confirmDelete(trade.id)}
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Key Metrics */}
+                    <div className="p-4">
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-3 rounded-lg bg-card/50">
+                          <p className="text-xs text-muted-foreground mb-1">P&L</p>
+                          <p className={`text-xl font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
+                            ${trade.profit?.toFixed(2) || '0.00'}
+                          </p>
+                        </div>
+                        {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && (
+                          <div className="text-center p-3 rounded-lg bg-card/50">
+                            <p className="text-xs text-muted-foreground mb-1">{trade.asset_class === "Forex" ? "Pips" : "Ticks"}</p>
+                            <p className={`text-xl font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
+                              {trade.pips ? (trade.pips >= 0 ? '+' : '') + trade.pips.toFixed(1) : 'N/A'}
+                            </p>
+                          </div>
                         )}
-                        <div>
-                          <h3 className="text-lg font-bold">{trade.symbol || trade.pair}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {trade.asset_class || 'Forex'} • {trade.buy_sell} • {format(new Date(trade.trade_date), 'MMM d, yyyy')}
-                          </p>
+                        <div className="text-center p-3 rounded-lg bg-card/50">
+                          <p className="text-xs text-muted-foreground mb-1">R:R</p>
+                          <p className="text-xl font-bold">{calculateRiskReward(trade)}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`px-3 py-1 rounded-lg text-sm font-bold ${
-                          isWin ? 'bg-emerald-500/20 text-emerald-500' :
-                          isLoss ? 'bg-rose-500/20 text-rose-500' :
-                          'bg-primary/20 text-primary'
-                        }`}>
-                          {trade.outcome}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditTrade(trade)}
-                          className="h-8 w-8 hover:bg-primary/10"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => confirmDelete(trade.id)}
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">P&L</p>
-                        <p className={`text-xl font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
-                          ${trade.profit?.toFixed(2) || '0.00'}
-                        </p>
-                      </div>
-                      {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">{trade.asset_class === "Forex" ? "Pips" : "Ticks"}</p>
-                          <p className={`text-lg font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
-                            {trade.pips ? (trade.pips >= 0 ? '+' : '') + trade.pips.toFixed(1) : 'N/A'}
-                          </p>
+                      {/* Details Grid - Only show if there's data */}
+                      {(trade.entry_price || trade.exit_price || trade.stop_loss || trade.size || trade.session || trade.entry_timeframe || trade.strategy_type || trade.time_opened || trade.time_closed || trade.fees) && (
+                        <div className="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-border/30">
+                          {trade.entry_price && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Entry</span>
+                              <p className="font-semibold">${trade.entry_price.toFixed(4)}</p>
+                            </div>
+                          )}
+                          {trade.exit_price && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Exit</span>
+                              <p className="font-semibold">${trade.exit_price.toFixed(4)}</p>
+                            </div>
+                          )}
+                          {trade.stop_loss && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Stop Loss</span>
+                              <p className="font-semibold">${trade.stop_loss.toFixed(4)}</p>
+                            </div>
+                          )}
+                          {trade.size && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Size</span>
+                              <p className="font-semibold">{trade.size.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {trade.session && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Session</span>
+                              <p className="font-semibold">{trade.session}</p>
+                            </div>
+                          )}
+                          {trade.entry_timeframe && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Timeframe</span>
+                              <p className="font-semibold">{trade.entry_timeframe}</p>
+                            </div>
+                          )}
+                          {trade.strategy_type && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Strategy</span>
+                              <p className="font-semibold">{trade.strategy_type}</p>
+                            </div>
+                          )}
+                          {(trade.time_opened || trade.time_closed) && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Time</span>
+                              <p className="font-semibold">
+                                {trade.time_opened && trade.time_closed 
+                                  ? `${trade.time_opened} - ${trade.time_closed}`
+                                  : trade.time_opened || trade.time_closed || 'N/A'
+                                }
+                              </p>
+                            </div>
+                          )}
+                          {trade.fees && (
+                            <div>
+                              <span className="text-muted-foreground text-xs">Fees</span>
+                              <p className="font-semibold">${trade.fees.toFixed(2)}</p>
+                            </div>
+                          )}
                         </div>
                       )}
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">R:R Ratio</p>
-                        <p className="text-lg font-bold">{calculateRiskReward(trade)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Size</p>
-                        <p className="text-lg font-bold">{trade.size?.toFixed(2) || 'N/A'}</p>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
-                      <div>
-                        <span className="text-muted-foreground">Entry: </span>
-                        <span className="font-semibold">${trade.entry_price?.toFixed(4) || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Exit: </span>
-                        <span className="font-semibold">${trade.exit_price?.toFixed(4) || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Stop Loss: </span>
-                        <span className="font-semibold">${trade.stop_loss?.toFixed(4) || 'N/A'}</span>
-                      </div>
-                      {trade.session && (
-                        <div>
-                          <span className="text-muted-foreground">Session: </span>
-                          <span className="font-semibold">{trade.session}</span>
-                        </div>
-                      )}
-                      {trade.entry_timeframe && (
-                        <div>
-                          <span className="text-muted-foreground">Timeframe: </span>
-                          <span className="font-semibold">{trade.entry_timeframe}</span>
-                        </div>
-                      )}
-                      {trade.strategy_type && (
-                        <div>
-                          <span className="text-muted-foreground">Strategy: </span>
-                          <span className="font-semibold">{trade.strategy_type}</span>
-                        </div>
-                      )}
-                      {trade.time_opened && (
-                        <div>
-                          <span className="text-muted-foreground">Opened: </span>
-                          <span className="font-semibold">{trade.time_opened}</span>
-                        </div>
-                      )}
-                      {trade.time_closed && (
-                        <div>
-                          <span className="text-muted-foreground">Closed: </span>
-                          <span className="font-semibold">{trade.time_closed}</span>
-                        </div>
-                      )}
-                      {trade.fees && (
-                        <div>
-                          <span className="text-muted-foreground">Fees: </span>
-                          <span className="font-semibold">${trade.fees.toFixed(2)}</span>
+                      {/* Notes */}
+                      {trade.notes && (
+                        <div className="mt-3 pt-3 border-t border-border/30">
+                          <p className="text-xs text-muted-foreground mb-1.5">Notes</p>
+                          <p className="text-sm leading-relaxed">{trade.notes}</p>
                         </div>
                       )}
                     </div>
-
-                    {trade.notes && (
-                      <div className="pt-4 border-t border-border/50">
-                        <p className="text-xs text-muted-foreground mb-2">Notes</p>
-                        <p className="text-sm">{trade.notes}</p>
-                      </div>
-                    )}
                   </div>
                 );
               })}
