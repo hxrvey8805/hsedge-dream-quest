@@ -20,7 +20,10 @@ import {
   Trophy,
   CheckCircle2,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Globe,
+  BarChart3,
+  Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -32,9 +35,9 @@ interface TradeDialogProps {
 }
 
 const ASSET_CLASSES = [
-  { value: "Forex", icon: "💱", label: "Forex" },
-  { value: "Stocks", icon: "📈", label: "Stocks" },
-  { value: "Futures", icon: "📊", label: "Futures" },
+  { value: "Forex", icon: Globe, label: "Forex" },
+  { value: "Stocks", icon: BarChart3, label: "Stocks" },
+  { value: "Futures", icon: Activity, label: "Futures" },
   { value: "Crypto", icon: "₿", label: "Crypto" },
 ] as const;
 
@@ -300,21 +303,28 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">What are you trading?</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {ASSET_CLASSES.map((ac) => (
-                      <button
-                        key={ac.value}
-                        type="button"
-                        onClick={() => setAssetClass(ac.value)}
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1 ${
-                          assetClass === ac.value
-                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-105'
-                            : 'border-border/50 bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50'
-                        }`}
-                      >
-                        <span className="text-2xl">{ac.icon}</span>
-                        <span className="text-xs font-medium">{ac.label}</span>
-                      </button>
-                    ))}
+                    {ASSET_CLASSES.map((ac) => {
+                      const IconComponent = typeof ac.icon === 'string' ? null : ac.icon;
+                      return (
+                        <button
+                          key={ac.value}
+                          type="button"
+                          onClick={() => setAssetClass(ac.value)}
+                          className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1 ${
+                            assetClass === ac.value
+                              ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-105'
+                              : 'border-border/50 bg-secondary/30 hover:border-primary/50 hover:bg-secondary/50'
+                          }`}
+                        >
+                          {IconComponent ? (
+                            <IconComponent className="h-6 w-6 text-foreground" />
+                          ) : (
+                            <span className="text-2xl">{ac.icon}</span>
+                          )}
+                          <span className="text-xs font-medium">{ac.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -375,7 +385,15 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
               >
                 {/* Trade summary badge */}
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border/50">
-                  <span className="text-lg">{ASSET_CLASSES.find(ac => ac.value === assetClass)?.icon}</span>
+                  {(() => {
+                    const asset = ASSET_CLASSES.find(ac => ac.value === assetClass);
+                    const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+                    return IconComponent ? (
+                      <IconComponent className="h-5 w-5 text-foreground" />
+                    ) : (
+                      <span className="text-lg">{asset?.icon}</span>
+                    );
+                  })()}
                   <span className="font-bold">{symbol}</span>
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     buySell === "Buy" ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'
@@ -509,7 +527,15 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{ASSET_CLASSES.find(ac => ac.value === assetClass)?.icon}</span>
+                      {(() => {
+                        const asset = ASSET_CLASSES.find(ac => ac.value === assetClass);
+                        const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+                        return IconComponent ? (
+                          <IconComponent className="h-6 w-6 text-foreground" />
+                        ) : (
+                          <span className="text-2xl">{asset?.icon}</span>
+                        );
+                      })()}
                       <div>
                         <p className="font-bold text-lg">{symbol}</p>
                         <p className="text-xs text-muted-foreground">{buySell} • {tradeDate}</p>

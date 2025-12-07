@@ -143,68 +143,100 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
 
   return (
     <div>
-      <div className="flex items-center justify-center gap-4 mb-6">
-        <Button variant="outline" size="icon" onClick={previousMonth}>
+      <div className="flex items-center justify-center gap-4 mb-8">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={previousMonth}
+          className="hover:bg-primary/10 hover:border-primary/50 transition-colors"
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-xl font-semibold min-w-[200px] text-center">
+        <h3 className="text-2xl font-bold min-w-[240px] text-center text-foreground">
           {format(currentMonth, 'MMMM yyyy')}
         </h3>
-        <Button variant="outline" size="icon" onClick={nextMonth}>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={nextMonth}
+          className="hover:bg-primary/10 hover:border-primary/50 transition-colors"
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-3">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+          <div key={day} className="text-center text-sm font-semibold text-muted-foreground/80 py-3 uppercase tracking-wider">
             {day}
           </div>
         ))}
         
         {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-          <div key={`empty-${i}`} className="min-h-[100px]" />
+          <div key={`empty-${i}`} className="min-h-[120px]" />
         ))}
         
         {daysInMonth.map(day => {
           const dayStats = getDayStats(day);
           const isSelected = selectedDay && isSameDay(day, selectedDay);
-          const hasTradesClass = dayStats.trades.length > 0
-            ? dayStats.outcome === 'profit'
-              ? 'border-success bg-success/20 shadow-lg shadow-success/20'
-              : dayStats.outcome === 'loss'
-              ? 'border-destructive bg-destructive/20 shadow-lg shadow-destructive/20'
-              : 'border-primary/50 bg-primary/5'
-            : '';
+          const isToday = isSameDay(day, new Date());
+          const hasTrades = dayStats.trades.length > 0;
           
           const displayValue = viewMode === 'pips' ? dayStats.totalPips : dayStats.totalProfit;
+          
+          // Enhanced styling based on outcome
+          let dayClass = 'border-border/30 bg-card/50';
+          if (hasTrades) {
+            if (dayStats.outcome === 'profit') {
+              dayClass = 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 shadow-md shadow-emerald-500/10';
+            } else if (dayStats.outcome === 'loss') {
+              dayClass = 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 to-rose-600/5 shadow-md shadow-rose-500/10';
+            } else {
+              dayClass = 'border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 shadow-md shadow-primary/5';
+            }
+          }
+          
+          if (isSelected) {
+            dayClass = 'border-primary bg-primary/20 shadow-lg shadow-primary/20 ring-2 ring-primary/30';
+          }
           
           return (
             <div
               key={day.toISOString()}
               onClick={() => handleDayClick(day, dayStats)}
-              className={`min-h-[100px] p-3 rounded-lg border cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] ${
-                isSelected ? 'border-blue-500 bg-blue-500/10' : `${hasTradesClass || 'border-border'}`
+              className={`min-h-[120px] p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary/60 ${dayClass} ${
+                isToday && !hasTrades ? 'ring-2 ring-primary/20' : ''
               }`}
             >
-              <div className="text-sm font-medium text-muted-foreground mb-2">
+              <div className={`text-sm font-semibold mb-2 ${
+                isToday ? 'text-primary font-bold' : 'text-muted-foreground'
+              }`}>
                 {format(day, 'd')}
+                {isToday && <span className="ml-1 text-xs">•</span>}
               </div>
-              {dayStats.trades.length > 0 && (
-                <div className="space-y-1">
-                  <div className={`text-lg font-bold ${
-                    dayStats.outcome === 'profit' ? 'text-success' :
-                    dayStats.outcome === 'loss' ? 'text-destructive' :
+              {hasTrades && (
+                <div className="space-y-1.5">
+                  <div className={`text-xl font-bold ${
+                    dayStats.outcome === 'profit' ? 'text-emerald-500' :
+                    dayStats.outcome === 'loss' ? 'text-rose-500' :
                     'text-foreground'
                   }`}>
                     {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(viewMode === 'pips' ? 1 : 2)}
                     {viewMode === 'profit' && '$'}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {dayStats.trades.length} trade{dayStats.trades.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="text-xs opacity-70">
-                    {Math.round((dayStats.trades.filter(t => t.outcome === 'Win').length / dayStats.trades.length) * 100)}%
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground/80 font-medium">
+                      {dayStats.trades.length} trade{dayStats.trades.length !== 1 ? 's' : ''}
+                    </span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                      dayStats.outcome === 'profit' 
+                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                        : dayStats.outcome === 'loss'
+                        ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                        : 'bg-primary/20 text-primary'
+                    }`}>
+                      {Math.round((dayStats.trades.filter(t => t.outcome === 'Win').length / dayStats.trades.length) * 100)}%
+                    </span>
                   </div>
                 </div>
               )}
