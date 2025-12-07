@@ -195,7 +195,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} />
+            <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} onRefresh={fetchStats} />
           </Card>
 
           {/* Right Column - Risk Management, Strategy Checklist, and Equity Curve */}

@@ -58,6 +58,7 @@ interface TradingCalendarProps {
   onDaySelect: (date: Date) => void;
   viewMode: 'pips' | 'profit';
   refreshTrigger?: number;
+  onRefresh?: () => void;
 }
 
 const ASSET_CLASSES = [
@@ -70,7 +71,7 @@ const ASSET_CLASSES = [
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
-export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: TradingCalendarProps) => {
+export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh }: TradingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -250,6 +251,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
       toast.success("Trade updated successfully!");
       setEditingTrade(null);
       fetchTrades();
+      onRefresh?.(); // Trigger stats refresh
     } catch (error: any) {
       toast.error(error.message || "Failed to update trade");
     } finally {
@@ -272,6 +274,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger }: Tradi
       setDeleteDialogOpen(false);
       setTradeToDelete(null);
       fetchTrades(); // Refresh the calendar
+      onRefresh?.(); // Trigger stats refresh
     } catch (error: any) {
       toast.error(error.message || "Failed to delete trade");
     }

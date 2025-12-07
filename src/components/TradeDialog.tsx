@@ -27,7 +27,8 @@ import {
   ArrowDownRight,
   Globe,
   BarChart3,
-  Activity
+  Activity,
+  Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -62,6 +63,9 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const [session, setSession] = useState<string>("");
   const [timeframe, setTimeframe] = useState<string>("");
   const [strategy, setStrategy] = useState<string>("");
+  const [strategies, setStrategies] = useState<{id: string, name: string}[]>([]);
+  const [newStrategyName, setNewStrategyName] = useState("");
+  const [showAddStrategy, setShowAddStrategy] = useState(false);
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -84,8 +88,58 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       setTimeOpened("");
       setTimeClosed("");
       setNotes("");
+      setShowAddStrategy(false);
+      setNewStrategyName("");
+    } else {
+      fetchStrategies();
     }
   }, [open]);
+
+  const fetchStrategies = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("strategies")
+      .select("id, name")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("name", { ascending: true });
+
+    if (!error && data) {
+      setStrategies(data);
+    }
+  };
+
+  const handleAddStrategy = async () => {
+    if (!newStrategyName.trim()) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("strategies")
+      .insert({
+        user_id: user.id,
+        name: newStrategyName.trim(),
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error("Failed to add strategy");
+      return;
+    }
+
+    toast.success("Strategy added!");
+    setNewStrategyName("");
+    setShowAddStrategy(false);
+    await fetchStrategies();
+    if (data) {
+      setStrategy(data.name);
+    }
+  };
 
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
@@ -633,12 +687,50 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Strategy</Label>
-                    <Input 
-                      value={strategy}
-                      onChange={(e) => setStrategy(e.target.value)}
-                      placeholder="e.g., Breakout"
-                      className="bg-secondary/50 border-border/50"
-                    />
+                    <div className="flex gap-2">
+                      <Select value={strategy} onValueChange={setStrategy}>
+                        <SelectTrigger className="bg-secondary/50 border-border/50 flex-1">
+                          <SelectValue placeholder="Select strategy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {strategies.map((s) => (
+                            <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowAddStrategy(!showAddStrategy)}
+                        className="shrink-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {showAddStrategy && (
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          placeholder="New strategy name..."
+                          value={newStrategyName}
+                          onChange={(e) => setNewStrategyName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleAddStrategy();
+                            }
+                          }}
+                          className="bg-secondary/50 border-border/50"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleAddStrategy}
+                          className="shrink-0"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
