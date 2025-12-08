@@ -39,7 +39,7 @@ export const RiskManagement = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let query = supabase
+    let query: any = supabase
       .from("risk_management_rules")
       .select("*")
       .eq("user_id", user.id)
@@ -65,15 +65,15 @@ export const RiskManagement = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from("strategies" as any)
+    const { data, error } = await (supabase
+      .from("strategies")
       .select("id, name")
       .eq("user_id", user.id)
       .eq("is_active", true)
-      .order("name", { ascending: true });
+      .order("name", { ascending: true }) as any);
 
     if (!error && data) {
-      setStrategies(data as unknown as Strategy[]);
+      setStrategies(data as Strategy[]);
     }
   };
 

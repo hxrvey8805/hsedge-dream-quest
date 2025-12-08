@@ -702,7 +702,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                           <SelectValue placeholder="Select strategy" />
                         </SelectTrigger>
                         <SelectContent>
-                          {strategies.map((s) => (
+                          {strategies.filter(s => s.name && s.name.trim() !== "").map((s) => (
                             <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
                           ))}
                         </SelectContent>
