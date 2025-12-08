@@ -246,15 +246,16 @@ export const StrategyChecklist = () => {
               Adding item for: <span className="font-semibold">{strategies.find(s => s.id === selectedStrategy)?.name || "Unknown"}</span>
             </div>
           )}
-          <Select value={selectedStrategy} onValueChange={(value) => {
-            setSelectedStrategy(value);
-            fetchItems(value || undefined);
+          <Select value={selectedStrategy || "none"} onValueChange={(value) => {
+            const newValue = value === "none" ? "" : value;
+            setSelectedStrategy(newValue);
+            fetchItems(newValue || undefined);
           }}>
             <SelectTrigger className="bg-secondary/50">
               <SelectValue placeholder="Select strategy (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Strategy</SelectItem>
+              <SelectItem value="none">No Strategy</SelectItem>
               {strategies.map((s) => (
                 <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
               ))}
