@@ -10,10 +10,12 @@ import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
 import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
 import { EquityCurve } from "@/components/EquityCurve";
+import { startOfMonth, endOfMonth } from "date-fns";
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -26,6 +28,17 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(false);
+  const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [monthStats, setMonthStats] = useState({
+    totalPL: 0,
+    totalProfit: 0,
+    winRate: 0,
+    totalTrades: 0
+  });
+  const [strategies, setStrategies] = useState<{ id: string; name: string }[]>([]);
   const navigate = useNavigate();
   const fetchStats = async () => {
     const {
@@ -49,6 +62,56 @@ const Dashboard = () => {
         winRate: Math.round(winRate),
         totalTrades: data.length
       });
+    }
+  };
+
+  const fetchMonthStats = async (month: Date) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const monthStart = startOfMonth(month);
+    const monthEnd = endOfMonth(month);
+
+    let query = supabase
+      .from("trades")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("trade_date", monthStart.toISOString().split('T')[0])
+      .lte("trade_date", monthEnd.toISOString().split('T')[0]);
+
+    if (selectedStrategy) {
+      query = query.eq("strategy_type", selectedStrategy);
+    }
+
+    const { data, error } = await query;
+
+    if (!error && data) {
+      const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
+      const wins = data.filter(t => t.outcome === "Win").length;
+      const winRate = data.length > 0 ? wins / data.length * 100 : 0;
+      setMonthStats({
+        totalPL: totalPips,
+        totalProfit: totalProfit,
+        winRate: Math.round(winRate),
+        totalTrades: data.length
+      });
+    }
+  };
+
+  const fetchStrategies = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("strategies" as any)
+      .select("id, name")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("name", { ascending: true });
+
+    if (!error && data) {
+      setStrategies(data as unknown as { id: string; name: string }[]);
     }
   };
   const handleDaySelect = (date: Date) => {
@@ -87,8 +150,21 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchStats();
+      fetchStrategies();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (monthSwitchEnabled && user) {
+      fetchMonthStats(currentMonth);
+    }
+  }, [currentMonth, monthSwitchEnabled, selectedStrategy, user]);
+
+  useEffect(() => {
+    if (!accountSwitchEnabled) {
+      setSelectedStrategy(null);
+    }
+  }, [accountSwitchEnabled]);
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
@@ -144,10 +220,23 @@ const Dashboard = () => {
                   <TrendingUp className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total P&L</p>
-                  <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
+                  <p className="text-sm text-muted-foreground">
+                    {monthSwitchEnabled ? 'Total P&L' : 'Total P&L'}
                   </p>
+                  {monthSwitchEnabled ? (
+                    <div>
+                      <p className={`text-2xl font-bold ${monthStats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        ${monthStats.totalProfit >= 0 ? '+' : ''}{monthStats.totalProfit.toFixed(2)}
+                      </p>
+                      <p className={`text-lg font-semibold ${monthStats.totalPL >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {monthStats.totalPL >= 0 ? '+' : ''}{monthStats.totalPL.toFixed(1)} pips
+                      </p>
+                    </div>
+                  ) : (
+                    <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
@@ -159,7 +248,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Win Rate</p>
-                  <p className="text-2xl font-bold">{stats.winRate}%</p>
+                  <p className="text-2xl font-bold">{monthSwitchEnabled ? monthStats.winRate : stats.winRate}%</p>
                 </div>
               </div>
             </Card>
@@ -171,7 +260,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Trades</p>
-                  <p className="text-2xl font-bold">{stats.totalTrades}</p>
+                  <p className="text-2xl font-bold">{monthSwitchEnabled ? monthStats.totalTrades : stats.totalTrades}</p>
                 </div>
               </div>
             </Card>
@@ -183,24 +272,75 @@ const Dashboard = () => {
           {/* Left Column - Trading Calendar */}
           <Card className="p-8 bg-card border-border">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Trading Calendar</h2>
-              <div className="flex items-center gap-4">
-                <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
-                  Pips
-                </Label>
-                <Switch 
-                  id="view-toggle" 
-                  checked={viewMode === 'profit'} 
-                  onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')}
-                  className="data-[state=unchecked]:bg-primary data-[state=checked]:bg-emerald-500"
-                />
-                <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'profit' ? 'text-emerald-500 font-bold' : 'text-muted-foreground'}`}>
-                  P&L ($)
-                </Label>
+              <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
+                Trading Calendar
+              </h2>
+              <div className={`flex items-center gap-4 flex-wrap transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    Pips
+                  </Label>
+                  <Switch 
+                    id="view-toggle" 
+                    checked={viewMode === 'profit'} 
+                    onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')}
+                    className="data-[state=unchecked]:bg-primary data-[state=checked]:bg-emerald-500"
+                  />
+                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'profit' ? 'text-emerald-500 font-bold' : 'text-muted-foreground'}`}>
+                    P&L ($)
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="month-toggle" className={`text-sm font-medium transition-colors ${monthSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    Month
+                  </Label>
+                  <Switch 
+                    id="month-toggle" 
+                    checked={monthSwitchEnabled} 
+                    onCheckedChange={setMonthSwitchEnabled}
+                    className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="account-toggle" className={`text-sm font-medium transition-colors ${accountSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    Account
+                  </Label>
+                  <Switch 
+                    id="account-toggle" 
+                    checked={accountSwitchEnabled} 
+                    onCheckedChange={setAccountSwitchEnabled}
+                    className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
+                  />
+                </div>
+                {accountSwitchEnabled && (
+                  <Select value={selectedStrategy || ""} onValueChange={(value) => setSelectedStrategy(value || null)}>
+                    <SelectTrigger className="w-[200px] bg-secondary/50">
+                      <SelectValue placeholder="Select strategy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Strategies</SelectItem>
+                      {strategies.map((strategy) => (
+                        <SelectItem key={strategy.id} value={strategy.name}>{strategy.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
             
-            <TradingCalendar onDaySelect={handleDaySelect} viewMode={viewMode} refreshTrigger={refreshTrigger} onRefresh={fetchStats} />
+            <TradingCalendar 
+              onDaySelect={handleDaySelect} 
+              viewMode={viewMode} 
+              refreshTrigger={refreshTrigger} 
+              onRefresh={() => {
+                fetchStats();
+                if (monthSwitchEnabled) {
+                  fetchMonthStats(currentMonth);
+                }
+              }}
+              selectedStrategy={accountSwitchEnabled ? selectedStrategy : null}
+              onMonthChange={setCurrentMonth}
+            />
           </Card>
 
           {/* Right Column - Risk Management, Strategy Checklist, and Equity Curve */}

@@ -59,6 +59,8 @@ interface TradingCalendarProps {
   viewMode: 'pips' | 'profit';
   refreshTrigger?: number;
   onRefresh?: () => void;
+  selectedStrategy?: string | null;
+  onMonthChange?: (month: Date) => void;
 }
 
 const ASSET_CLASSES = [
@@ -71,7 +73,7 @@ const ASSET_CLASSES = [
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
-export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh }: TradingCalendarProps) => {
+export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange }: TradingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -101,7 +103,11 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
   useEffect(() => {
     fetchTrades();
-  }, [currentMonth, refreshTrigger]);
+  }, [currentMonth, refreshTrigger, selectedStrategy]);
+
+  useEffect(() => {
+    onMonthChange?.(currentMonth);
+  }, [currentMonth, onMonthChange]);
 
   const fetchTrades = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -110,13 +116,18 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
       .gte("trade_date", monthStart.toISOString().split('T')[0])
-      .lte("trade_date", monthEnd.toISOString().split('T')[0])
-      .order("trade_date", { ascending: true });
+      .lte("trade_date", monthEnd.toISOString().split('T')[0]);
+
+    if (selectedStrategy) {
+      query = query.eq("strategy_type", selectedStrategy);
+    }
+
+    const { data, error } = await query.order("trade_date", { ascending: true });
 
     if (!error && data) {
       setTrades(data);
