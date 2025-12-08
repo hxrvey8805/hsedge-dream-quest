@@ -185,11 +185,16 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Trading Calendar</h2>
               <div className="flex items-center gap-4">
-                <Label htmlFor="view-toggle" className="text-sm font-medium">
+                <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                   Pips
                 </Label>
-                <Switch id="view-toggle" checked={viewMode === 'profit'} onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')} />
-                <Label htmlFor="view-toggle" className="text-sm font-medium">
+                <Switch 
+                  id="view-toggle" 
+                  checked={viewMode === 'profit'} 
+                  onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')}
+                  className="data-[state=unchecked]:bg-primary data-[state=checked]:bg-emerald-500"
+                />
+                <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'profit' ? 'text-emerald-500 font-bold' : 'text-muted-foreground'}`}>
                   P&L ($)
                 </Label>
               </div>

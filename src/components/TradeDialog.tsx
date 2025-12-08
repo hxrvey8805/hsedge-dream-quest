@@ -40,11 +40,16 @@ interface TradeDialogProps {
 }
 
 const ASSET_CLASSES = [
-  { value: "Forex", icon: Globe, label: "Forex" },
-  { value: "Stocks", icon: BarChart3, label: "Stocks" },
-  { value: "Futures", icon: Activity, label: "Futures" },
-  { value: "Crypto", icon: "₿", label: "Crypto" },
-] as const;
+  { value: "Forex", icon: Globe, iconString: "", label: "Forex", isString: false },
+  { value: "Stocks", icon: BarChart3, iconString: "", label: "Stocks", isString: false },
+  { value: "Futures", icon: Activity, iconString: "", label: "Futures", isString: false },
+  { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
+];
+
+interface Strategy {
+  id: string;
+  name: string;
+}
 
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
@@ -100,14 +105,14 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("strategies")
+      .from("strategies" as any)
       .select("id, name")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .order("name", { ascending: true });
 
     if (!error && data) {
-      setStrategies(data);
+      setStrategies(data as unknown as Strategy[]);
     }
   };
 
@@ -121,12 +126,12 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
     }
 
     const { data, error } = await supabase
-      .from("strategies")
+      .from("strategies" as any)
       .insert({
         user_id: user.id,
         name: newStrategyName.trim(),
         is_active: true,
-      })
+      } as any)
       .select()
       .single();
 
@@ -141,7 +146,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
     setShowAddStrategy(false);
     await fetchStrategies();
     if (data) {
-      setStrategy(data.name);
+      setStrategy((data as any).name);
     }
   };
 
@@ -416,7 +421,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">What are you trading?</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {ASSET_CLASSES.map((ac) => {
-                      const IconComponent = typeof ac.icon === 'string' ? null : ac.icon;
+                      const IconComponent = ac.isString ? null : ac.icon;
                       return (
                         <button
                           key={ac.value}
@@ -431,7 +436,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                           {IconComponent ? (
                             <IconComponent className="h-6 w-6 text-foreground" />
                           ) : (
-                            <span className="text-2xl">{ac.icon}</span>
+                            <span className="text-2xl">{ac.iconString}</span>
                           )}
                           <span className="text-xs font-medium">{ac.label}</span>
                         </button>
@@ -499,11 +504,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border/50">
                   {(() => {
                     const asset = ASSET_CLASSES.find(ac => ac.value === assetClass);
-                    const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+                    const IconComponent = asset && !asset.isString ? asset.icon : null;
                     return IconComponent ? (
                       <IconComponent className="h-5 w-5 text-foreground" />
                     ) : (
-                      <span className="text-lg">{asset?.icon}</span>
+                      <span className="text-lg">{asset?.iconString}</span>
                     );
                   })()}
                   <span className="font-bold">{symbol}</span>
@@ -641,11 +646,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                     <div className="flex items-center gap-3">
                       {(() => {
                         const asset = ASSET_CLASSES.find(ac => ac.value === assetClass);
-                        const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+                        const IconComponent = asset && !asset.isString ? asset.icon : null;
                         return IconComponent ? (
                           <IconComponent className="h-6 w-6 text-foreground" />
                         ) : (
-                          <span className="text-2xl">{asset?.icon}</span>
+                          <span className="text-2xl">{asset?.iconString}</span>
                         );
                       })()}
                       <div>

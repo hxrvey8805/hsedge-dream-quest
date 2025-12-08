@@ -12,14 +12,18 @@ interface RiskRule {
   rule_text: string;
   rule_order: number;
   is_active: boolean;
-  strategy_id?: string | null;
+}
+
+interface Strategy {
+  id: string;
+  name: string;
 }
 
 export const RiskManagement = () => {
   const [rules, setRules] = useState<RiskRule[]>([]);
   const [newRule, setNewRule] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [strategies, setStrategies] = useState<{id: string, name: string}[]>([]);
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("");
   const [newStrategyName, setNewStrategyName] = useState("");
   const [showAddStrategy, setShowAddStrategy] = useState(false);
@@ -55,14 +59,14 @@ export const RiskManagement = () => {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("strategies")
+      .from("strategies" as any)
       .select("id, name")
       .eq("user_id", user.id)
       .eq("is_active", true)
       .order("name", { ascending: true });
 
     if (!error && data) {
-      setStrategies(data);
+      setStrategies(data as unknown as Strategy[]);
     }
   };
 
@@ -76,12 +80,12 @@ export const RiskManagement = () => {
     }
 
     const { data, error } = await supabase
-      .from("strategies")
+      .from("strategies" as any)
       .insert({
         user_id: user.id,
         name: newStrategyName.trim(),
         is_active: true,
-      })
+      } as any)
       .select()
       .single();
 
@@ -96,7 +100,7 @@ export const RiskManagement = () => {
     setShowAddStrategy(false);
     await fetchStrategies();
     if (data) {
-      setSelectedStrategy(data.id);
+      setSelectedStrategy((data as any).id);
     }
   };
 
@@ -115,7 +119,6 @@ export const RiskManagement = () => {
         rule_text: newRule.trim(),
         rule_order: maxOrder + 1,
         is_active: true,
-        strategy_id: selectedStrategy || null,
       });
 
     if (error) {
