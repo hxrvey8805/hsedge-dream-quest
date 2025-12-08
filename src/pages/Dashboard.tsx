@@ -220,18 +220,11 @@ const Dashboard = () => {
                   <TrendingUp className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">
-                    {monthSwitchEnabled ? 'Total P&L' : 'Total P&L'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Total P&L</p>
                   {monthSwitchEnabled ? (
-                    <div>
-                      <p className={`text-2xl font-bold ${monthStats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        ${monthStats.totalProfit >= 0 ? '+' : ''}{monthStats.totalProfit.toFixed(2)}
-                      </p>
-                      <p className={`text-lg font-semibold ${monthStats.totalPL >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {monthStats.totalPL >= 0 ? '+' : ''}{monthStats.totalPL.toFixed(1)} pips
-                      </p>
-                    </div>
+                    <p className={`text-2xl font-bold ${(viewMode === 'pips' ? monthStats.totalPL : monthStats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      {viewMode === 'pips' ? <>{monthStats.totalPL >= 0 ? '+' : ''}{monthStats.totalPL.toFixed(1)} pips</> : <>${monthStats.totalProfit >= 0 ? '+' : ''}{monthStats.totalProfit.toFixed(2)}</>}
+                    </p>
                   ) : (
                     <p className={`text-2xl font-bold ${(viewMode === 'pips' ? stats.totalPL : stats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
@@ -271,11 +264,11 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-[2fr_1fr] gap-6 max-w-[1800px] mx-auto">
           {/* Left Column - Trading Calendar */}
           <Card className="p-8 bg-card border-border">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-start justify-between mb-6">
               <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                 Trading Calendar
               </h2>
-              <div className={`flex items-center gap-4 flex-wrap transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
+              <div className={`flex flex-col items-end gap-3 transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Pips
