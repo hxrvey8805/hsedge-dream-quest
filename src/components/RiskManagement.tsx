@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, X, GripVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Plus, X, GripVertical, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface RiskRule {
@@ -12,6 +13,7 @@ interface RiskRule {
   rule_text: string;
   rule_order: number;
   is_active: boolean;
+  strategy_id?: string | null;
 }
 
 interface Strategy {
@@ -33,16 +35,21 @@ export const RiskManagement = () => {
     fetchStrategies();
   }, []);
 
-  const fetchRules = async () => {
+  const fetchRules = async (strategyId?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("risk_management_rules")
       .select("*")
       .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("rule_order", { ascending: true });
+      .eq("is_active", true);
+
+    if (strategyId) {
+      query = query.eq("strategy_id", strategyId);
+    }
+
+    const { data, error } = await query.order("rule_order", { ascending: true });
 
     if (error) {
       toast.error("Failed to load risk management rules");
@@ -100,7 +107,10 @@ export const RiskManagement = () => {
     setShowAddStrategy(false);
     await fetchStrategies();
     if (data) {
-      setSelectedStrategy((data as any).id);
+      const newStrategyId = (data as any).id;
+      setSelectedStrategy(newStrategyId);
+      setIsAdding(true);
+      fetchRules(newStrategyId);
     }
   };
 
@@ -119,6 +129,7 @@ export const RiskManagement = () => {
         rule_text: newRule.trim(),
         rule_order: maxOrder + 1,
         is_active: true,
+        strategy_id: selectedStrategy || null,
       });
 
     if (error) {
@@ -129,8 +140,7 @@ export const RiskManagement = () => {
     toast.success("Rule added");
     setNewRule("");
     setIsAdding(false);
-    setSelectedStrategy("");
-    fetchRules();
+    fetchRules(selectedStrategy || undefined);
   };
 
   const removeRule = async (id: string) => {
@@ -145,7 +155,17 @@ export const RiskManagement = () => {
     }
 
     toast.success("Rule removed");
-    fetchRules();
+    fetchRules(selectedStrategy || undefined);
+  };
+
+  const handleStrategySelect = (strategyId: string) => {
+    if (strategyId === "new") {
+      setShowAddStrategy(true);
+      return;
+    }
+    setSelectedStrategy(strategyId);
+    setIsAdding(true);
+    fetchRules(strategyId);
   };
 
   return (
@@ -153,18 +173,37 @@ export const RiskManagement = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Risk Management</h2>
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Strategy
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {strategies.map((strategy) => (
+                <DropdownMenuItem
+                  key={strategy.id}
+                  onClick={() => handleStrategySelect(strategy.id)}
+                >
+                  {strategy.name}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleStrategySelect("new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Strategy
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowAddStrategy(!showAddStrategy)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Strategy
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAdding(!isAdding)}
+            onClick={() => {
+              setSelectedStrategy("");
+              setIsAdding(!isAdding);
+              fetchRules();
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Rule
@@ -187,12 +226,30 @@ export const RiskManagement = () => {
           <Button onClick={handleAddStrategy} size="sm">
             Add
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowAddStrategy(false);
+              setNewStrategyName("");
+            }}
+          >
+            Cancel
+          </Button>
         </div>
       )}
 
       {isAdding && (
         <div className="space-y-3 mb-4">
-          <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+          {selectedStrategy && (
+            <div className="text-sm text-muted-foreground mb-2">
+              Adding rule for: <span className="font-semibold">{strategies.find(s => s.id === selectedStrategy)?.name || "Unknown"}</span>
+            </div>
+          )}
+          <Select value={selectedStrategy} onValueChange={(value) => {
+            setSelectedStrategy(value);
+            fetchRules(value || undefined);
+          }}>
             <SelectTrigger className="bg-secondary/50">
               <SelectValue placeholder="Select strategy (optional)" />
             </SelectTrigger>

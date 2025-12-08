@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, X, GripVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Plus, X, GripVertical, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface StrategyItem {
@@ -12,6 +13,7 @@ interface StrategyItem {
   rule_text: string;
   rule_order: number;
   is_active: boolean;
+  strategy_id?: string | null;
 }
 
 interface Strategy {
@@ -33,16 +35,21 @@ export const StrategyChecklist = () => {
     fetchStrategies();
   }, []);
 
-  const fetchItems = async () => {
+  const fetchItems = async (strategyId?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("strategy_checklist")
       .select("*")
       .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("rule_order", { ascending: true });
+      .eq("is_active", true);
+
+    if (strategyId) {
+      query = query.eq("strategy_id", strategyId);
+    }
+
+    const { data, error } = await query.order("rule_order", { ascending: true });
 
     if (error) {
       toast.error("Failed to load strategy checklist");
@@ -100,7 +107,10 @@ export const StrategyChecklist = () => {
     setShowAddStrategy(false);
     await fetchStrategies();
     if (data) {
-      setSelectedStrategy((data as any).id);
+      const newStrategyId = (data as any).id;
+      setSelectedStrategy(newStrategyId);
+      setIsAdding(true);
+      fetchItems(newStrategyId);
     }
   };
 
@@ -119,6 +129,7 @@ export const StrategyChecklist = () => {
         rule_text: newItem.trim(),
         rule_order: maxOrder + 1,
         is_active: true,
+        strategy_id: selectedStrategy || null,
       });
 
     if (error) {
@@ -129,8 +140,7 @@ export const StrategyChecklist = () => {
     toast.success("Item added");
     setNewItem("");
     setIsAdding(false);
-    setSelectedStrategy("");
-    fetchItems();
+    fetchItems(selectedStrategy || undefined);
   };
 
   const removeItem = async (id: string) => {
@@ -145,7 +155,17 @@ export const StrategyChecklist = () => {
     }
 
     toast.success("Item removed");
-    fetchItems();
+    fetchItems(selectedStrategy || undefined);
+  };
+
+  const handleStrategySelect = (strategyId: string) => {
+    if (strategyId === "new") {
+      setShowAddStrategy(true);
+      return;
+    }
+    setSelectedStrategy(strategyId);
+    setIsAdding(true);
+    fetchItems(strategyId);
   };
 
   return (
@@ -153,18 +173,37 @@ export const StrategyChecklist = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Strategy Checklist</h2>
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Strategy
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {strategies.map((strategy) => (
+                <DropdownMenuItem
+                  key={strategy.id}
+                  onClick={() => handleStrategySelect(strategy.id)}
+                >
+                  {strategy.name}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleStrategySelect("new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Strategy
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowAddStrategy(!showAddStrategy)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Strategy
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAdding(!isAdding)}
+            onClick={() => {
+              setSelectedStrategy("");
+              setIsAdding(!isAdding);
+              fetchItems();
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Item
@@ -187,12 +226,30 @@ export const StrategyChecklist = () => {
           <Button onClick={handleAddStrategy} size="sm">
             Add
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowAddStrategy(false);
+              setNewStrategyName("");
+            }}
+          >
+            Cancel
+          </Button>
         </div>
       )}
 
       {isAdding && (
         <div className="space-y-3 mb-4">
-          <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+          {selectedStrategy && (
+            <div className="text-sm text-muted-foreground mb-2">
+              Adding item for: <span className="font-semibold">{strategies.find(s => s.id === selectedStrategy)?.name || "Unknown"}</span>
+            </div>
+          )}
+          <Select value={selectedStrategy} onValueChange={(value) => {
+            setSelectedStrategy(value);
+            fetchItems(value || undefined);
+          }}>
             <SelectTrigger className="bg-secondary/50">
               <SelectValue placeholder="Select strategy (optional)" />
             </SelectTrigger>
