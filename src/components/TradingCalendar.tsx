@@ -62,11 +62,11 @@ interface TradingCalendarProps {
 }
 
 const ASSET_CLASSES = [
-  { value: "Forex", icon: Globe, label: "Forex" },
-  { value: "Stocks", icon: BarChart3, label: "Stocks" },
-  { value: "Futures", icon: Activity, label: "Futures" },
-  { value: "Crypto", icon: "₿", label: "Crypto" },
-] as const;
+  { value: "Forex", icon: Globe, iconString: "", label: "Forex", isString: false },
+  { value: "Stocks", icon: BarChart3, iconString: "", label: "Stocks", isString: false },
+  { value: "Futures", icon: Activity, iconString: "", label: "Futures", isString: false },
+  { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
+];
 
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
@@ -446,7 +446,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                 const isWin = trade.outcome === 'Win';
                 const isLoss = trade.outcome === 'Loss';
                 const asset = ASSET_CLASSES.find(ac => ac.value === (trade.asset_class || "Forex"));
-                const IconComponent = asset && typeof asset.icon !== 'string' ? asset.icon : null;
+                const IconComponent = asset && !asset.isString ? asset.icon : null;
 
                 return editingTrade?.id === trade.id ? (
                   // Edit Mode
@@ -661,7 +661,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                                 'text-primary'
                               }`} />
                             ) : (
-                              <span className="text-xl">{asset?.icon}</span>
+                              <span className="text-xl">{asset?.iconString}</span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
