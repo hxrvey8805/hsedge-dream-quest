@@ -269,7 +269,7 @@ const Dashboard = () => {
                 Trading Calendar
               </h2>
               <div className={`flex flex-col items-end gap-3 transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full justify-end">
                   <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Pips
                   </Label>
@@ -283,7 +283,7 @@ const Dashboard = () => {
                     P&L ($)
                   </Label>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full justify-end">
                   <Label htmlFor="month-toggle" className={`text-sm font-medium transition-colors ${monthSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Month
                   </Label>
@@ -294,7 +294,7 @@ const Dashboard = () => {
                     className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full justify-end">
                   <Label htmlFor="account-toggle" className={`text-sm font-medium transition-colors ${accountSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Account
                   </Label>
@@ -306,17 +306,19 @@ const Dashboard = () => {
                   />
                 </div>
                 {accountSwitchEnabled && (
-                  <Select value={selectedStrategy || ""} onValueChange={(value) => setSelectedStrategy(value || null)}>
-                    <SelectTrigger className="w-[200px] bg-secondary/50">
-                      <SelectValue placeholder="Select strategy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Strategies</SelectItem>
-                      {strategies.map((strategy) => (
-                        <SelectItem key={strategy.id} value={strategy.name}>{strategy.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full flex justify-end">
+                    <Select value={selectedStrategy || ""} onValueChange={(value) => setSelectedStrategy(value || null)}>
+                      <SelectTrigger className="w-[200px] bg-secondary/50">
+                        <SelectValue placeholder="Select strategy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Strategies</SelectItem>
+                        {strategies.map((strategy) => (
+                          <SelectItem key={strategy.id} value={strategy.name}>{strategy.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
               </div>
             </div>
