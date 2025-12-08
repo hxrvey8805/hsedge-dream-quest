@@ -246,15 +246,16 @@ export const RiskManagement = () => {
               Adding rule for: <span className="font-semibold">{strategies.find(s => s.id === selectedStrategy)?.name || "Unknown"}</span>
             </div>
           )}
-          <Select value={selectedStrategy} onValueChange={(value) => {
-            setSelectedStrategy(value);
-            fetchRules(value || undefined);
+          <Select value={selectedStrategy || "none"} onValueChange={(value) => {
+            const newValue = value === "none" ? "" : value;
+            setSelectedStrategy(newValue);
+            fetchRules(newValue || undefined);
           }}>
             <SelectTrigger className="bg-secondary/50">
               <SelectValue placeholder="Select strategy (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No Strategy</SelectItem>
+              <SelectItem value="none">No Strategy</SelectItem>
               {strategies.map((s) => (
                 <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
               ))}
