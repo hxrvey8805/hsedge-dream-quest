@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Plus, X, GripVertical, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
@@ -26,16 +25,19 @@ export const RiskManagement = () => {
   const [newRule, setNewRule] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [selectedStrategy, setSelectedStrategy] = useState<string>("");
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
   const [newStrategyName, setNewStrategyName] = useState("");
   const [showAddStrategy, setShowAddStrategy] = useState(false);
 
   useEffect(() => {
-    fetchRules();
     fetchStrategies();
   }, []);
 
-  const fetchRules = async (strategyId?: string) => {
+  useEffect(() => {
+    fetchRules();
+  }, [selectedStrategy]);
+
+  const fetchRules = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -45,8 +47,10 @@ export const RiskManagement = () => {
       .eq("user_id", user.id)
       .eq("is_active", true);
 
-    if (strategyId) {
-      query = query.eq("strategy_id", strategyId);
+    if (selectedStrategy) {
+      query = query.eq("strategy_id", selectedStrategy);
+    } else {
+      query = query.is("strategy_id", null);
     }
 
     const { data, error } = await query.order("rule_order", { ascending: true });
@@ -110,7 +114,6 @@ export const RiskManagement = () => {
       const newStrategyId = (data as any).id;
       setSelectedStrategy(newStrategyId);
       setIsAdding(true);
-      fetchRules(newStrategyId);
     }
   };
 
@@ -139,8 +142,7 @@ export const RiskManagement = () => {
 
     toast.success("Rule added");
     setNewRule("");
-    setIsAdding(false);
-    fetchRules(selectedStrategy || undefined);
+    fetchRules();
   };
 
   const removeRule = async (id: string) => {
@@ -155,17 +157,22 @@ export const RiskManagement = () => {
     }
 
     toast.success("Rule removed");
-    fetchRules(selectedStrategy || undefined);
+    fetchRules();
   };
 
-  const handleStrategySelect = (strategyId: string) => {
+  const handleStrategySelect = (strategyId: string | null) => {
     if (strategyId === "new") {
       setShowAddStrategy(true);
       return;
     }
     setSelectedStrategy(strategyId);
-    setIsAdding(true);
-    fetchRules(strategyId);
+    setIsAdding(false);
+  };
+
+  const getSelectedStrategyName = () => {
+    if (!selectedStrategy) return "General";
+    const strategy = strategies.find(s => s.id === selectedStrategy);
+    return strategy?.name || "Strategy";
   };
 
   return (
@@ -176,15 +183,23 @@ export const RiskManagement = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Strategy
+                {getSelectedStrategyName()}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="bg-popover">
+              <DropdownMenuItem
+                onClick={() => handleStrategySelect(null)}
+                className={!selectedStrategy ? "bg-accent" : ""}
+              >
+                General
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {strategies.map((strategy) => (
                 <DropdownMenuItem
                   key={strategy.id}
                   onClick={() => handleStrategySelect(strategy.id)}
+                  className={selectedStrategy === strategy.id ? "bg-accent" : ""}
                 >
                   {strategy.name}
                 </DropdownMenuItem>
@@ -199,11 +214,7 @@ export const RiskManagement = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              setSelectedStrategy("");
-              setIsAdding(!isAdding);
-              fetchRules();
-            }}
+            onClick={() => setIsAdding(!isAdding)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Rule
@@ -241,26 +252,9 @@ export const RiskManagement = () => {
 
       {isAdding && (
         <div className="space-y-3 mb-4">
-          {selectedStrategy && (
-            <div className="text-sm text-muted-foreground mb-2">
-              Adding rule for: <span className="font-semibold">{strategies.find(s => s.id === selectedStrategy)?.name || "Unknown"}</span>
-            </div>
-          )}
-          <Select value={selectedStrategy || "none"} onValueChange={(value) => {
-            const newValue = value === "none" ? "" : value;
-            setSelectedStrategy(newValue);
-            fetchRules(newValue || undefined);
-          }}>
-            <SelectTrigger className="bg-secondary/50">
-              <SelectValue placeholder="Select strategy (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No Strategy</SelectItem>
-              {strategies.map((s) => (
-                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="text-sm text-muted-foreground mb-2">
+            Adding rule for: <span className="font-semibold text-foreground">{getSelectedStrategyName()}</span>
+          </div>
           <div className="flex gap-2">
             <Input
               placeholder="Enter risk management rule..."
@@ -271,6 +265,7 @@ export const RiskManagement = () => {
                   addRule();
                 }
               }}
+              autoFocus
             />
             <Button onClick={addRule} size="sm">
               Add
@@ -282,7 +277,7 @@ export const RiskManagement = () => {
       <div className="space-y-2">
         {rules.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            No risk management rules yet. Add rules to protect your capital!
+            No risk management rules for {getSelectedStrategyName()}. Add rules to protect your capital!
           </p>
         ) : (
           rules.map((rule, index) => (
