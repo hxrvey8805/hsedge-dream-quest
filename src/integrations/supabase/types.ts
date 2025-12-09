@@ -311,6 +311,7 @@ export type Database = {
           is_active: boolean
           rule_order: number
           rule_text: string
+          strategy_id: string | null
           updated_at: string
           user_id: string
         }
@@ -320,6 +321,7 @@ export type Database = {
           is_active?: boolean
           rule_order?: number
           rule_text: string
+          strategy_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -329,10 +331,19 @@ export type Database = {
           is_active?: boolean
           rule_order?: number
           rule_text?: string
+          strategy_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "risk_management_rules_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strategies: {
         Row: {
@@ -368,6 +379,7 @@ export type Database = {
           is_active: boolean
           rule_order: number
           rule_text: string
+          strategy_id: string | null
           updated_at: string
           user_id: string
         }
@@ -377,6 +389,7 @@ export type Database = {
           is_active?: boolean
           rule_order?: number
           rule_text: string
+          strategy_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -386,10 +399,19 @@ export type Database = {
           is_active?: boolean
           rule_order?: number
           rule_text?: string
+          strategy_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "strategy_checklist_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trades: {
         Row: {
