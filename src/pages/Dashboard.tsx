@@ -307,12 +307,12 @@ const Dashboard = () => {
                 </div>
                 {accountSwitchEnabled && (
                   <div className="w-full flex justify-end">
-                    <Select value={selectedStrategy || ""} onValueChange={(value) => setSelectedStrategy(value || null)}>
+                    <Select value={selectedStrategy || "all"} onValueChange={(value) => setSelectedStrategy(value === "all" ? null : value)}>
                       <SelectTrigger className="w-[200px] bg-secondary/50">
                         <SelectValue placeholder="Select strategy" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Strategies</SelectItem>
+                        <SelectItem value="all">All Strategies</SelectItem>
                         {strategies.map((strategy) => (
                           <SelectItem key={strategy.id} value={strategy.name}>{strategy.name}</SelectItem>
                         ))}
