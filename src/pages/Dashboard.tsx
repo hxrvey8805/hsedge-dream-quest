@@ -269,8 +269,8 @@ const Dashboard = () => {
                 Trading Calendar
               </h2>
               <div className={`flex flex-col items-end gap-3 transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
-                <div className="flex items-center gap-2 w-full justify-end">
-                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                <div className="grid grid-cols-[auto_auto_auto] gap-x-2 gap-y-3 items-center justify-end">
+                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors text-right ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Pips
                   </Label>
                   <Switch 
@@ -282,9 +282,8 @@ const Dashboard = () => {
                   <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'profit' ? 'text-emerald-500 font-bold' : 'text-muted-foreground'}`}>
                     P&L ($)
                   </Label>
-                </div>
-                <div className="flex items-center gap-2 w-full justify-end">
-                  <Label htmlFor="month-toggle" className={`text-sm font-medium transition-colors ${monthSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+
+                  <Label htmlFor="month-toggle" className={`text-sm font-medium transition-colors text-right ${monthSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Month
                   </Label>
                   <Switch 
@@ -293,9 +292,9 @@ const Dashboard = () => {
                     onCheckedChange={setMonthSwitchEnabled}
                     className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
                   />
-                </div>
-                <div className="flex items-center gap-2 w-full justify-end">
-                  <Label htmlFor="account-toggle" className={`text-sm font-medium transition-colors ${accountSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                  <span></span>
+
+                  <Label htmlFor="account-toggle" className={`text-sm font-medium transition-colors text-right ${accountSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Account
                   </Label>
                   <Switch 
@@ -304,6 +303,7 @@ const Dashboard = () => {
                     onCheckedChange={setAccountSwitchEnabled}
                     className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
                   />
+                  <span></span>
                 </div>
                 {accountSwitchEnabled && (
                   <div className="w-full flex justify-end">
