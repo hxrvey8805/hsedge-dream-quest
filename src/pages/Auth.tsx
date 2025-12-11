@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
+import LucidAnimation from "@/components/LucidAnimation";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -17,23 +19,24 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard");
+        setShowAnimation(true);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
+      if (session && event === "SIGNED_IN") {
+        setShowAnimation(true);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +63,7 @@ const Auth = () => {
         
         if (data.session) {
           toast.success("Welcome back!");
+          setShowAnimation(true);
         }
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -95,6 +99,11 @@ const Auth = () => {
             return;
           }
         }
+        
+        // If user signed up and got a session (no priceId), show animation
+        if (!priceId && data.session) {
+          setShowAnimation(true);
+        }
       }
     } catch (error: any) {
       console.error("Auth error:", error);
@@ -107,6 +116,15 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handleAnimationComplete = () => {
+    setShowAnimation(false);
+    navigate("/dashboard");
+  };
+
+  if (showAnimation) {
+    return <LucidAnimation onComplete={handleAnimationComplete} duration={3000} />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -147,9 +165,20 @@ const Auth = () => {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              </Button>
+            </div>
           </form>
           <div className="mt-4 text-center text-sm">
             <button
