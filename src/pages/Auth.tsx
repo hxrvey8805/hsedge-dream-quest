@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import logo from "@/assets/hs-logo.png";
@@ -15,7 +14,7 @@ const Auth = () => {
   const priceId = searchParams.get("price");
   const planName = searchParams.get("plan");
   
-  const [isLogin, setIsLogin] = useState(!priceId); // Default to signup if coming from pricing
+  const [isLogin, setIsLogin] = useState(!priceId);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,7 +81,6 @@ const Auth = () => {
         
         toast.success("Account created!");
         
-        // If user signed up from pricing page, redirect to checkout
         if (priceId && data.session) {
           const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
             body: { priceId }
@@ -100,7 +98,6 @@ const Auth = () => {
           }
         }
         
-        // If user signed up and got a session (no priceId), show animation
         if (!priceId && data.session) {
           setShowAnimation(true);
         }
@@ -127,23 +124,50 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border bg-card shadow-xl">
-        <CardHeader className="space-y-4 text-center">
-          <div className="flex justify-center">
-            <img src={logo} alt="HS-Edge" className="h-16 w-16" />
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            {isLogin ? "Welcome Back" : planName ? `Get Started with ${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan` : "Create Account"}
-          </CardTitle>
-          <CardDescription>
-            {isLogin ? "Sign in to continue your trading journey" : "Start your gamified trading journey"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Ambient background orbs */}
+      <div className="ambient-orb w-[500px] h-[500px] bg-primary/20 -top-48 -left-48" style={{ animationDelay: '0s' }} />
+      <div className="ambient-orb w-[400px] h-[400px] bg-accent/15 -bottom-32 -right-32" style={{ animationDelay: '4s' }} />
+      <div className="ambient-orb w-[300px] h-[300px] bg-primary/10 top-1/2 left-1/4" style={{ animationDelay: '8s' }} />
+      
+      {/* Subtle grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]" 
+        style={{
+          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
+                            linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }}
+      />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Premium card */}
+        <div className="premium-card rounded-2xl p-8 relative">
+          {/* Header */}
+          <div className="space-y-6 text-center mb-8">
+            <div className="flex justify-center">
+              <img 
+                src={logo} 
+                alt="HS-Edge" 
+                className="h-20 w-20 animate-logo-float" 
+              />
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <h1 className="text-3xl font-bold tracking-tight animate-text-reveal bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text">
+                {isLogin ? "Welcome Back" : planName ? `Get Started with ${planName.charAt(0).toUpperCase() + planName.slice(1)}` : "Create Account"}
+              </h1>
+              <p className="text-muted-foreground animate-text-reveal-delay-1">
+                {isLogin ? "Sign in to continue your trading journey" : "Start your gamified trading journey"}
+              </p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleAuth} className="space-y-5">
+            <div className="space-y-2 animate-text-reveal-delay-2">
+              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -151,10 +175,13 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="premium-input h-12 rounded-xl px-4"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-2 animate-text-reveal-delay-3">
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -163,33 +190,48 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="premium-input h-12 rounded-xl px-4"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3 pt-2 animate-text-reveal-delay-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/")}
-                className="flex-1 flex items-center justify-center gap-2"
+                className="flex-1 h-12 rounded-xl flex items-center justify-center gap-2 border-border/50 hover:bg-secondary/50 transition-all duration-300"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
-              <Button type="submit" className="flex-1" disabled={loading}>
-                {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              <Button 
+                type="submit" 
+                className="flex-1 h-12 rounded-xl premium-button text-primary-foreground font-medium" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Loading...
+                  </span>
+                ) : isLogin ? "Sign In" : "Sign Up"}
               </Button>
             </div>
           </form>
-          <div className="mt-4 text-center text-sm">
+
+          {/* Toggle link */}
+          <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 relative group"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <span className="text-primary group-hover:underline underline-offset-4">
+                {isLogin ? "Sign up" : "Sign in"}
+              </span>
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
