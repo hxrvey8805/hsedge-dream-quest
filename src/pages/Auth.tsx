@@ -168,6 +168,7 @@ const Auth = () => {
             <div className="flex gap-2">
               <Button
                 type="button"
+                variant="outline"
                 onClick={() => navigate("/")}
                 className="flex-1 flex items-center justify-center gap-2"
               >
