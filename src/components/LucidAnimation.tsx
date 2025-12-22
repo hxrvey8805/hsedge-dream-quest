@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/hs-logo.png";
 
 interface LucidAnimationProps {
   onComplete?: () => void;
@@ -142,7 +141,7 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
 
           {/* Central content */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* Logo with glow */}
+            {/* TradeLucid text with glow - matching homepage style */}
             <motion.div
               className="relative mb-8"
               initial={{ opacity: 0, scale: 0.5, y: 20 }}
@@ -152,13 +151,13 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              {/* Glow behind logo */}
+              {/* Glow behind text */}
               <motion.div
-                className="absolute inset-0 rounded-full blur-3xl"
+                className="absolute inset-0 blur-3xl pointer-events-none"
                 style={{
                   background: 'radial-gradient(circle, hsl(212 98% 62% / 0.4) 0%, transparent 70%)',
-                  width: 200,
-                  height: 200,
+                  width: 300,
+                  height: 150,
                   left: '50%',
                   top: '50%',
                   transform: 'translate(-50%, -50%)',
@@ -174,16 +173,23 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                 }}
               />
               
-              <motion.img
-                src={logo}
-                alt="HS-Edge"
-                className="w-24 h-24 md:w-32 md:h-32 relative z-10"
+              <motion.h1
+                className="text-6xl md:text-7xl lg:text-8xl font-light italic relative z-10"
+                style={{
+                  fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
+                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '0.08em',
+                  fontWeight: 300,
+                  filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))',
+                }}
                 animate={{
                   y: [0, -8, 0],
                   filter: [
-                    'drop-shadow(0 0 30px hsl(212 98% 62% / 0.5))',
-                    'drop-shadow(0 0 50px hsl(212 98% 62% / 0.7))',
-                    'drop-shadow(0 0 30px hsl(212 98% 62% / 0.5))',
+                    'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
+                    'drop-shadow(0 0 60px rgba(59, 130, 246, 0.7))',
+                    'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
                   ],
                 }}
                 transition={{
@@ -191,7 +197,9 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-              />
+              >
+                TradeLucid
+              </motion.h1>
             </motion.div>
 
             {/* Welcome text */}
