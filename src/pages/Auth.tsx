@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,54 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const navigate = useNavigate();
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Track mouse position for magnetic particles
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Generate floating particles matching homepage
+  const lucidParticles = useMemo(() => {
+    return Array.from({ length: 35 }, (_, i) => ({
+      id: i,
+      baseX: Math.random() * 100,
+      baseY: Math.random() * 100,
+      delay: Math.random() * 10,
+      duration: 20 + Math.random() * 25,
+      size: Math.random() * 6 + 3,
+      opacity: 0.5 + Math.random() * 0.5,
+      driftX: Math.random() * 150 - 75,
+      driftY: Math.random() * 100 + 50,
+      magnetStrength: 0.15 + Math.random() * 0.2,
+    }));
+  }, []);
+
+  // Calculate magnetic offset for each particle
+  const getParticleStyle = (particle: typeof lucidParticles[0]) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const particleX = (particle.baseX / 100) * rect.width;
+    const particleY = (particle.baseY / 100) * rect.height;
+    
+    const dx = mousePos.x - particleX;
+    const dy = mousePos.y - particleY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const maxDistance = 350;
+    const strength = Math.max(0, 1 - distance / maxDistance) * particle.magnetStrength;
+    
+    return {
+      x: dx * strength * 0.5,
+      y: dy * strength * 0.5,
+    };
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -124,21 +172,51 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Ambient background orbs */}
-      <div className="ambient-orb w-[500px] h-[500px] bg-primary/20 -top-48 -left-48" style={{ animationDelay: '0s' }} />
-      <div className="ambient-orb w-[400px] h-[400px] bg-accent/15 -bottom-32 -right-32" style={{ animationDelay: '4s' }} />
-      <div className="ambient-orb w-[300px] h-[300px] bg-primary/10 top-1/2 left-1/4" style={{ animationDelay: '8s' }} />
-      
-      {/* Subtle grid pattern */}
+    <div ref={containerRef} className="min-h-screen flex items-center justify-center bg-[#070C1A] p-4 relative overflow-hidden">
+      {/* Radial gradient overlay background - matching homepage */}
       <div 
-        className="absolute inset-0 opacity-[0.02]" 
+        className="absolute inset-0 pointer-events-none z-0"
         style={{
-          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
-                            linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
+          background: `
+            radial-gradient(
+              80rem 40rem at 50% -10%,
+              rgba(16, 40, 90, 0.55),
+              transparent 60%
+            ),
+            radial-gradient(
+              60rem 30rem at 50% 120%,
+              rgba(7, 12, 26, 0.8),
+              transparent 60%
+            )
+          `
         }}
       />
+      
+      {/* Floating particles - matching homepage */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        {lucidParticles.map((particle) => {
+          const magnetOffset = getParticleStyle(particle);
+          return (
+            <div
+              key={particle.id}
+              className="lucid-particle"
+              style={{
+                left: `${particle.baseX}%`,
+                top: `${particle.baseY}%`,
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                '--drift-x': `${particle.driftX}px`,
+                '--drift-y': `${particle.driftY}px`,
+                transform: `translate(${magnetOffset.x}px, ${magnetOffset.y}px)`,
+                transition: 'transform 0.3s ease-out',
+              } as React.CSSProperties}
+            />
+          );
+        })}
+      </div>
 
       <div className="w-full max-w-md relative z-10">
         {/* Premium card */}
