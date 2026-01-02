@@ -16,21 +16,38 @@ export const useAccounts = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Fetch personal accounts
+    const { data: personalData } = await supabase
+      .from("personal_accounts")
+      .select("id, account_name, account_size")
+      .eq("user_id", user.id);
+
     // Fetch funded accounts
-    const { data: fundedData, error: fundedError } = await supabase
+    const { data: fundedData } = await supabase
       .from("funded_accounts")
       .select("id, company, account_size")
       .eq("user_id", user.id);
 
     // Fetch evaluations
-    const { data: evalData, error: evalError } = await supabase
+    const { data: evalData } = await supabase
       .from("evaluations")
       .select("id, company, account_size")
       .eq("user_id", user.id);
 
     const allAccounts: Account[] = [];
 
-    if (!fundedError && fundedData) {
+    if (personalData) {
+      personalData.forEach(acc => {
+        allAccounts.push({
+          id: acc.id,
+          company: "Personal",
+          account_size: `$${acc.account_size}`,
+          displayName: acc.account_name
+        });
+      });
+    }
+
+    if (fundedData) {
       fundedData.forEach(acc => {
         allAccounts.push({
           id: acc.id,
@@ -41,7 +58,7 @@ export const useAccounts = () => {
       });
     }
 
-    if (!evalError && evalData) {
+    if (evalData) {
       evalData.forEach(acc => {
         allAccounts.push({
           id: acc.id,
