@@ -21,6 +21,7 @@ interface AccountForm {
   name: string;
   broker?: string;
   company?: string;
+  customCompany?: string;
   size: string;
   profitTarget?: string;
 }
@@ -61,11 +62,16 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
   const handleAddAccount = () => {
     if (!activeType) return;
 
+    // Use custom company name if "Other" was selected
+    const companyName = currentForm.company === "Other" 
+      ? currentForm.customCompany 
+      : currentForm.company;
+
     const newAccount: AccountForm = {
       type: activeType,
       name: currentForm.name || "",
       broker: currentForm.broker,
-      company: currentForm.company,
+      company: companyName,
       size: currentForm.size || "",
       profitTarget: currentForm.profitTarget,
     };
@@ -237,19 +243,29 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
                   <>
                     <div className="space-y-2">
                       <Label>Prop Firm</Label>
-                      <Select
-                        value={currentForm.company}
-                        onValueChange={(v) => setCurrentForm({ ...currentForm, company: v })}
-                      >
-                        <SelectTrigger className="premium-input">
-                          <SelectValue placeholder="Select prop firm" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PROP_FIRMS.map((firm) => (
-                            <SelectItem key={firm} value={firm}>{firm}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {currentForm.company === "Other" ? (
+                        <Input
+                          placeholder="Enter your prop firm name"
+                          value={currentForm.customCompany || ""}
+                          onChange={(e) => setCurrentForm({ ...currentForm, customCompany: e.target.value })}
+                          className="premium-input"
+                          autoFocus
+                        />
+                      ) : (
+                        <Select
+                          value={currentForm.company}
+                          onValueChange={(v) => setCurrentForm({ ...currentForm, company: v, customCompany: "" })}
+                        >
+                          <SelectTrigger className="premium-input">
+                            <SelectValue placeholder="Select prop firm" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROP_FIRMS.map((firm) => (
+                              <SelectItem key={firm} value={firm}>{firm}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Account Size</Label>
@@ -285,7 +301,12 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
               <Button
                 className="mt-4 premium-button"
                 onClick={handleAddAccount}
-                disabled={!currentForm.size || (activeType === "personal" && !currentForm.name)}
+                disabled={
+                  !currentForm.size || 
+                  (activeType === "personal" && !currentForm.name) ||
+                  ((activeType === "funded" || activeType === "evaluation") && 
+                    (!currentForm.company || (currentForm.company === "Other" && !currentForm.customCompany)))
+                }
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Account
