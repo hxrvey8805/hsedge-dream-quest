@@ -309,8 +309,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-center gap-4 mb-8">
+    <div className="-mt-4">
+      <div className="flex items-center justify-center gap-4 mb-6">
         <Button 
           variant="outline" 
           size="icon" 
