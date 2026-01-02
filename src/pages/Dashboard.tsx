@@ -265,7 +265,7 @@ const Dashboard = () => {
         {/* Main Content - Two Column Layout with larger calendar */}
         <div className="grid lg:grid-cols-[2fr_1fr] gap-6 max-w-[1800px] mx-auto">
           {/* Left Column - Trading Calendar */}
-          <Card className="p-8 bg-card border-border -mt-10">
+          <Card className="p-8 bg-card border-border">
             <div className="flex items-start justify-between mb-6">
               <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                 Trading Calendar
