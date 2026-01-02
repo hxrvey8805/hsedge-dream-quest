@@ -304,6 +304,36 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_accounts: {
+        Row: {
+          account_name: string
+          account_size: number
+          broker: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_size?: number
+          broker?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_size?: number
+          broker?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       risk_management_rules: {
         Row: {
           created_at: string
@@ -605,6 +635,8 @@ export type Database = {
           last_trade_date: string | null
           level: number
           longest_streak: number
+          onboarding_completed: boolean
+          primary_dream_id: string | null
           total_achievements_unlocked: number
           updated_at: string
           user_id: string
@@ -616,6 +648,8 @@ export type Database = {
           last_trade_date?: string | null
           level?: number
           longest_streak?: number
+          onboarding_completed?: boolean
+          primary_dream_id?: string | null
           total_achievements_unlocked?: number
           updated_at?: string
           user_id: string
@@ -627,11 +661,21 @@ export type Database = {
           last_trade_date?: string | null
           level?: number
           longest_streak?: number
+          onboarding_completed?: boolean
+          primary_dream_id?: string | null
           total_achievements_unlocked?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_primary_dream_id_fkey"
+            columns: ["primary_dream_id"]
+            isOneToOne: false
+            referencedRelation: "dream_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

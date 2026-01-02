@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp, BarChart3 } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -15,6 +15,7 @@ import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar
 import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
 import { EquityCurve } from "@/components/EquityCurve";
+import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
 
@@ -40,6 +41,7 @@ const Dashboard = () => {
     winRate: 0,
     totalTrades: 0
   });
+  const [showVisionMode, setShowVisionMode] = useState(false);
   const { accounts } = useAccounts();
   const navigate = useNavigate();
   const fetchStats = async () => {
@@ -105,22 +107,24 @@ const Dashboard = () => {
     setRefreshTrigger(prev => prev + 1);
   };
   useEffect(() => {
-    supabase.auth.getSession().then(({
-      data: {
-        session
-      }
-    }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
+        // Check onboarding status
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("onboarding_completed")
+          .eq("user_id", session.user.id)
+          .single();
+        
+        if (profile && !profile.onboarding_completed) {
+          navigate("/onboarding");
+        }
       }
     });
-    const {
-      data: {
-        subscription
-      }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
@@ -150,6 +154,11 @@ const Dashboard = () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
     navigate("/");
+  };
+
+  // Vision Mode Dashboard
+  if (showVisionMode) {
+    return <VisionModeDashboard onClose={() => setShowVisionMode(false)} />;
   };
   return <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -185,9 +194,21 @@ const Dashboard = () => {
       </header>
 
       <main className="w-full px-6 py-8">
-        {/* Minimal Progress Bar - Above Stats */}
+        {/* Minimal Progress Bar - Clickable for Vision Mode */}
         <div className="mb-8 flex justify-center">
-          <div className="w-full max-w-[1800px]">
+          <div 
+            className="w-full max-w-[1800px] cursor-pointer group"
+            onClick={() => setShowVisionMode(true)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
+                CURRENT REALITY
+              </span>
+              <span className="text-sm text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Sparkles className="w-4 h-4" />
+                Click to see Vision Mode
+              </span>
+            </div>
             <MinimalProgressBar />
           </div>
         </div>
