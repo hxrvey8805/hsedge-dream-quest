@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Plus, X, GripVertical, ChevronDown } from "lucide-react";
+import { Plus, X, GripVertical, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface StrategyItem {
@@ -169,6 +169,26 @@ export const StrategyChecklist = () => {
     setIsAdding(false);
   };
 
+  const deleteStrategy = async (strategyId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const { error } = await supabase
+      .from("strategies")
+      .update({ is_active: false })
+      .eq("id", strategyId);
+
+    if (error) {
+      toast.error("Failed to delete strategy");
+      return;
+    }
+
+    toast.success("Strategy deleted");
+    if (selectedStrategy === strategyId) {
+      setSelectedStrategy(null);
+    }
+    fetchStrategies();
+  };
+
   const getSelectedStrategyName = () => {
     if (!selectedStrategy) return "General";
     const strategy = strategies.find(s => s.id === selectedStrategy);
@@ -199,9 +219,13 @@ export const StrategyChecklist = () => {
                 <DropdownMenuItem
                   key={strategy.id}
                   onClick={() => handleStrategySelect(strategy.id)}
-                  className={selectedStrategy === strategy.id ? "bg-accent" : ""}
+                  className={`${selectedStrategy === strategy.id ? "bg-accent" : ""} flex items-center justify-between group`}
                 >
-                  {strategy.name}
+                  <span>{strategy.name}</span>
+                  <Trash2
+                    className="h-4 w-4 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                    onClick={(e) => deleteStrategy(strategy.id, e)}
+                  />
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
