@@ -8,18 +8,86 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Home, Car, Plane, Shirt, Sparkles, ArrowRight, Plus, Trash2 } from "lucide-react";
+import { Home, Car, Plane, Shirt, Sparkles, ArrowRight, Check, Heart } from "lucide-react";
 
 interface OnboardingVisionBuilderProps {
   onComplete: () => void;
   userId: string;
 }
 
-interface DreamPurchase {
+interface PresetPurchase {
+  id: string;
   name: string;
-  price: string;
+  price: number;
   category: string;
+  image: string;
 }
+
+const presetPurchases: PresetPurchase[] = [
+  {
+    id: "lambo",
+    name: "Lamborghini Aventador",
+    price: 350000,
+    category: "vehicle",
+    image: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=400&h=300&fit=crop",
+  },
+  {
+    id: "rolex",
+    name: "Rolex Submariner",
+    price: 10000,
+    category: "style",
+    image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=300&fit=crop",
+  },
+  {
+    id: "penthouse",
+    name: "Dubai Penthouse",
+    price: 2000000,
+    category: "living",
+    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop",
+  },
+  {
+    id: "yacht",
+    name: "Luxury Yacht",
+    price: 1500000,
+    category: "vehicle",
+    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=400&h=300&fit=crop",
+  },
+  {
+    id: "jet",
+    name: "Private Jet Share",
+    price: 500000,
+    category: "travel",
+    image: "https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=400&h=300&fit=crop",
+  },
+  {
+    id: "watches",
+    name: "Luxury Watch Collection",
+    price: 50000,
+    category: "style",
+    image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=400&h=300&fit=crop",
+  },
+  {
+    id: "porsche",
+    name: "Porsche 911 GT3",
+    price: 180000,
+    category: "vehicle",
+    image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400&h=300&fit=crop",
+  },
+  {
+    id: "villa",
+    name: "Maldives Villa",
+    price: 3000000,
+    category: "living",
+    image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=300&fit=crop",
+  },
+  {
+    id: "tesla",
+    name: "Tesla Model S Plaid",
+    price: 120000,
+    category: "vehicle",
+    image: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=300&fit=crop",
+  },
+];
 
 export const OnboardingVisionBuilder = ({ onComplete, userId }: OnboardingVisionBuilderProps) => {
   const [title, setTitle] = useState("");
@@ -28,27 +96,18 @@ export const OnboardingVisionBuilder = ({ onComplete, userId }: OnboardingVision
   const [vehicle, setVehicle] = useState("");
   const [travel, setTravel] = useState("");
   const [style, setStyle] = useState("");
-  const [purchases, setPurchases] = useState<DreamPurchase[]>([]);
-  const [newPurchase, setNewPurchase] = useState<DreamPurchase>({ name: "", price: "", category: "other" });
+  const [whyMotivation, setWhyMotivation] = useState("");
+  const [selectedPurchases, setSelectedPurchases] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
-  const categories = [
-    { icon: Home, label: "Living", value: "living" },
-    { icon: Car, label: "Vehicle", value: "vehicle" },
-    { icon: Plane, label: "Travel", value: "travel" },
-    { icon: Shirt, label: "Style", value: "style" },
-    { icon: Sparkles, label: "Other", value: "other" },
-  ];
-
-  const addPurchase = () => {
-    if (newPurchase.name && newPurchase.price) {
-      setPurchases([...purchases, newPurchase]);
-      setNewPurchase({ name: "", price: "", category: "other" });
+  const togglePurchase = (id: string) => {
+    const newSelected = new Set(selectedPurchases);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
     }
-  };
-
-  const removePurchase = (index: number) => {
-    setPurchases(purchases.filter((_, i) => i !== index));
+    setSelectedPurchases(newSelected);
   };
 
   const handleSave = async () => {
@@ -71,20 +130,23 @@ export const OnboardingVisionBuilder = ({ onComplete, userId }: OnboardingVision
           vehicle,
           travel,
           style,
+          why_motivation: whyMotivation,
         })
         .select()
         .single();
 
       if (profileError) throw profileError;
 
-      // Save purchases
-      if (purchases.length > 0 && dreamProfile) {
+      // Save selected purchases
+      const purchasesToSave = presetPurchases.filter((p) => selectedPurchases.has(p.id));
+      if (purchasesToSave.length > 0 && dreamProfile) {
         const { error: purchasesError } = await supabase.from("dream_purchases").insert(
-          purchases.map((p) => ({
+          purchasesToSave.map((p) => ({
             user_id: userId,
             dream_profile_id: dreamProfile.id,
             item_name: p.name,
-            price: parseFloat(p.price.replace(/[$,]/g, "")) || 0,
+            price: p.price,
+            image_url: p.image,
             is_selected: true,
           }))
         );
@@ -222,80 +284,110 @@ export const OnboardingVisionBuilder = ({ onComplete, userId }: OnboardingVision
           </Card>
         </motion.div>
 
-        {/* Dream Purchases */}
+        {/* Your Why */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <Card className="p-6 premium-card">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Heart className="w-5 h-5 text-destructive" />
+              Your Why
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              What pushes you to keep going each day? How do you want to be remembered?
+            </p>
+            <Textarea
+              placeholder="Write about your deeper motivation... What drives you? What legacy do you want to leave behind?"
+              value={whyMotivation}
+              onChange={(e) => setWhyMotivation(e.target.value)}
+              className="premium-input min-h-[120px]"
+            />
+          </Card>
+        </motion.div>
+
+        {/* Dream Purchases - Tiles */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           <Card className="p-6 premium-card">
-            <h3 className="text-lg font-semibold mb-4">Dream Purchases (Optional)</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Add specific items you want to afford through trading
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Dream Purchases
+            </h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Select the items you want to afford through trading
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-4">
-              <Input
-                placeholder="Item name"
-                value={newPurchase.name}
-                onChange={(e) => setNewPurchase({ ...newPurchase, name: e.target.value })}
-                className="premium-input flex-1 min-w-[150px]"
-              />
-              <Input
-                placeholder="Price"
-                value={newPurchase.price}
-                onChange={(e) => setNewPurchase({ ...newPurchase, price: e.target.value })}
-                className="premium-input w-32"
-              />
-              <Select
-                value={newPurchase.category}
-                onValueChange={(v) => setNewPurchase({ ...newPurchase, category: v })}
-              >
-                <SelectTrigger className="premium-input w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={addPurchase} className="premium-button">
-                <Plus className="w-4 h-4" />
-              </Button>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {presetPurchases.map((item) => {
+                const isSelected = selectedPurchases.has(item.id);
+                return (
+                  <motion.div
+                    key={item.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => togglePurchase(item.id)}
+                    className={`relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                      isSelected
+                        ? "border-primary shadow-lg shadow-primary/20"
+                        : "border-border/50 hover:border-primary/50"
+                    }`}
+                  >
+                    {/* Image */}
+                    <div className="relative h-32 md:h-40 overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={`w-full h-full object-cover transition-all duration-300 ${
+                          isSelected ? "scale-105" : ""
+                        }`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+
+                      {/* Selection Indicator */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+                        >
+                          <Check className="w-5 h-5 text-primary-foreground" />
+                        </motion.div>
+                      )}
+
+                      {/* Content */}
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <h4 className="text-sm font-semibold text-foreground truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-lg font-bold text-primary">
+                          £{item.price.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
-            {purchases.length > 0 && (
-              <div className="space-y-2">
-                {purchases.map((p, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-3">
-                      {categories.find((c) => c.value === p.category)?.icon && (
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                          {(() => {
-                            const Icon = categories.find((c) => c.value === p.category)?.icon || Sparkles;
-                            return <Icon className="w-4 h-4 text-primary" />;
-                          })()}
-                        </div>
-                      )}
-                      <span className="font-medium">{p.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-success font-medium">{p.price}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removePurchase(idx)}
-                        className="text-destructive hover:text-destructive h-8 w-8"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {selectedPurchases.size > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20"
+              >
+                <p className="text-sm text-center">
+                  <span className="font-semibold text-primary">{selectedPurchases.size}</span> items selected • Total: £
+                  {presetPurchases
+                    .filter((p) => selectedPurchases.has(p.id))
+                    .reduce((sum, p) => sum + p.price, 0)
+                    .toLocaleString()}
+                </p>
+              </motion.div>
             )}
           </Card>
         </motion.div>
