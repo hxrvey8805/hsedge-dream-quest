@@ -16,6 +16,8 @@ import { RiskManagement } from "@/components/RiskManagement";
 import { StrategyChecklist } from "@/components/StrategyChecklist";
 import { EquityCurve } from "@/components/EquityCurve";
 import { startOfMonth, endOfMonth } from "date-fns";
+import { useAccounts } from "@/hooks/useAccounts";
+
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -30,7 +32,7 @@ const Dashboard = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(false);
   const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(false);
-  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthStats, setMonthStats] = useState({
     totalPL: 0,
@@ -38,7 +40,7 @@ const Dashboard = () => {
     winRate: 0,
     totalTrades: 0
   });
-  const [strategies, setStrategies] = useState<{ id: string; name: string }[]>([]);
+  const { accounts } = useAccounts();
   const navigate = useNavigate();
   const fetchStats = async () => {
     const {
@@ -72,16 +74,12 @@ const Dashboard = () => {
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
 
-    let query = supabase
+    const query = supabase
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
       .gte("trade_date", monthStart.toISOString().split('T')[0])
       .lte("trade_date", monthEnd.toISOString().split('T')[0]);
-
-    if (selectedStrategy) {
-      query = query.eq("strategy_type", selectedStrategy);
-    }
 
     const { data, error } = await query;
 
@@ -96,22 +94,6 @@ const Dashboard = () => {
         winRate: Math.round(winRate),
         totalTrades: data.length
       });
-    }
-  };
-
-  const fetchStrategies = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("strategies" as any)
-      .select("id, name")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("name", { ascending: true });
-
-    if (!error && data) {
-      setStrategies(data as unknown as { id: string; name: string }[]);
     }
   };
   const handleDaySelect = (date: Date) => {
@@ -150,7 +132,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchStats();
-      fetchStrategies();
     }
   }, [user]);
 
@@ -158,11 +139,11 @@ const Dashboard = () => {
     if (monthSwitchEnabled && user) {
       fetchMonthStats(currentMonth);
     }
-  }, [currentMonth, monthSwitchEnabled, selectedStrategy, user]);
+  }, [currentMonth, monthSwitchEnabled, user]);
 
   useEffect(() => {
     if (!accountSwitchEnabled) {
-      setSelectedStrategy(null);
+      setSelectedAccount(null);
     }
   }, [accountSwitchEnabled]);
   const handleSignOut = async () => {
@@ -268,7 +249,7 @@ const Dashboard = () => {
               <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                 Trading Calendar
               </h2>
-              <div className={`flex flex-col items-end gap-3 transition-all duration-300 ${accountSwitchEnabled ? 'flex-1' : ''}`}>
+              <div className="relative flex flex-col items-end gap-3 transition-all duration-300">
                 <div className="grid grid-cols-[auto_auto_auto] gap-x-2 gap-y-3 items-center justify-end">
                   <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors text-right ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     Pips
@@ -306,15 +287,15 @@ const Dashboard = () => {
                   <span></span>
                 </div>
                 {accountSwitchEnabled && (
-                  <div className="w-full flex justify-end">
-                    <Select value={selectedStrategy || "all"} onValueChange={(value) => setSelectedStrategy(value === "all" ? null : value)}>
-                      <SelectTrigger className="w-[200px] bg-secondary/50">
-                        <SelectValue placeholder="Select strategy" />
+                  <div className="absolute right-0 top-full mt-2 z-50">
+                    <Select value={selectedAccount || "all"} onValueChange={(value) => setSelectedAccount(value === "all" ? null : value)}>
+                      <SelectTrigger className="w-[220px] bg-secondary/50">
+                        <SelectValue placeholder="Select account" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Strategies</SelectItem>
-                        {strategies.map((strategy) => (
-                          <SelectItem key={strategy.id} value={strategy.name}>{strategy.name}</SelectItem>
+                      <SelectContent className="z-50">
+                        <SelectItem value="all">All Accounts</SelectItem>
+                        {accounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -333,7 +314,7 @@ const Dashboard = () => {
                   fetchMonthStats(currentMonth);
                 }
               }}
-              selectedStrategy={accountSwitchEnabled ? selectedStrategy : null}
+              selectedStrategy={null}
               onMonthChange={setCurrentMonth}
             />
           </Card>
