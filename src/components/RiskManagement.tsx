@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Plus, X, GripVertical, ChevronDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useStrategies } from "@/hooks/useStrategies";
 
 interface RiskRule {
   id: string;
@@ -15,27 +16,26 @@ interface RiskRule {
   strategy_id?: string | null;
 }
 
-interface Strategy {
-  id: string;
-  name: string;
-}
-
 export const RiskManagement = () => {
   const [rules, setRules] = useState<RiskRule[]>([]);
   const [newRule, setNewRule] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
   const [newStrategyName, setNewStrategyName] = useState("");
   const [showAddStrategy, setShowAddStrategy] = useState(false);
-
-  useEffect(() => {
-    fetchStrategies();
-  }, []);
+  
+  const { strategies, deleteStrategy, addStrategy } = useStrategies();
 
   useEffect(() => {
     fetchRules();
   }, [selectedStrategy]);
+
+  // Reset selection if current strategy was deleted
+  useEffect(() => {
+    if (selectedStrategy && !strategies.find(s => s.id === selectedStrategy)) {
+      setSelectedStrategy(null);
+    }
+  }, [strategies, selectedStrategy]);
 
   const fetchRules = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -65,54 +65,15 @@ export const RiskManagement = () => {
     }
   };
 
-  const fetchStrategies = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await (supabase
-      .from("strategies")
-      .select("id, name")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("name", { ascending: true }) as any);
-
-    if (!error && data) {
-      setStrategies(data as Strategy[]);
-    }
-  };
-
   const handleAddStrategy = async () => {
     if (!newStrategyName.trim()) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Not authenticated");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("strategies" as any)
-      .insert({
-        user_id: user.id,
-        name: newStrategyName.trim(),
-        is_active: true,
-      } as any)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Strategy insert error:", error);
-      toast.error(`Failed to add strategy: ${error.message || "Unknown error"}`);
-      return;
-    }
-
-    toast.success("Strategy added!");
+    const newStrategy = await addStrategy(newStrategyName.trim());
     setNewStrategyName("");
     setShowAddStrategy(false);
-    await fetchStrategies();
-    if (data) {
-      const newStrategyId = (data as any).id;
-      setSelectedStrategy(newStrategyId);
+    
+    if (newStrategy) {
+      setSelectedStrategy(newStrategy.id);
       setIsAdding(true);
     }
   };
@@ -169,24 +130,12 @@ export const RiskManagement = () => {
     setIsAdding(false);
   };
 
-  const deleteStrategy = async (strategyId: string, e: React.MouseEvent) => {
+  const handleDeleteStrategy = async (strategyId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    const { error } = await supabase
-      .from("strategies")
-      .update({ is_active: false })
-      .eq("id", strategyId);
-
-    if (error) {
-      toast.error("Failed to delete strategy");
-      return;
-    }
-
-    toast.success("Strategy deleted");
-    if (selectedStrategy === strategyId) {
+    const success = await deleteStrategy(strategyId);
+    if (success && selectedStrategy === strategyId) {
       setSelectedStrategy(null);
     }
-    fetchStrategies();
   };
 
   const getSelectedStrategyName = () => {
@@ -224,7 +173,7 @@ export const RiskManagement = () => {
                   <span>{strategy.name}</span>
                   <Trash2
                     className="h-4 w-4 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-                    onClick={(e) => deleteStrategy(strategy.id, e)}
+                    onClick={(e) => handleDeleteStrategy(strategy.id, e)}
                   />
                 </DropdownMenuItem>
               ))}
