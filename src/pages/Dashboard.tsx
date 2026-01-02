@@ -173,16 +173,16 @@ const Dashboard = () => {
               <BarChart3 className="mr-2 h-4 w-4" />
               Statistics
             </Button>
-            <Button variant="ghost" onClick={() => navigate("/achievements")}>
-              <Trophy className="mr-2 h-4 w-4" />
-              Achievements
+            <Button variant="ghost" onClick={() => navigate("/accounts")}>
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Accounts
             </Button>
             <Button variant="ghost" onClick={() => navigate("/goals")}>
               <Trophy className="mr-2 h-4 w-4" />
               Goals
             </Button>
             <Button variant="ghost" onClick={() => navigate("/dream-builder")}>
-              <Trophy className="mr-2 h-4 w-4" />
+              <Sparkles className="mr-2 h-4 w-4" />
               Dream Builder
             </Button>
             <Button variant="ghost" onClick={handleSignOut}>
