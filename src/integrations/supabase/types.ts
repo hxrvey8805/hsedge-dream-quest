@@ -178,6 +178,7 @@ export type Database = {
           company: string
           created_at: string
           id: string
+          max_loss: number
           profit_target: number
           running_pl: number
           updated_at: string
@@ -188,6 +189,7 @@ export type Database = {
           company: string
           created_at?: string
           id?: string
+          max_loss?: number
           profit_target: number
           running_pl?: number
           updated_at?: string
@@ -198,6 +200,7 @@ export type Database = {
           company?: string
           created_at?: string
           id?: string
+          max_loss?: number
           profit_target?: number
           running_pl?: number
           updated_at?: string
@@ -213,6 +216,7 @@ export type Database = {
           funded_accounts_count: number
           funded_accounts_goal: number
           id: string
+          max_loss: number
           running_pl: number
           updated_at: string
           user_id: string
@@ -224,6 +228,7 @@ export type Database = {
           funded_accounts_count?: number
           funded_accounts_goal: number
           id?: string
+          max_loss?: number
           running_pl?: number
           updated_at?: string
           user_id: string
@@ -235,6 +240,7 @@ export type Database = {
           funded_accounts_count?: number
           funded_accounts_goal?: number
           id?: string
+          max_loss?: number
           running_pl?: number
           updated_at?: string
           user_id?: string

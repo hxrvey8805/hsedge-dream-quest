@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Pencil, Check, X, Target, DollarSign, Building2, Briefcase, Trash2 } from "lucide-react";
+import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Pencil, Check, X, Target, DollarSign, Building2, Briefcase, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AddAccountDialog } from "@/components/accounts/AddAccountDialog";
+import { AccountDetailDialog } from "@/components/accounts/AccountDetailDialog";
 
 interface PersonalAccount {
   id: string;
@@ -36,6 +38,7 @@ interface FundedAccount {
   funded_accounts_count: number;
   funded_accounts_goal: number;
   running_pl: number;
+  max_loss: number;
 }
 
 interface Evaluation {
@@ -44,11 +47,22 @@ interface Evaluation {
   account_size: string;
   profit_target: number;
   running_pl: number;
+  max_loss: number;
 }
 
 type EditingState = {
   id: string;
   type: 'personal' | 'funded' | 'evaluation';
+} | null;
+
+type SelectedAccount = {
+  id: string;
+  type: 'funded' | 'evaluation';
+  company: string;
+  account_size: string;
+  running_pl: number;
+  max_loss: number;
+  profit_target?: number;
 } | null;
 
 const Accounts = () => {
@@ -59,6 +73,8 @@ const Accounts = () => {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [editing, setEditing] = useState<EditingState>(null);
   const [editValue, setEditValue] = useState<number>(0);
+  const [selectedAccount, setSelectedAccount] = useState<SelectedAccount>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -161,6 +177,31 @@ const Accounts = () => {
     return Math.min((evaluation.running_pl / evaluation.profit_target) * 100, 100);
   };
 
+  const openFundedDetail = (account: FundedAccount) => {
+    setSelectedAccount({
+      id: account.id,
+      type: 'funded',
+      company: account.company,
+      account_size: account.account_size,
+      running_pl: account.running_pl,
+      max_loss: account.max_loss,
+    });
+    setDetailOpen(true);
+  };
+
+  const openEvaluationDetail = (evaluation: Evaluation) => {
+    setSelectedAccount({
+      id: evaluation.id,
+      type: 'evaluation',
+      company: evaluation.company,
+      account_size: evaluation.account_size,
+      running_pl: evaluation.running_pl,
+      max_loss: evaluation.max_loss,
+      profit_target: evaluation.profit_target,
+    });
+    setDetailOpen(true);
+  };
+
   if (!user) return null;
 
   return (
@@ -245,10 +286,13 @@ const Accounts = () => {
           transition={{ delay: 0.1 }}
           className="mb-8"
         >
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-blue-500" />
-            Personal Accounts
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-blue-500" />
+              Personal Accounts
+            </h2>
+            <AddAccountDialog type="personal" userId={user.id} onSuccess={fetchAllAccounts} />
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence>
               {personalAccounts.map((account, index) => {
@@ -359,15 +403,21 @@ const Accounts = () => {
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-emerald-500" />
-            Funded Accounts
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-emerald-500" />
+              Funded Accounts
+            </h2>
+            <AddAccountDialog type="funded" userId={user.id} onSuccess={fetchAllAccounts} />
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence>
               {fundedAccounts.map((account, index) => {
-                const isEditing = editing?.id === account.id && editing?.type === 'funded';
                 const isPositive = (account.running_pl || 0) >= 0;
+                const accountSizeNum = parseFloat(account.account_size.replace(/[^0-9.-]+/g, "")) || 0;
+                const currentBalance = accountSizeNum + (account.running_pl || 0);
+                const maxLossThreshold = accountSizeNum - (account.max_loss || 0);
+                const isAtRisk = account.max_loss > 0 && currentBalance <= maxLossThreshold + ((account.max_loss || 0) * 0.2);
                 
                 return (
                   <motion.div
@@ -377,7 +427,10 @@ const Accounts = () => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="bg-gradient-to-br from-emerald-500/10 to-card border-emerald-500/20 hover:border-emerald-500/40 transition-all hover:shadow-lg hover:shadow-emerald-500/5 group">
+                    <Card 
+                      className="bg-gradient-to-br from-emerald-500/10 to-card border-emerald-500/20 hover:border-emerald-500/40 transition-all hover:shadow-lg hover:shadow-emerald-500/5 group cursor-pointer"
+                      onClick={() => openFundedDetail(account)}
+                    >
                       <CardContent className="p-5">
                         <div className="flex items-start justify-between mb-3">
                           <div>
@@ -385,6 +438,11 @@ const Accounts = () => {
                             <p className="text-sm text-muted-foreground">{account.account_size}</p>
                           </div>
                           <div className="flex items-center gap-1">
+                            {isAtRisk && (
+                              <div className="p-2 rounded-lg bg-destructive/10">
+                                <AlertTriangle className="h-4 w-4 text-destructive" />
+                              </div>
+                            )}
                             <div className={`p-2 rounded-lg ${isPositive ? 'bg-success/10' : 'bg-destructive/10'}`}>
                               {isPositive ? (
                                 <TrendingUp className="h-4 w-4 text-success" />
@@ -394,11 +452,16 @@ const Accounts = () => {
                             </div>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
-                              <AlertDialogContent>
+                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Account</AlertDialogTitle>
                                   <AlertDialogDescription>
@@ -425,33 +488,21 @@ const Accounts = () => {
                         />
                         <div className="flex items-center justify-between pt-3 border-t border-border/50">
                           <span className="text-xs text-muted-foreground">Running P&L</span>
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(parseFloat(e.target.value) || 0)}
-                                className="w-24 h-8 text-right"
-                                autoFocus
-                              />
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updatePL(account.id, editValue, 'funded')}>
-                                <Check className="h-4 w-4 text-success" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(null)}>
-                                <X className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <span className={`text-lg font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                                {isPositive ? '+' : ''}${(account.running_pl || 0).toFixed(2)}
-                              </span>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 opacity-50 hover:opacity-100" onClick={() => { setEditing({ id: account.id, type: 'funded' }); setEditValue(account.running_pl || 0); }}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
+                          <span className={`text-lg font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                            {isPositive ? '+' : ''}${(account.running_pl || 0).toFixed(2)}
+                          </span>
                         </div>
+                        {account.max_loss > 0 && (
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              Max Loss
+                            </span>
+                            <span className="text-sm font-medium text-destructive">
+                              ${account.max_loss.toLocaleString()}
+                            </span>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -475,16 +526,23 @@ const Accounts = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-amber-500" />
-            Active Evaluations
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Target className="h-5 w-5 text-amber-500" />
+              Active Evaluations
+            </h2>
+            <AddAccountDialog type="evaluation" userId={user.id} onSuccess={fetchAllAccounts} />
+          </div>
           <div className="grid md:grid-cols-2 gap-4">
             <AnimatePresence>
               {evaluations.map((evaluation, index) => {
                 const progress = getEvaluationProgress(evaluation);
                 const isPositive = evaluation.running_pl >= 0;
-                const isEditing = editing?.id === evaluation.id && editing?.type === 'evaluation';
+                const accountSizeNum = parseFloat(evaluation.account_size.replace(/[^0-9.-]+/g, "")) || 0;
+                const currentBalance = accountSizeNum + evaluation.running_pl;
+                const maxLossThreshold = accountSizeNum - (evaluation.max_loss || 0);
+                const isAtRisk = evaluation.max_loss > 0 && currentBalance <= maxLossThreshold + ((evaluation.max_loss || 0) * 0.2);
+                const isCompleted = evaluation.running_pl >= evaluation.profit_target;
                 
                 return (
                   <motion.div
@@ -494,7 +552,10 @@ const Accounts = () => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Card className="bg-gradient-to-br from-amber-500/10 to-card border-amber-500/20 hover:border-amber-500/40 transition-all hover:shadow-lg hover:shadow-amber-500/5 overflow-hidden group">
+                    <Card 
+                      className="bg-gradient-to-br from-amber-500/10 to-card border-amber-500/20 hover:border-amber-500/40 transition-all hover:shadow-lg hover:shadow-amber-500/5 overflow-hidden group cursor-pointer"
+                      onClick={() => openEvaluationDetail(evaluation)}
+                    >
                       <CardContent className="p-5">
                         <div className="flex items-start justify-between mb-4">
                           <div>
@@ -502,6 +563,16 @@ const Accounts = () => {
                             <p className="text-sm text-muted-foreground">{evaluation.account_size} Account</p>
                           </div>
                           <div className="flex items-center gap-1">
+                            {isCompleted && (
+                              <span className="px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
+                                Completed
+                              </span>
+                            )}
+                            {isAtRisk && (
+                              <div className="p-2 rounded-lg bg-destructive/10">
+                                <AlertTriangle className="h-4 w-4 text-destructive" />
+                              </div>
+                            )}
                             <div className={`p-2 rounded-lg ${isPositive ? 'bg-success/10' : 'bg-destructive/10'}`}>
                               {isPositive ? (
                                 <TrendingUp className="h-4 w-4 text-success" />
@@ -511,11 +582,16 @@ const Accounts = () => {
                             </div>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
-                              <AlertDialogContent>
+                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Evaluation</AlertDialogTitle>
                                   <AlertDialogDescription>
@@ -536,32 +612,9 @@ const Accounts = () => {
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground">Running P&L</span>
-                            {isEditing ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  value={editValue}
-                                  onChange={(e) => setEditValue(parseFloat(e.target.value) || 0)}
-                                  className="w-24 h-8 text-right"
-                                  autoFocus
-                                />
-                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updatePL(evaluation.id, editValue, 'evaluation')}>
-                                  <Check className="h-4 w-4 text-success" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(null)}>
-                                  <X className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xl font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                                  {isPositive ? '+' : ''}${evaluation.running_pl.toFixed(2)}
-                                </span>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 opacity-50 hover:opacity-100" onClick={() => { setEditing({ id: evaluation.id, type: 'evaluation' }); setEditValue(evaluation.running_pl); }}>
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
+                            <span className={`text-xl font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                              {isPositive ? '+' : ''}${evaluation.running_pl.toFixed(2)}
+                            </span>
                           </div>
                           
                           <div className="space-y-1">
@@ -577,6 +630,18 @@ const Accounts = () => {
                               {progress.toFixed(1)}% complete
                             </p>
                           </div>
+
+                          {evaluation.max_loss > 0 && (
+                            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Max Loss
+                              </span>
+                              <span className="text-sm font-medium text-destructive">
+                                ${evaluation.max_loss.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -595,6 +660,14 @@ const Accounts = () => {
           </div>
         </motion.div>
       </main>
+
+      {/* Account Detail Dialog */}
+      <AccountDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        account={selectedAccount}
+        onUpdate={fetchAllAccounts}
+      />
     </div>
   );
 };
