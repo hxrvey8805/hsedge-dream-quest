@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, TrendingDown, BarChart3, Sparkles, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -43,6 +43,7 @@ const Dashboard = () => {
   });
   const [showVisionMode, setShowVisionMode] = useState(false);
   const { accounts } = useAccounts();
+  const accountPL = accounts.reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
   const navigate = useNavigate();
   const fetchStats = async () => {
     const {
@@ -215,14 +216,14 @@ const Dashboard = () => {
 
         {/* Stats Cards - Matching width with calendar + risk management */}
         <div className="flex justify-center mb-8">
-          <div className="grid md:grid-cols-3 gap-6 w-full max-w-[1800px]">
+          <div className="grid md:grid-cols-4 gap-6 w-full max-w-[1800px]">
             <Card className="p-6 bg-card border-border">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-lg bg-success/10">
                   <TrendingUp className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total P&L</p>
+                  <p className="text-sm text-muted-foreground">Trade P&L</p>
                   {monthSwitchEnabled ? (
                     <p className={`text-2xl font-bold ${(viewMode === 'pips' ? monthStats.totalPL : monthStats.totalProfit) >= 0 ? 'text-success' : 'text-destructive'}`}>
                       {viewMode === 'pips' ? <>{monthStats.totalPL >= 0 ? '+' : ''}{monthStats.totalPL.toFixed(1)} pips</> : <>${monthStats.totalProfit >= 0 ? '+' : ''}{monthStats.totalProfit.toFixed(2)}</>}
@@ -232,6 +233,24 @@ const Dashboard = () => {
                       {viewMode === 'pips' ? <>{stats.totalPL >= 0 ? '+' : ''}{stats.totalPL.toFixed(1)} pips</> : <>${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}</>}
                     </p>
                   )}
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card border-border">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-lg ${accountPL >= 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                  {accountPL >= 0 ? (
+                    <Wallet className="h-6 w-6 text-success" />
+                  ) : (
+                    <Wallet className="h-6 w-6 text-destructive" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Account P&L</p>
+                  <p className={`text-2xl font-bold ${accountPL >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    {accountPL >= 0 ? '+' : ''}${accountPL.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </Card>

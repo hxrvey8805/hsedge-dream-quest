@@ -6,6 +6,7 @@ interface Account {
   company: string;
   account_size: string;
   displayName: string;
+  running_pl: number;
 }
 
 export const useAccounts = () => {
@@ -19,19 +20,19 @@ export const useAccounts = () => {
     // Fetch personal accounts
     const { data: personalData } = await supabase
       .from("personal_accounts")
-      .select("id, account_name, account_size")
+      .select("id, account_name, account_size, running_pl")
       .eq("user_id", user.id);
 
     // Fetch funded accounts
     const { data: fundedData } = await supabase
       .from("funded_accounts")
-      .select("id, company, account_size")
+      .select("id, company, account_size, running_pl")
       .eq("user_id", user.id);
 
     // Fetch evaluations
     const { data: evalData } = await supabase
       .from("evaluations")
-      .select("id, company, account_size")
+      .select("id, company, account_size, running_pl")
       .eq("user_id", user.id);
 
     const allAccounts: Account[] = [];
@@ -42,7 +43,8 @@ export const useAccounts = () => {
           id: acc.id,
           company: "Personal",
           account_size: `$${acc.account_size}`,
-          displayName: acc.account_name
+          displayName: acc.account_name,
+          running_pl: acc.running_pl || 0
         });
       });
     }
@@ -53,7 +55,8 @@ export const useAccounts = () => {
           id: acc.id,
           company: acc.company,
           account_size: acc.account_size,
-          displayName: `${acc.company} - ${acc.account_size}`
+          displayName: `${acc.company} - ${acc.account_size}`,
+          running_pl: acc.running_pl || 0
         });
       });
     }
@@ -64,7 +67,8 @@ export const useAccounts = () => {
           id: acc.id,
           company: acc.company,
           account_size: acc.account_size,
-          displayName: `${acc.company} - ${acc.account_size} (Eval)`
+          displayName: `${acc.company} - ${acc.account_size} (Eval)`,
+          running_pl: acc.running_pl || 0
         });
       });
     }
@@ -77,6 +81,21 @@ export const useAccounts = () => {
     fetchAccounts();
 
     // Subscribe to realtime changes
+    const personalChannel = supabase
+      .channel('personal-accounts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'personal_accounts',
+        },
+        () => {
+          fetchAccounts();
+        }
+      )
+      .subscribe();
+
     const fundedChannel = supabase
       .channel('funded-accounts-changes')
       .on(
@@ -108,6 +127,7 @@ export const useAccounts = () => {
       .subscribe();
 
     return () => {
+      supabase.removeChannel(personalChannel);
       supabase.removeChannel(fundedChannel);
       supabase.removeChannel(evalChannel);
     };
