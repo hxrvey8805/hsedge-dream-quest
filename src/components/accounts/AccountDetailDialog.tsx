@@ -28,6 +28,10 @@ export const AccountDetailDialog = ({ open, onOpenChange, account, onUpdate }: A
   const [profitTarget, setProfitTarget] = useState(0);
   const [editingPL, setEditingPL] = useState(false);
   const [editPLValue, setEditPLValue] = useState("");
+  const [editingMaxLoss, setEditingMaxLoss] = useState(false);
+  const [editMaxLossValue, setEditMaxLossValue] = useState("");
+  const [editingTarget, setEditingTarget] = useState(false);
+  const [editTargetValue, setEditTargetValue] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -107,6 +111,28 @@ export const AccountDetailDialog = ({ open, onOpenChange, account, onUpdate }: A
     } else {
       setEditPLValue(runningPL.toString());
       setEditingPL(true);
+    }
+  };
+
+  const handleMaxLossEdit = () => {
+    if (editingMaxLoss) {
+      const newMaxLoss = parseFloat(editMaxLossValue) || 0;
+      setMaxLoss(newMaxLoss);
+      setEditingMaxLoss(false);
+    } else {
+      setEditMaxLossValue(maxLoss.toString());
+      setEditingMaxLoss(true);
+    }
+  };
+
+  const handleTargetEdit = () => {
+    if (editingTarget) {
+      const newTarget = parseFloat(editTargetValue) || 0;
+      setProfitTarget(newTarget);
+      setEditingTarget(false);
+    } else {
+      setEditTargetValue(profitTarget.toString());
+      setEditingTarget(true);
     }
   };
 
@@ -249,14 +275,68 @@ export const AccountDetailDialog = ({ open, onOpenChange, account, onUpdate }: A
 
             {account.type === 'evaluation' && (
               <div className="p-3 rounded-lg bg-muted/50">
-                <span className="text-xs text-muted-foreground">Target</span>
-                <p className="text-lg font-bold text-amber-500">${profitTarget.toLocaleString()}</p>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Profit Target</span>
+                  {editingTarget ? (
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleTargetEdit}>
+                        <Check className="h-3 w-3 text-success" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => setEditingTarget(false)}>
+                        <X className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="ghost" className="h-5 px-1 text-xs" onClick={() => { setEditTargetValue(profitTarget.toString()); setEditingTarget(true); }}>
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTarget ? (
+                  <Input
+                    type="number"
+                    value={editTargetValue}
+                    onChange={(e) => setEditTargetValue(e.target.value)}
+                    className="h-8"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleTargetEdit(); }}
+                  />
+                ) : (
+                  <p className="text-lg font-bold text-amber-500">${profitTarget.toLocaleString()}</p>
+                )}
               </div>
             )}
 
             <div className="p-3 rounded-lg bg-muted/50">
-              <span className="text-xs text-muted-foreground">Limit (Max Loss)</span>
-              <p className="text-lg font-bold text-destructive">${maxLoss.toLocaleString()}</p>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Max Loss</span>
+                {editingMaxLoss ? (
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={handleMaxLossEdit}>
+                      <Check className="h-3 w-3 text-success" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => setEditingMaxLoss(false)}>
+                      <X className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="ghost" className="h-5 px-1 text-xs" onClick={() => { setEditMaxLossValue(maxLoss.toString()); setEditingMaxLoss(true); }}>
+                    Edit
+                  </Button>
+                )}
+              </div>
+              {editingMaxLoss ? (
+                <Input
+                  type="number"
+                  value={editMaxLossValue}
+                  onChange={(e) => setEditMaxLossValue(e.target.value)}
+                  className="h-8"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleMaxLossEdit(); }}
+                />
+              ) : (
+                <p className="text-lg font-bold text-destructive">${maxLoss.toLocaleString()}</p>
+              )}
             </div>
           </div>
 
