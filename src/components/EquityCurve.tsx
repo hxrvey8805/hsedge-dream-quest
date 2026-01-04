@@ -197,19 +197,26 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
       <div className="h-32 w-full">
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <LineChart 
+              data={data} 
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            >
               <XAxis
                 dataKey="date"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
-                interval="preserveStartEnd"
+                interval={data.length <= 7 ? 0 : "preserveStartEnd"}
               />
               <YAxis
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
                 width={50}
+                // Ensure Y-axis shows proper range even with single point
+                domain={data.length === 1 && data[0]?.cumulative !== undefined
+                  ? [(data[0].cumulative * 0.95), (data[0].cumulative * 1.05)]
+                  : undefined}
               />
               <ChartTooltip
                 content={({ active, payload }) => {
