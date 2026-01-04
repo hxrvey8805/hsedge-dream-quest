@@ -23,6 +23,7 @@ interface DashboardStatsProps {
 interface Trade {
   id: string;
   profit: number;
+  pips: number | null;
   outcome: string;
   trade_date: string;
   account_id?: string;
@@ -360,19 +361,28 @@ export const DashboardStats = ({
         {/* Net P&L */}
         <Card className="p-4 bg-card border-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Net P&L</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">
+              {viewMode === 'pips' ? 'Net Pips' : 'Net P&L'}
+            </span>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px]">
-                <p className="text-sm">Your total profit or loss across all trading accounts. Shows the sum of running P&L from personal, funded, and evaluation accounts.</p>
+                <p className="text-sm">
+                  {viewMode === 'pips' 
+                    ? 'Total pips from all trades. Account running P&L is not included in pips view.'
+                    : 'Your total profit or loss. Includes manually entered account running P&L plus trades profit from calendar.'}
+                </p>
               </TooltipContent>
             </Tooltip>
           </div>
           <div className="flex items-center justify-between">
             <p className={`text-2xl font-bold ${stats.netPL >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {viewMode === 'pips' 
+                ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} pips`
+                : `${stats.netPL >= 0 ? '+' : ''}$${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              }
             </p>
             <NetPLGauge value={stats.netPL} max={maxPL} />
           </div>
