@@ -53,6 +53,48 @@ export type Database = {
         }
         Relationships: []
       }
+      backtesting_sessions: {
+        Row: {
+          created_at: string
+          date_range_end: string | null
+          date_range_start: string | null
+          description: string | null
+          id: string
+          running_pl: number
+          session_name: string
+          starting_balance: number
+          strategy_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          description?: string | null
+          id?: string
+          running_pl?: number
+          session_name: string
+          starting_balance?: number
+          strategy_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_range_end?: string | null
+          date_range_start?: string | null
+          description?: string | null
+          id?: string
+          running_pl?: number
+          session_name?: string
+          starting_balance?: number
+          strategy_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dream_profiles: {
         Row: {
           created_at: string

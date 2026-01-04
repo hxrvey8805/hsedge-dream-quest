@@ -7,7 +7,7 @@ import { startOfMonth, endOfMonth, format } from "date-fns";
 
 interface Account {
   id: string;
-  type: 'personal' | 'funded' | 'evaluation';
+  type: 'personal' | 'funded' | 'evaluation' | 'backtesting';
   running_pl: number;
 }
 

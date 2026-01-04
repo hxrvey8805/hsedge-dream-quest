@@ -7,7 +7,7 @@ interface Account {
   account_size: string;
   displayName: string;
   running_pl: number;
-  type: 'personal' | 'funded' | 'evaluation';
+  type: 'personal' | 'funded' | 'evaluation' | 'backtesting';
 }
 
 export const useAccounts = () => {
@@ -34,6 +34,12 @@ export const useAccounts = () => {
     const { data: evalData } = await supabase
       .from("evaluations")
       .select("id, company, account_size, running_pl")
+      .eq("user_id", user.id);
+
+    // Fetch backtesting sessions
+    const { data: backtestData } = await supabase
+      .from("backtesting_sessions")
+      .select("id, session_name, starting_balance, running_pl")
       .eq("user_id", user.id);
 
     const allAccounts: Account[] = [];
@@ -73,6 +79,19 @@ export const useAccounts = () => {
           displayName: `${acc.company} - ${acc.account_size} (Eval)`,
           running_pl: acc.running_pl || 0,
           type: 'evaluation'
+        });
+      });
+    }
+
+    if (backtestData) {
+      backtestData.forEach(acc => {
+        allAccounts.push({
+          id: acc.id,
+          company: "Backtest",
+          account_size: `$${acc.starting_balance}`,
+          displayName: `${acc.session_name} (Backtest)`,
+          running_pl: acc.running_pl || 0,
+          type: 'backtesting'
         });
       });
     }
@@ -130,10 +149,26 @@ export const useAccounts = () => {
       )
       .subscribe();
 
+    const backtestChannel = supabase
+      .channel('backtesting-sessions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'backtesting_sessions',
+        },
+        () => {
+          fetchAccounts();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(personalChannel);
       supabase.removeChannel(fundedChannel);
       supabase.removeChannel(evalChannel);
+      supabase.removeChannel(backtestChannel);
     };
   }, [fetchAccounts]);
 
