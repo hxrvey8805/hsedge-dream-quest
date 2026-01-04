@@ -457,6 +457,8 @@ export type Database = {
       }
       trades: {
         Row: {
+          account_id: string | null
+          account_type: string | null
           asset_class: string | null
           buy_sell: string
           created_at: string
@@ -491,6 +493,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
+          account_type?: string | null
           asset_class?: string | null
           buy_sell: string
           created_at?: string
@@ -525,6 +529,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
+          account_type?: string | null
           asset_class?: string | null
           buy_sell?: string
           created_at?: string
