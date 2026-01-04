@@ -96,6 +96,9 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
       });
 
       setData(equityPoints);
+    } else {
+      // Set empty data if no trades
+      setData([]);
     }
 
     setLoading(false);
@@ -235,17 +238,18 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  // props.payload is the data point
-                  if (props.payload?.isToday) {
+                  // Show dot for today's trade, or if only one trade show it
+                  if (props.payload?.isToday || data.length === 1) {
                     return <CustomActiveDot {...props} />;
                   }
-                  return null;
+                  // Show small dots for all trades
+                  return <Dot {...props} r={2} fill="hsl(var(--primary))" opacity={0.6} />;
                 }}
                 activeDot={(props: any) => {
-                  if (props.payload?.isToday) {
+                  if (props.payload?.isToday || data.length === 1) {
                     return <CustomActiveDot {...props} />;
                   }
-                  return <Dot {...props} r={3} fill="hsl(var(--primary))" />;
+                  return <Dot {...props} r={4} fill="hsl(var(--primary))" />;
                 }}
               />
             </LineChart>
