@@ -31,12 +31,14 @@ import {
   Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAccounts } from "@/hooks/useAccounts";
 
 interface TradeDialogProps {
   selectedDate?: Date | null;
   onTradeAdded?: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedAccountId?: string | null;
 }
 
 const ASSET_CLASSES = [
@@ -54,7 +56,8 @@ interface Strategy {
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
-export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: TradeDialogProps) => {
+export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
+  const { accounts } = useAccounts();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [assetClass, setAssetClass] = useState<string>("Forex");
@@ -65,6 +68,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const [stopLoss, setStopLoss] = useState<string>("");
   const [size, setSize] = useState<string>("");
   const [fees, setFees] = useState<string>("");
+  const [sizeInputMode, setSizeInputMode] = useState<'units' | 'risk'>('units');
+  const [riskAmount, setRiskAmount] = useState<string>("");
   const [session, setSession] = useState<string>("");
   const [timeframe, setTimeframe] = useState<string>("");
   const [strategy, setStrategy] = useState<string>("");
@@ -74,9 +79,6 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-  const [selectedAccountType, setSelectedAccountType] = useState<string>("");
-  const [accounts, setAccounts] = useState<{id: string, displayName: string, type: string}[]>([]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -98,55 +100,12 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       setNotes("");
       setShowAddStrategy(false);
       setNewStrategyName("");
-      setSelectedAccountId("");
-      setSelectedAccountType("");
+      setSizeInputMode('units');
+      setRiskAmount("");
     } else {
       fetchStrategies();
-      fetchAccounts();
     }
   }, [open]);
-
-  const fetchAccounts = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const allAccounts: {id: string, displayName: string, type: string}[] = [];
-
-    const { data: personalData } = await supabase
-      .from("personal_accounts")
-      .select("id, account_name")
-      .eq("user_id", user.id);
-
-    const { data: fundedData } = await supabase
-      .from("funded_accounts")
-      .select("id, company, account_size")
-      .eq("user_id", user.id);
-
-    const { data: evalData } = await supabase
-      .from("evaluations")
-      .select("id, company, account_size")
-      .eq("user_id", user.id);
-
-    if (personalData) {
-      personalData.forEach(acc => {
-        allAccounts.push({ id: acc.id, displayName: acc.account_name, type: 'personal' });
-      });
-    }
-
-    if (fundedData) {
-      fundedData.forEach(acc => {
-        allAccounts.push({ id: acc.id, displayName: `${acc.company} - ${acc.account_size}`, type: 'funded' });
-      });
-    }
-
-    if (evalData) {
-      evalData.forEach(acc => {
-        allAccounts.push({ id: acc.id, displayName: `${acc.company} - ${acc.account_size} (Eval)`, type: 'evaluation' });
-      });
-    }
-
-    setAccounts(allAccounts);
-  };
 
   const fetchStrategies = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -234,8 +193,36 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const calculatePnL = () => {
     const entry = parseFloat(entryPrice);
     const exit = parseFloat(exitPrice);
-    const tradeSize = parseFloat(size);
+    const stop = parseFloat(stopLoss);
     const tradeFees = parseFloat(fees) || 0;
+    
+    // Calculate size from risk amount if risk mode is selected
+    let tradeSize = parseFloat(size);
+    if (sizeInputMode === 'risk' && riskAmount && entry && stop) {
+      const riskDollar = parseFloat(riskAmount);
+      const riskPerUnit = Math.abs(entry - stop);
+      
+      if (riskPerUnit > 0) {
+        switch(assetClass) {
+          case "Forex":
+            // For Forex: risk per lot = riskPerUnit * 10000 * 10
+            tradeSize = riskDollar / (riskPerUnit * 10000 * 10);
+            break;
+          case "Stocks":
+            // For Stocks: risk per share = riskPerUnit
+            tradeSize = riskDollar / riskPerUnit;
+            break;
+          case "Futures":
+            // For Futures: risk per contract = riskPerUnit
+            tradeSize = riskDollar / riskPerUnit;
+            break;
+          case "Crypto":
+            // For Crypto: risk per unit = riskPerUnit
+            tradeSize = riskDollar / riskPerUnit;
+            break;
+        }
+      }
+    }
     
     if (!entry || !exit || !tradeSize) return { pips: 0, profit: 0 };
     
@@ -273,6 +260,39 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Determine account type from selected account
+      let accountType: string | null = null;
+      if (selectedAccountId) {
+        const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+        accountType = selectedAccount?.type || null;
+      }
+
+      // Calculate final size (from risk amount if needed)
+      let finalSize = parseFloat(size);
+      if (sizeInputMode === 'risk' && riskAmount && entryPrice && stopLoss) {
+        const entry = parseFloat(entryPrice);
+        const stop = parseFloat(stopLoss);
+        const riskDollar = parseFloat(riskAmount);
+        const riskPerUnit = Math.abs(entry - stop);
+        
+        if (riskPerUnit > 0) {
+          switch(assetClass) {
+            case "Forex":
+              finalSize = riskDollar / (riskPerUnit * 10000 * 10);
+              break;
+            case "Stocks":
+              finalSize = riskDollar / riskPerUnit;
+              break;
+            case "Futures":
+              finalSize = riskDollar / riskPerUnit;
+              break;
+            case "Crypto":
+              finalSize = riskDollar / riskPerUnit;
+              break;
+          }
+        }
+      }
+
       const { error } = await supabase.from("trades").insert({
         user_id: user.id,
         trade_date: tradeDate,
@@ -284,7 +304,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
         entry_price: parseFloat(entryPrice) || null,
         exit_price: parseFloat(exitPrice) || null,
         stop_loss: parseFloat(stopLoss) || null,
-        size: parseFloat(size) || null,
+        size: finalSize || null,
         fees: parseFloat(fees) || null,
         time_opened: timeOpened || null,
         time_closed: timeClosed || null,
@@ -297,7 +317,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
         outcome: calculatedProfit > 0 ? "Win" : calculatedProfit < 0 ? "Loss" : "Break Even",
         notes: notes || null,
         account_id: selectedAccountId || null,
-        account_type: selectedAccountType || null,
+        account_type: accountType || null,
       });
 
       if (error) throw error;
@@ -350,7 +370,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const isLoss = previewProfit < 0;
 
   const canProceedStep1 = assetClass && symbol && buySell;
-  const canProceedStep2 = entryPrice && exitPrice && size;
+  const canProceedStep2 = entryPrice && exitPrice && (sizeInputMode === 'units' ? size : (riskAmount && stopLoss));
   const canSubmit = canProceedStep1 && canProceedStep2;
 
   const stepVariants = {
@@ -608,15 +628,41 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                     />
                   </div>
                   <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Size</Label>
-                    <Input 
-                      type="number"
-                      step="any"
-                      value={size}
-                      onChange={(e) => setSize(e.target.value)}
-                      placeholder={assetClass === "Forex" ? "Lots" : "Units"}
-                      className="bg-secondary/50 border-border/50 focus:border-primary"
-                    />
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                      {sizeInputMode === 'units' ? 'Size' : 'Risk Amount'}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number"
+                        step="any"
+                        value={sizeInputMode === 'units' ? size : riskAmount}
+                        onChange={(e) => {
+                          if (sizeInputMode === 'units') {
+                            setSize(e.target.value);
+                          } else {
+                            setRiskAmount(e.target.value);
+                          }
+                        }}
+                        placeholder={sizeInputMode === 'units' ? (assetClass === "Forex" ? "Lots" : "Units") : "$0.00"}
+                        className="bg-secondary/50 border-border/50 focus:border-primary flex-1"
+                      />
+                      <Select value={sizeInputMode} onValueChange={(value: 'units' | 'risk') => {
+                        setSizeInputMode(value);
+                        if (value === 'risk') {
+                          setSize("");
+                        } else {
+                          setRiskAmount("");
+                        }
+                      }}>
+                        <SelectTrigger className="w-[100px] bg-secondary/50 border-border/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="units">{assetClass === "Forex" ? "Lots" : "Units"}</SelectItem>
+                          <SelectItem value="risk">Risk ($)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Fees</Label>
@@ -632,7 +678,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                 </div>
 
                 {/* Live P&L Preview */}
-                {entryPrice && exitPrice && size && (
+                {entryPrice && exitPrice && (sizeInputMode === 'units' ? size : (riskAmount && stopLoss)) && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -791,34 +837,6 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                       </div>
                     )}
                   </div>
-                </div>
-
-                {/* Account Selection */}
-                <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Account</Label>
-                  <Select 
-                    value={selectedAccountId || "none"} 
-                    onValueChange={(value) => {
-                      if (value === "none") {
-                        setSelectedAccountId("");
-                        setSelectedAccountType("");
-                      } else {
-                        const account = accounts.find(a => a.id === value);
-                        setSelectedAccountId(value);
-                        setSelectedAccountType(account?.type || "");
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="bg-secondary/50 border-border/50">
-                      <SelectValue placeholder="Select account (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No Account</SelectItem>
-                      {accounts.map((acc) => (
-                        <SelectItem key={acc.id} value={acc.id}>{acc.displayName}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

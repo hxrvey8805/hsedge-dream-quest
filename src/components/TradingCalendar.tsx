@@ -61,6 +61,7 @@ interface TradingCalendarProps {
   onRefresh?: () => void;
   selectedStrategy?: string | null;
   onMonthChange?: (month: Date) => void;
+  selectedAccountId?: string | null;
 }
 
 const ASSET_CLASSES = [
@@ -73,7 +74,7 @@ const ASSET_CLASSES = [
 const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
-export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange }: TradingCalendarProps) => {
+export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -103,7 +104,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
   useEffect(() => {
     fetchTrades();
-  }, [currentMonth, refreshTrigger, selectedStrategy]);
+  }, [currentMonth, refreshTrigger, selectedStrategy, selectedAccountId]);
 
   useEffect(() => {
     onMonthChange?.(currentMonth);
@@ -125,6 +126,10 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
     if (selectedStrategy) {
       query = query.eq("strategy_type", selectedStrategy);
+    }
+
+    if (selectedAccountId) {
+      query = query.eq("account_id", selectedAccountId);
     }
 
     const { data, error } = await query.order("trade_date", { ascending: true });

@@ -52,10 +52,18 @@ const Dashboard = () => {
       }
     } = await supabase.auth.getUser();
     if (!user) return;
+    
+    let query = supabase.from("trades").select("*").eq("user_id", user.id);
+    
+    // Filter by account if selected
+    if (selectedAccount) {
+      query = query.eq("account_id", selectedAccount);
+    }
+    
     const {
       data,
       error
-    } = await supabase.from("trades").select("*").eq("user_id", user.id);
+    } = await query;
     if (!error && data) {
       const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
@@ -77,12 +85,17 @@ const Dashboard = () => {
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
 
-    const query = supabase
+    let query = supabase
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
       .gte("trade_date", monthStart.toISOString().split('T')[0])
       .lte("trade_date", monthEnd.toISOString().split('T')[0]);
+
+    // Filter by account if selected
+    if (selectedAccount) {
+      query = query.eq("account_id", selectedAccount);
+    }
 
     const { data, error } = await query;
 
@@ -138,13 +151,13 @@ const Dashboard = () => {
     if (user) {
       fetchStats();
     }
-  }, [user]);
+  }, [user, selectedAccount]);
 
   useEffect(() => {
     if (monthSwitchEnabled && user) {
       fetchMonthStats(currentMonth);
     }
-  }, [currentMonth, monthSwitchEnabled, user]);
+  }, [currentMonth, monthSwitchEnabled, user, selectedAccount]);
 
   useEffect(() => {
     if (!accountSwitchEnabled) {
@@ -300,6 +313,7 @@ const Dashboard = () => {
               }}
               selectedStrategy={null}
               onMonthChange={setCurrentMonth}
+              selectedAccountId={selectedAccount}
             />
           </Card>
 
@@ -312,7 +326,13 @@ const Dashboard = () => {
         </div>
       </main>
 
-      <TradeDialog onTradeAdded={handleTradeAdded} selectedDate={selectedDate} open={dialogOpen} onOpenChange={setDialogOpen} />
+      <TradeDialog 
+        onTradeAdded={handleTradeAdded} 
+        selectedDate={selectedDate} 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen}
+        selectedAccountId={selectedAccount}
+      />
     </div>;
 };
 export default Dashboard;
