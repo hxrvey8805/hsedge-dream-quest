@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight } from "lucide-react";
+import { useAccounts } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,8 @@ interface Trade {
   total_pips_secured: number | null;
   risk_reward_ratio: string | null;
   notes: string | null;
+  account_id: string | null;
+  account_type: string | null;
 }
 
 interface DayStats {
@@ -75,6 +78,7 @@ const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
+  const { accounts } = useAccounts();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -83,6 +87,9 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   const [tradeToDelete, setTradeToDelete] = useState<string | null>(null);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [moveAccountDialogOpen, setMoveAccountDialogOpen] = useState(false);
+  const [tradeToMove, setTradeToMove] = useState<Trade | null>(null);
+  const [selectedMoveAccountId, setSelectedMoveAccountId] = useState<string>("");
   
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -100,6 +107,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
     time_opened: "",
     time_closed: "",
     notes: "",
+    account_id: "",
   });
 
   useEffect(() => {
@@ -189,7 +197,49 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
       time_opened: trade.time_opened || "",
       time_closed: trade.time_closed || "",
       notes: trade.notes || "",
+      account_id: trade.account_id || "",
     });
+  };
+
+  const handleMoveAccount = (trade: Trade) => {
+    setTradeToMove(trade);
+    setSelectedMoveAccountId(trade.account_id || "");
+    setMoveAccountDialogOpen(true);
+  };
+
+  const handleSaveMoveAccount = async () => {
+    if (!tradeToMove) return;
+    setIsSaving(true);
+
+    try {
+      // Determine account type from selected account
+      let accountType: string | null = null;
+      if (selectedMoveAccountId) {
+        const selectedAccount = accounts.find(a => a.id === selectedMoveAccountId);
+        accountType = selectedAccount?.type || null;
+      }
+
+      const { error } = await supabase
+        .from("trades")
+        .update({
+          account_id: selectedMoveAccountId || null,
+          account_type: accountType || null,
+        })
+        .eq("id", tradeToMove.id);
+
+      if (error) throw error;
+
+      toast.success("Trade moved to account successfully!");
+      setMoveAccountDialogOpen(false);
+      setTradeToMove(null);
+      setSelectedMoveAccountId("");
+      fetchTrades();
+      onRefresh?.(); // Trigger stats refresh
+    } catch (error: any) {
+      toast.error(error.message || "Failed to move trade");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveTrade = async () => {
@@ -240,6 +290,13 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
       const outcome = profit > 0 ? "Win" : profit < 0 ? "Loss" : "Break Even";
 
+      // Determine account type from selected account
+      let accountType: string | null = null;
+      if (editForm.account_id) {
+        const selectedAccount = accounts.find(a => a.id === editForm.account_id);
+        accountType = selectedAccount?.type || null;
+      }
+
       const { error } = await supabase
         .from("trades")
         .update({
@@ -262,6 +319,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           profit: parseFloat(profit.toFixed(2)),
           risk_reward_ratio: rrRatio,
           outcome: outcome,
+          account_id: editForm.account_id || null,
+          account_type: accountType || null,
         })
         .eq("id", editingTrade.id);
 
@@ -643,6 +702,35 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                       </div>
                     </div>
                     <div>
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Account</Label>
+                      <Select 
+                        value={editForm.account_id || "none"} 
+                        onValueChange={(value) => setEditForm({...editForm, account_id: value === "none" ? "" : value})}
+                      >
+                        <SelectTrigger className="bg-secondary/50">
+                          <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Account</SelectItem>
+                          {accounts
+                            .filter(account => account.type === 'personal' || account.type === 'funded')
+                            .map((account) => (
+                              <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                            ))}
+                          {accounts.filter(account => account.type === 'evaluation' || account.type === 'backtesting').length > 0 && (
+                            <>
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Evaluations & Backtests</div>
+                              {accounts
+                                .filter(account => account.type === 'evaluation' || account.type === 'backtesting')
+                                .map((account) => (
+                                  <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                                ))}
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes</Label>
                       <Textarea
                         value={editForm.notes}
@@ -707,6 +795,15 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                           }`}>
                             {trade.outcome}
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleMoveAccount(trade)}
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
+                            title="Move to Account"
+                          >
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -850,6 +947,67 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={moveAccountDialogOpen} onOpenChange={setMoveAccountDialogOpen}>
+        <DialogContent className="max-w-md">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-bold mb-2">Move Trade to Account</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select the account you want to move this trade to.
+              </p>
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Account</Label>
+              <Select 
+                value={selectedMoveAccountId || "none"} 
+                onValueChange={(value) => setSelectedMoveAccountId(value === "none" ? "" : value)}
+              >
+                <SelectTrigger className="bg-secondary/50">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Account</SelectItem>
+                  {accounts
+                    .filter(account => account.type === 'personal' || account.type === 'funded')
+                    .map((account) => (
+                      <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                    ))}
+                  {accounts.filter(account => account.type === 'evaluation' || account.type === 'backtesting').length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Evaluations & Backtests</div>
+                      {accounts
+                        .filter(account => account.type === 'evaluation' || account.type === 'backtesting')
+                        .map((account) => (
+                          <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                        ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMoveAccountDialogOpen(false);
+                  setTradeToMove(null);
+                  setSelectedMoveAccountId("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveMoveAccount}
+                disabled={isSaving}
+                className="bg-gradient-to-r from-primary to-accent"
+              >
+                {isSaving ? 'Moving...' : 'Move Trade'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
