@@ -144,11 +144,11 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
         />
       )}
       {/* Win count - positioned lower */}
-      <circle cx="18" cy="52" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
-      <text x="18" y="55" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
+      <circle cx="18" cy="56" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
+      <text x="18" y="59" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
       {/* Loss count - positioned lower */}
-      <circle cx="82" cy="52" r="8" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
-      <text x="82" y="55" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
+      <circle cx="82" cy="56" r="8" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
+      <text x="82" y="59" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
     </svg>
   );
 };
@@ -343,8 +343,8 @@ export const DashboardStats = ({
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Total profit/loss from all accounts</p>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p className="text-sm">Your total profit or loss across all trading accounts. Shows the sum of running P&L from personal, funded, and evaluation accounts.</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -364,8 +364,8 @@ export const DashboardStats = ({
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Percentage of winning trades</p>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p className="text-sm">The percentage of your trades that ended in profit. Calculated as (winning trades ÷ total trades) × 100. Higher is better.</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -383,8 +383,8 @@ export const DashboardStats = ({
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Gross profit divided by gross loss</p>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p className="text-sm">Measures profitability by dividing total gains by total losses. A value above 1.0 means you're profitable overall. Above 2.0 is excellent.</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -404,8 +404,8 @@ export const DashboardStats = ({
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Percentage of profitable trading days</p>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p className="text-sm">The percentage of trading days that ended with a net profit. Groups all trades by date and checks if the day's total P&L was positive.</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -423,8 +423,8 @@ export const DashboardStats = ({
               <TooltipTrigger>
                 <Info className="w-3 h-3 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Average winning vs losing trade size</p>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p className="text-sm">Compares the average profit on winning trades vs the average loss on losing trades. A higher win average relative to loss average indicates better risk management.</p>
               </TooltipContent>
             </Tooltip>
           </div>
