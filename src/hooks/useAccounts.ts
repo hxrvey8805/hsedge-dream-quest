@@ -7,6 +7,7 @@ interface Account {
   account_size: string;
   displayName: string;
   running_pl: number;
+  type: 'personal' | 'funded' | 'evaluation';
 }
 
 export const useAccounts = () => {
@@ -44,7 +45,8 @@ export const useAccounts = () => {
           company: "Personal",
           account_size: `$${acc.account_size}`,
           displayName: acc.account_name,
-          running_pl: acc.running_pl || 0
+          running_pl: acc.running_pl || 0,
+          type: 'personal'
         });
       });
     }
@@ -56,7 +58,8 @@ export const useAccounts = () => {
           company: acc.company,
           account_size: acc.account_size,
           displayName: `${acc.company} - ${acc.account_size}`,
-          running_pl: acc.running_pl || 0
+          running_pl: acc.running_pl || 0,
+          type: 'funded'
         });
       });
     }
@@ -68,7 +71,8 @@ export const useAccounts = () => {
           company: acc.company,
           account_size: acc.account_size,
           displayName: `${acc.company} - ${acc.account_size} (Eval)`,
-          running_pl: acc.running_pl || 0
+          running_pl: acc.running_pl || 0,
+          type: 'evaluation'
         });
       });
     }

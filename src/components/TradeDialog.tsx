@@ -74,6 +74,9 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [selectedAccountType, setSelectedAccountType] = useState<string>("");
+  const [accounts, setAccounts] = useState<{id: string, displayName: string, type: string}[]>([]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -95,10 +98,55 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
       setNotes("");
       setShowAddStrategy(false);
       setNewStrategyName("");
+      setSelectedAccountId("");
+      setSelectedAccountType("");
     } else {
       fetchStrategies();
+      fetchAccounts();
     }
   }, [open]);
+
+  const fetchAccounts = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const allAccounts: {id: string, displayName: string, type: string}[] = [];
+
+    const { data: personalData } = await supabase
+      .from("personal_accounts")
+      .select("id, account_name")
+      .eq("user_id", user.id);
+
+    const { data: fundedData } = await supabase
+      .from("funded_accounts")
+      .select("id, company, account_size")
+      .eq("user_id", user.id);
+
+    const { data: evalData } = await supabase
+      .from("evaluations")
+      .select("id, company, account_size")
+      .eq("user_id", user.id);
+
+    if (personalData) {
+      personalData.forEach(acc => {
+        allAccounts.push({ id: acc.id, displayName: acc.account_name, type: 'personal' });
+      });
+    }
+
+    if (fundedData) {
+      fundedData.forEach(acc => {
+        allAccounts.push({ id: acc.id, displayName: `${acc.company} - ${acc.account_size}`, type: 'funded' });
+      });
+    }
+
+    if (evalData) {
+      evalData.forEach(acc => {
+        allAccounts.push({ id: acc.id, displayName: `${acc.company} - ${acc.account_size} (Eval)`, type: 'evaluation' });
+      });
+    }
+
+    setAccounts(allAccounts);
+  };
 
   const fetchStrategies = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -248,6 +296,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
         risk_reward_ratio: rrRatio,
         outcome: calculatedProfit > 0 ? "Win" : calculatedProfit < 0 ? "Loss" : "Break Even",
         notes: notes || null,
+        account_id: selectedAccountId || null,
+        account_type: selectedAccountType || null,
       });
 
       if (error) throw error;
@@ -741,6 +791,34 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange }: 
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Account Selection */}
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Account</Label>
+                  <Select 
+                    value={selectedAccountId || "none"} 
+                    onValueChange={(value) => {
+                      if (value === "none") {
+                        setSelectedAccountId("");
+                        setSelectedAccountType("");
+                      } else {
+                        const account = accounts.find(a => a.id === value);
+                        setSelectedAccountId(value);
+                        setSelectedAccountType(account?.type || "");
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-secondary/50 border-border/50">
+                      <SelectValue placeholder="Select account (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Account</SelectItem>
+                      {accounts.map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id}>{acc.displayName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
