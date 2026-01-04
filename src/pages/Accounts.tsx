@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Pencil, Check, X, Target, DollarSign, Building2, Briefcase, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Pencil, Check, X, Target, DollarSign, Building2, Briefcase, Trash2, AlertTriangle, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/hs-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,9 +50,17 @@ interface Evaluation {
   max_loss: number;
 }
 
+interface BacktestingSession {
+  id: string;
+  session_name: string;
+  description: string | null;
+  starting_balance: number;
+  running_pl: number;
+}
+
 type EditingState = {
   id: string;
-  type: 'personal' | 'funded' | 'evaluation';
+  type: 'personal' | 'funded' | 'evaluation' | 'backtesting';
 } | null;
 
 type SelectedAccount = {
@@ -71,6 +79,7 @@ const Accounts = () => {
   const [personalAccounts, setPersonalAccounts] = useState<PersonalAccount[]>([]);
   const [fundedAccounts, setFundedAccounts] = useState<FundedAccount[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [backtestingSessions, setBacktestingSessions] = useState<BacktestingSession[]>([]);
   const [editing, setEditing] = useState<EditingState>(null);
   const [editValue, setEditValue] = useState<number>(0);
   const [selectedAccount, setSelectedAccount] = useState<SelectedAccount>(null);
@@ -117,13 +126,19 @@ const Accounts = () => {
       .select("*")
       .eq("user_id", user.id);
 
+    const { data: backtests } = await supabase
+      .from("backtesting_sessions")
+      .select("*")
+      .eq("user_id", user.id);
+
     if (personal) setPersonalAccounts(personal);
     if (funded) setFundedAccounts(funded);
     if (evals) setEvaluations(evals);
+    if (backtests) setBacktestingSessions(backtests);
   };
 
-  const updatePL = async (id: string, newPL: number, type: 'personal' | 'funded' | 'evaluation') => {
-    const table = type === 'personal' ? 'personal_accounts' : type === 'funded' ? 'funded_accounts' : 'evaluations';
+  const updatePL = async (id: string, newPL: number, type: 'personal' | 'funded' | 'evaluation' | 'backtesting') => {
+    const table = type === 'personal' ? 'personal_accounts' : type === 'funded' ? 'funded_accounts' : type === 'evaluation' ? 'evaluations' : 'backtesting_sessions';
     
     const { error } = await supabase
       .from(table)
@@ -140,8 +155,8 @@ const Accounts = () => {
     fetchAllAccounts();
   };
 
-  const deleteAccount = async (id: string, type: 'personal' | 'funded' | 'evaluation') => {
-    const table = type === 'personal' ? 'personal_accounts' : type === 'funded' ? 'funded_accounts' : 'evaluations';
+  const deleteAccount = async (id: string, type: 'personal' | 'funded' | 'evaluation' | 'backtesting') => {
+    const table = type === 'personal' ? 'personal_accounts' : type === 'funded' ? 'funded_accounts' : type === 'evaluation' ? 'evaluations' : 'backtesting_sessions';
     
     const { error } = await supabase
       .from(table)
@@ -170,6 +185,7 @@ const Accounts = () => {
     const personalPL = personalAccounts.reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
     const fundedPL = fundedAccounts.reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
     const evalPL = evaluations.reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
+    // Note: Backtesting P&L is excluded from total as it's simulated
     return personalPL + fundedPL + evalPL;
   };
 
@@ -239,7 +255,7 @@ const Accounts = () => {
                   </h1>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-5 gap-4">
                 <div className="p-4 rounded-xl bg-background/50 backdrop-blur">
                   <div className="flex items-center gap-2 mb-1">
                     <Briefcase className="h-4 w-4 text-blue-500" />
@@ -260,6 +276,13 @@ const Accounts = () => {
                     <span className="text-xs text-muted-foreground">Evaluations</span>
                   </div>
                   <p className="text-xl font-semibold">{evaluations.length}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-background/50 backdrop-blur">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FlaskConical className="h-4 w-4 text-violet-500" />
+                    <span className="text-xs text-muted-foreground">Backtests</span>
+                  </div>
+                  <p className="text-xl font-semibold">{backtestingSessions.length}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-background/50 backdrop-blur">
                   <div className="flex items-center gap-2 mb-1">
@@ -654,6 +677,126 @@ const Accounts = () => {
                 <CardContent className="p-6 text-center text-muted-foreground">
                   <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No active evaluations</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Backtesting Sessions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-violet-500" />
+              Backtesting Sessions
+            </h2>
+            <AddAccountDialog type="backtesting" userId={user.id} onSuccess={fetchAllAccounts} />
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence>
+              {backtestingSessions.map((session, index) => {
+                const isEditing = editing?.id === session.id && editing?.type === 'backtesting';
+                const isPositive = (session.running_pl || 0) >= 0;
+                
+                return (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="bg-gradient-to-br from-violet-500/10 to-card border-violet-500/20 hover:border-violet-500/40 transition-all hover:shadow-lg hover:shadow-violet-500/5 group">
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="font-semibold text-lg">{session.session_name}</h3>
+                            {session.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-1">{session.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 text-xs font-medium">
+                              Backtest
+                            </span>
+                            <div className={`p-2 rounded-lg ${isPositive ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                              {isPositive ? (
+                                <TrendingUp className="h-4 w-4 text-success" />
+                              ) : (
+                                <TrendingDown className="h-4 w-4 text-destructive" />
+                              )}
+                            </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Backtesting Session</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{session.session_name}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteAccount(session.id, 'backtesting')} className="bg-destructive hover:bg-destructive/90">
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                        <p className="text-xl font-bold text-violet-500 mb-3">
+                          ${session.starting_balance.toLocaleString()}
+                        </p>
+                        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                          <span className="text-xs text-muted-foreground">Running P&L</span>
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(parseFloat(e.target.value) || 0)}
+                                className="w-24 h-8 text-right"
+                                autoFocus
+                              />
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updatePL(session.id, editValue, 'backtesting')}>
+                                <Check className="h-4 w-4 text-success" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(null)}>
+                                <X className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-lg font-bold ${isPositive ? 'text-success' : 'text-destructive'}`}>
+                                {isPositive ? '+' : ''}${(session.running_pl || 0).toFixed(2)}
+                              </span>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 opacity-50 hover:opacity-100" onClick={() => { setEditing({ id: session.id, type: 'backtesting' }); setEditValue(session.running_pl || 0); }}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+            {backtestingSessions.length === 0 && (
+              <Card className="border-dashed border-2 border-muted-foreground/20">
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  <FlaskConical className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No backtesting sessions yet</p>
                 </CardContent>
               </Card>
             )}

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface AddAccountDialogProps {
-  type: 'personal' | 'funded' | 'evaluation';
+  type: 'personal' | 'funded' | 'evaluation' | 'backtesting';
   userId: string;
   onSuccess: () => void;
 }
@@ -27,6 +27,11 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
   const [size, setSize] = useState("");
   const [maxLoss, setMaxLoss] = useState("");
   const [profitTarget, setProfitTarget] = useState("");
+
+  // Backtesting fields
+  const [sessionName, setSessionName] = useState("");
+  const [description, setDescription] = useState("");
+  const [startingBalance, setStartingBalance] = useState("");
   const [fundedGoal, setFundedGoal] = useState("1");
 
   const resetForm = () => {
@@ -38,6 +43,9 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
     setMaxLoss("");
     setProfitTarget("");
     setFundedGoal("1");
+    setSessionName("");
+    setDescription("");
+    setStartingBalance("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +79,14 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
           max_loss: parseFloat(maxLoss) || 0,
         });
         if (error) throw error;
+      } else if (type === 'backtesting') {
+        const { error } = await supabase.from("backtesting_sessions").insert({
+          user_id: userId,
+          session_name: sessionName,
+          description: description || null,
+          starting_balance: parseFloat(startingBalance) || 10000,
+        });
+        if (error) throw error;
       }
 
       toast.success("Account added successfully!");
@@ -89,6 +105,7 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
       case 'personal': return 'Add Personal Account';
       case 'funded': return 'Add Funded Account';
       case 'evaluation': return 'Add Evaluation Account';
+      case 'backtesting': return 'Add Backtesting Session';
     }
   };
 
@@ -105,7 +122,7 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
           <DialogTitle>{getTitle()}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          {type === 'personal' ? (
+          {type === 'personal' && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="accountName">Account Name</Label>
@@ -138,7 +155,42 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
                 />
               </div>
             </>
-          ) : (
+          )}
+          {type === 'backtesting' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="sessionName">Session Name</Label>
+                <Input
+                  id="sessionName"
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  placeholder="ICT Strategy Backtest"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startingBalance">Starting Balance ($)</Label>
+                <Input
+                  id="startingBalance"
+                  type="number"
+                  value={startingBalance}
+                  onChange={(e) => setStartingBalance(e.target.value)}
+                  placeholder="10000"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Testing my new strategy on historical data"
+                />
+              </div>
+            </>
+          )}
+          {(type === 'funded' || type === 'evaluation') && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="company">Prop Firm / Company</Label>
