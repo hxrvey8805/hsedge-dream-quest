@@ -43,52 +43,56 @@ interface Stats {
 // Semi-circular gauge for Net P&L
 const NetPLGauge = ({ value, max }: { value: number; max: number }) => {
   const normalizedValue = Math.max(-1, Math.min(1, value / (max || 1)));
-  const angle = normalizedValue * 90; // -90 to +90 degrees
+  const angle = normalizedValue * 90;
   
   return (
-    <svg viewBox="0 0 100 60" className="w-24 h-14">
-      {/* Background arc */}
+    <svg viewBox="0 0 100 55" className="w-20 h-12">
+      <defs>
+        <linearGradient id="lossGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="hsl(348 100% 50%)" />
+          <stop offset="100%" stopColor="hsl(348 100% 65%)" />
+        </linearGradient>
+        <linearGradient id="profitGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="hsl(163 100% 40%)" />
+          <stop offset="100%" stopColor="hsl(163 100% 55%)" />
+        </linearGradient>
+      </defs>
+      {/* Loss arc (left) */}
       <path
-        d="M 10 55 A 40 40 0 0 1 90 55"
+        d="M 12 50 A 38 38 0 0 1 50 12"
         fill="none"
-        stroke="hsl(var(--muted))"
-        strokeWidth="8"
+        stroke="url(#lossGradient)"
+        strokeWidth="6"
         strokeLinecap="round"
+        opacity="0.8"
       />
-      {/* Red zone (left) */}
+      {/* Profit arc (right) */}
       <path
-        d="M 10 55 A 40 40 0 0 1 50 15"
+        d="M 50 12 A 38 38 0 0 1 88 50"
         fill="none"
-        stroke="hsl(var(--destructive))"
-        strokeWidth="8"
+        stroke="url(#profitGradient)"
+        strokeWidth="6"
         strokeLinecap="round"
-        opacity="0.6"
+        opacity="0.8"
       />
-      {/* Green zone (right) */}
-      <path
-        d="M 50 15 A 40 40 0 0 1 90 55"
-        fill="none"
-        stroke="hsl(var(--success))"
-        strokeWidth="8"
-        strokeLinecap="round"
-        opacity="0.6"
-      />
+      {/* Center pivot */}
+      <circle cx="50" cy="50" r="3" fill="hsl(var(--foreground))" />
       {/* Needle */}
       <line
         x1="50"
-        y1="55"
-        x2={50 + Math.sin((angle * Math.PI) / 180) * 30}
-        y2={55 - Math.cos((angle * Math.PI) / 180) * 30}
+        y1="50"
+        x2={50 + Math.sin((angle * Math.PI) / 180) * 28}
+        y2={50 - Math.cos((angle * Math.PI) / 180) * 28}
         stroke="hsl(var(--foreground))"
         strokeWidth="2"
         strokeLinecap="round"
+        className="transition-all duration-500"
       />
-      <circle cx="50" cy="55" r="4" fill="hsl(var(--foreground))" />
     </svg>
   );
 };
 
-// Arc diagram for win/loss percentages
+// Arc diagram for win/loss percentages with primary/success colors
 const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; winCount: number; lossCount: number }) => {
   const winAngle = (winPercent / 100) * 180;
   
@@ -108,93 +112,106 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
   };
 
   return (
-    <svg viewBox="0 0 100 60" className="w-24 h-14">
-      {/* Win arc (green) */}
+    <svg viewBox="0 0 100 55" className="w-20 h-12">
+      <defs>
+        <linearGradient id="winArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="hsl(163 100% 45%)" />
+          <stop offset="100%" stopColor="hsl(163 100% 55%)" />
+        </linearGradient>
+        <linearGradient id="lossArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="hsl(212 98% 55%)" />
+          <stop offset="100%" stopColor="hsl(212 98% 70%)" />
+        </linearGradient>
+      </defs>
+      {/* Win arc (green/success) */}
       {winAngle > 0 && (
         <path
-          d={describeArc(50, 55, 35, 0, winAngle)}
+          d={describeArc(50, 50, 32, 0, Math.max(winAngle, 1))}
           fill="none"
-          stroke="hsl(var(--success))"
-          strokeWidth="8"
+          stroke="url(#winArcGradient)"
+          strokeWidth="6"
           strokeLinecap="round"
         />
       )}
-      {/* Loss arc (red) */}
+      {/* Loss arc (blue/primary) */}
       {winAngle < 180 && (
         <path
-          d={describeArc(50, 55, 35, winAngle, 180)}
+          d={describeArc(50, 50, 32, Math.min(winAngle, 179), 180)}
           fill="none"
-          stroke="hsl(var(--destructive))"
-          strokeWidth="8"
+          stroke="url(#lossArcGradient)"
+          strokeWidth="6"
           strokeLinecap="round"
         />
       )}
-      {/* Win count marker */}
-      <circle cx="20" cy="50" r="6" fill="hsl(var(--success))" />
-      <text x="20" y="53" textAnchor="middle" className="text-[8px] fill-success-foreground font-bold">{winCount}</text>
-      {/* Loss count marker */}
-      <circle cx="80" cy="50" r="6" fill="hsl(var(--destructive))" />
-      <text x="80" y="53" textAnchor="middle" className="text-[8px] fill-destructive-foreground font-bold">{lossCount}</text>
+      {/* Win count - positioned below arc on left */}
+      <circle cx="18" cy="42" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
+      <text x="18" y="45" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
+      {/* Loss count - positioned below arc on right */}
+      <circle cx="82" cy="42" r="8" fill="hsl(var(--primary))" className="drop-shadow-sm" />
+      <text x="82" y="45" textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
     </svg>
   );
 };
 
-// Circular progress for Profit Factor
+// Circular progress for Profit Factor using primary blue
 const ProfitFactorRing = ({ value }: { value: number }) => {
-  const maxValue = 3; // Cap display at 3.0
+  const maxValue = 3;
   const percent = Math.min(value / maxValue, 1) * 100;
-  const circumference = 2 * Math.PI * 25;
+  const circumference = 2 * Math.PI * 22;
   const strokeDashoffset = circumference - (percent / 100) * circumference;
   
   return (
-    <svg viewBox="0 0 70 70" className="w-16 h-16">
+    <svg viewBox="0 0 60 60" className="w-14 h-14">
+      <defs>
+        <linearGradient id="profitFactorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="hsl(212 98% 55%)" />
+          <stop offset="100%" stopColor="hsl(163 100% 50%)" />
+        </linearGradient>
+      </defs>
       {/* Background circle */}
       <circle
-        cx="35"
-        cy="35"
-        r="25"
+        cx="30"
+        cy="30"
+        r="22"
         fill="none"
         stroke="hsl(var(--muted))"
-        strokeWidth="6"
+        strokeWidth="5"
+        opacity="0.5"
       />
       {/* Progress circle */}
       <circle
-        cx="35"
-        cy="35"
-        r="25"
+        cx="30"
+        cy="30"
+        r="22"
         fill="none"
-        stroke="hsl(var(--primary))"
-        strokeWidth="6"
+        stroke="url(#profitFactorGradient)"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={strokeDashoffset}
-        transform="rotate(-90 35 35)"
+        transform="rotate(-90 30 30)"
         className="transition-all duration-500"
       />
     </svg>
   );
 };
 
-// Horizontal bar for Avg Win/Loss
+// Horizontal bar for Avg Win/Loss using success/primary
 const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) => {
   const total = avgWin + Math.abs(avgLoss);
   const winWidth = total > 0 ? (avgWin / total) * 100 : 50;
   
   return (
-    <div className="w-full">
-      <div className="flex h-4 rounded-full overflow-hidden">
+    <div className="w-full mt-1">
+      <div className="flex h-2.5 rounded-full overflow-hidden bg-muted/30">
         <div 
-          className="bg-success transition-all duration-500"
+          className="bg-gradient-to-r from-success/90 to-success transition-all duration-500 rounded-l-full"
           style={{ width: `${winWidth}%` }}
         />
         <div 
-          className="bg-destructive transition-all duration-500"
+          className="bg-gradient-to-r from-primary to-primary-glow transition-all duration-500 rounded-r-full"
           style={{ width: `${100 - winWidth}%` }}
         />
-      </div>
-      <div className="flex justify-between mt-1 text-[10px]">
-        <span className="text-success">${avgWin.toFixed(0)}</span>
-        <span className="text-destructive">-${Math.abs(avgLoss).toFixed(0)}</span>
       </div>
     </div>
   );
