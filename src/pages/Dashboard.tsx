@@ -58,6 +58,9 @@ const Dashboard = () => {
     // Filter by account if selected
     if (selectedAccount) {
       query = query.eq("account_id", selectedAccount);
+    } else {
+      // When "All Accounts" is selected, exclude evaluation and backtesting
+      query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
     
     const {
@@ -95,6 +98,9 @@ const Dashboard = () => {
     // Filter by account if selected
     if (selectedAccount) {
       query = query.eq("account_id", selectedAccount);
+    } else {
+      // When "All Accounts" is selected, exclude evaluation and backtesting
+      query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
 
     const { data, error } = await query;
@@ -183,7 +189,7 @@ const Dashboard = () => {
           </h1>
           </div>
           <nav className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/statistics")}>
+            <Button variant="ghost" onClick={() => navigate(`/statistics${selectedAccount ? `?accountId=${selectedAccount}` : ''}`)}>
               <BarChart3 className="mr-2 h-4 w-4" />
               Statistics
             </Button>
@@ -291,9 +297,21 @@ const Dashboard = () => {
                       </SelectTrigger>
                       <SelectContent className="z-50">
                         <SelectItem value="all">All Accounts</SelectItem>
-                        {accounts.map((account) => (
-                          <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
-                        ))}
+                        {accounts
+                          .filter(account => account.type === 'personal' || account.type === 'funded')
+                          .map((account) => (
+                            <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                          ))}
+                        {accounts.filter(account => account.type === 'evaluation' || account.type === 'backtesting').length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Evaluations & Backtests</div>
+                            {accounts
+                              .filter(account => account.type === 'evaluation' || account.type === 'backtesting')
+                              .map((account) => (
+                                <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                              ))}
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

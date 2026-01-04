@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,14 @@ interface CategoryStats {
 
 const Statistics = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedAccountId = searchParams.get('accountId');
 
   useEffect(() => {
     fetchTrades();
-  }, []);
+  }, [selectedAccountId]);
 
   const fetchTrades = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -50,11 +52,21 @@ const Statistics = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
       .order("trade_date", { ascending: false });
+
+    // Filter by account if selected
+    if (selectedAccountId) {
+      query = query.eq("account_id", selectedAccountId);
+    } else {
+      // When no account is selected (All Accounts), exclude evaluation and backtesting
+      query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setTrades(data);

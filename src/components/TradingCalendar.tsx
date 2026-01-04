@@ -130,6 +130,9 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
     if (selectedAccountId) {
       query = query.eq("account_id", selectedAccountId);
+    } else {
+      // When no account is selected (All Accounts), exclude evaluation and backtesting
+      query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
 
     const { data, error } = await query.order("trade_date", { ascending: true });

@@ -269,6 +269,9 @@ export const DashboardStats = ({
       // Filter by account if selected
       if (selectedAccountId) {
         query = query.eq("account_id", selectedAccountId);
+      } else {
+        // When "All Accounts" is selected, exclude evaluation and backtesting
+        query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
       }
 
       const { data: trades, error } = await query;
