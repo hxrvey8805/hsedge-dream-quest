@@ -294,6 +294,7 @@ const Dashboard = () => {
             monthSwitchEnabled={monthSwitchEnabled}
             currentMonth={currentMonth}
             refreshTrigger={refreshTrigger}
+            viewMode={viewMode}
           />
         </div>
 

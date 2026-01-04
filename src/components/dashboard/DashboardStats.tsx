@@ -17,6 +17,7 @@ interface DashboardStatsProps {
   monthSwitchEnabled: boolean;
   currentMonth: Date;
   refreshTrigger: number;
+  viewMode?: 'pips' | 'profit';
 }
 
 interface Trade {
@@ -222,7 +223,8 @@ export const DashboardStats = ({
   selectedAccountId,
   monthSwitchEnabled,
   currentMonth,
-  refreshTrigger
+  refreshTrigger,
+  viewMode = 'profit'
 }: DashboardStatsProps) => {
   const [stats, setStats] = useState<Stats>({
     netPL: 0,
@@ -285,11 +287,18 @@ export const DashboardStats = ({
         return;
       }
 
-      // Calculate trades profit from filtered trades
-      const tradesProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+      // Calculate trades value from filtered trades (pips or profit based on viewMode)
+      const tradesValue = trades.reduce((sum, t) => {
+        if (viewMode === 'pips') {
+          return sum + (t.pips || 0);
+        } else {
+          return sum + (t.profit || 0);
+        }
+      }, 0);
 
-      // Net P&L = Account running_pl (manually entered) + Trades profit (from calendar)
-      const netPL = accountPL + tradesProfit;
+      // Net P&L = Account running_pl (manually entered) + Trades value (from calendar)
+      // Note: Account running_pl is always in dollars, so for pips mode we only show trades pips
+      const netPL = viewMode === 'pips' ? tradesValue : accountPL + tradesValue;
 
       // Calculate stats
       const wins = trades.filter(t => t.outcome === "Win");
