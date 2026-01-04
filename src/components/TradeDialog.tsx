@@ -370,7 +370,9 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const isLoss = previewProfit < 0;
 
   const canProceedStep1 = assetClass && symbol && buySell;
-  const canProceedStep2 = entryPrice && exitPrice && (sizeInputMode === 'units' ? size : (riskAmount && stopLoss));
+  // Allow proceeding if entry/exit are filled and either size (units mode) or riskAmount (risk mode) is filled
+  // stopLoss is only required for risk mode calculation, not for proceeding to next step
+  const canProceedStep2 = entryPrice && exitPrice && (sizeInputMode === 'units' ? size : riskAmount);
   const canSubmit = canProceedStep1 && canProceedStep2;
 
   const stepVariants = {
