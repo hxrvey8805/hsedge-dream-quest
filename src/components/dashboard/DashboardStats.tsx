@@ -242,6 +242,19 @@ export const DashboardStats = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Calculate Net P&L from accounts (manually entered running_pl)
+      let accountPL = 0;
+      if (selectedAccountId) {
+        // If specific account selected, use that account's running_pl
+        const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+        accountPL = selectedAccount?.running_pl || 0;
+      } else {
+        // When "All Accounts" is selected, sum personal and funded accounts only
+        accountPL = accounts
+          .filter(acc => acc.type === 'personal' || acc.type === 'funded')
+          .reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
+      }
+
       // Build query for trades
       let query = supabase
         .from("trades")
@@ -272,8 +285,11 @@ export const DashboardStats = ({
         return;
       }
 
-      // Calculate Net P&L from filtered trades (respects month and account filters)
-      const netPL = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+      // Calculate trades profit from filtered trades
+      const tradesProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+
+      // Net P&L = Account running_pl (manually entered) + Trades profit (from calendar)
+      const netPL = accountPL + tradesProfit;
 
       // Calculate stats
       const wins = trades.filter(t => t.outcome === "Win");
