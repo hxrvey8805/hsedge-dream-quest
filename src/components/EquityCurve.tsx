@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Dot } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
-import { format, isToday, parseISO } from "date-fns";
+import { format, isToday, parseISO, startOfMonth, endOfMonth } from "date-fns";
 
 interface Trade {
   trade_date: string;
@@ -21,9 +21,12 @@ interface EquityPoint {
 interface EquityCurveProps {
   refreshTrigger?: number;
   viewMode?: 'pips' | 'profit';
+  monthSwitchEnabled?: boolean;
+  currentMonth?: Date;
+  selectedAccountId?: string | null;
 }
 
-export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurveProps) => {
+export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEnabled = false, currentMonth = new Date(), selectedAccountId = null }: EquityCurveProps) => {
   const [data, setData] = useState<EquityPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +39,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
 
   useEffect(() => {
     fetchEquityData();
-  }, [refreshTrigger, viewMode]);
+  }, [refreshTrigger, viewMode, monthSwitchEnabled, currentMonth, selectedAccountId]);
 
   const fetchEquityData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -45,10 +48,29 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit' }: EquityCurve
       return;
     }
 
-    const { data: trades, error } = await supabase
+    let query = supabase
       .from("trades")
       .select("trade_date, profit, pips")
-      .eq("user_id", user.id)
+      .eq("user_id", user.id);
+
+    // Filter by month if enabled
+    if (monthSwitchEnabled && currentMonth) {
+      const monthStart = startOfMonth(currentMonth);
+      const monthEnd = endOfMonth(currentMonth);
+      query = query
+        .gte("trade_date", format(monthStart, 'yyyy-MM-dd'))
+        .lte("trade_date", format(monthEnd, 'yyyy-MM-dd'));
+    }
+
+    // Filter by account if selected
+    if (selectedAccountId) {
+      query = query.eq("account_id", selectedAccountId);
+    } else {
+      // When "All Accounts" is selected, exclude evaluation and backtesting
+      query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
+    }
+
+    const { data: trades, error } = await query
       .order("trade_date", { ascending: true });
 
     if (error) {

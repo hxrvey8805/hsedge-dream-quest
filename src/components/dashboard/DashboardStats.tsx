@@ -242,15 +242,6 @@ export const DashboardStats = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Calculate Net P&L from accounts
-      let netPL = 0;
-      if (selectedAccountId) {
-        const selectedAccount = accounts.find(a => a.id === selectedAccountId);
-        netPL = selectedAccount?.running_pl || 0;
-      } else {
-        netPL = accounts.reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
-      }
-
       // Build query for trades
       let query = supabase
         .from("trades")
@@ -280,6 +271,9 @@ export const DashboardStats = ({
         console.error("Error fetching trades:", error);
         return;
       }
+
+      // Calculate Net P&L from filtered trades (respects month and account filters)
+      const netPL = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
 
       // Calculate stats
       const wins = trades.filter(t => t.outcome === "Win");

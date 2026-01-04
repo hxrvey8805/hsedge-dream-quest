@@ -28,14 +28,42 @@ const Dashboard = () => {
     winRate: 0,
     totalTrades: 0
   });
-  const [viewMode, setViewMode] = useState<'pips' | 'profit'>('pips');
+  // Load persisted state from localStorage
+  const loadPersistedState = () => {
+    try {
+      const savedMonthSwitch = localStorage.getItem('dashboard_monthSwitchEnabled');
+      const savedAccountSwitch = localStorage.getItem('dashboard_accountSwitchEnabled');
+      const savedSelectedAccount = localStorage.getItem('dashboard_selectedAccount');
+      const savedCurrentMonth = localStorage.getItem('dashboard_currentMonth');
+      const savedViewMode = localStorage.getItem('dashboard_viewMode');
+
+      return {
+        monthSwitchEnabled: savedMonthSwitch === 'true',
+        accountSwitchEnabled: savedAccountSwitch === 'true',
+        selectedAccount: savedSelectedAccount || null,
+        currentMonth: savedCurrentMonth ? new Date(savedCurrentMonth) : new Date(),
+        viewMode: (savedViewMode as 'pips' | 'profit') || 'pips',
+      };
+    } catch (error) {
+      return {
+        monthSwitchEnabled: false,
+        accountSwitchEnabled: false,
+        selectedAccount: null,
+        currentMonth: new Date(),
+        viewMode: 'pips' as const,
+      };
+    }
+  };
+
+  const persistedState = loadPersistedState();
+  const [viewMode, setViewMode] = useState<'pips' | 'profit'>(persistedState.viewMode);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(false);
-  const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(persistedState.monthSwitchEnabled);
+  const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(persistedState.accountSwitchEnabled);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(persistedState.selectedAccount);
+  const [currentMonth, setCurrentMonth] = useState(persistedState.currentMonth);
   const [monthStats, setMonthStats] = useState({
     totalPL: 0,
     totalProfit: 0,
@@ -164,6 +192,31 @@ const Dashboard = () => {
       fetchMonthStats(currentMonth);
     }
   }, [currentMonth, monthSwitchEnabled, user, selectedAccount]);
+
+  // Persist state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('dashboard_monthSwitchEnabled', String(monthSwitchEnabled));
+  }, [monthSwitchEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('dashboard_accountSwitchEnabled', String(accountSwitchEnabled));
+  }, [accountSwitchEnabled]);
+
+  useEffect(() => {
+    if (selectedAccount) {
+      localStorage.setItem('dashboard_selectedAccount', selectedAccount);
+    } else {
+      localStorage.removeItem('dashboard_selectedAccount');
+    }
+  }, [selectedAccount]);
+
+  useEffect(() => {
+    localStorage.setItem('dashboard_currentMonth', currentMonth.toISOString());
+  }, [currentMonth]);
+
+  useEffect(() => {
+    localStorage.setItem('dashboard_viewMode', viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     if (!accountSwitchEnabled) {
@@ -339,7 +392,13 @@ const Dashboard = () => {
           <div className="space-y-6 flex flex-col">
             <RiskManagement />
             <StrategyChecklist />
-            <EquityCurve refreshTrigger={refreshTrigger} viewMode={viewMode} />
+            <EquityCurve 
+              refreshTrigger={refreshTrigger} 
+              viewMode={viewMode}
+              monthSwitchEnabled={monthSwitchEnabled}
+              currentMonth={currentMonth}
+              selectedAccountId={selectedAccount}
+            />
           </div>
         </div>
       </main>
