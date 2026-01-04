@@ -92,7 +92,7 @@ const NetPLGauge = ({ value, max }: { value: number; max: number }) => {
   );
 };
 
-// Arc diagram for win/loss percentages with primary/success colors
+// Arc diagram for win/loss percentages
 const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; winCount: number; lossCount: number }) => {
   const winAngle = (winPercent / 100) * 180;
   
@@ -112,15 +112,15 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
   };
 
   return (
-    <svg viewBox="0 0 100 55" className="w-20 h-12">
+    <svg viewBox="0 0 100 60" className="w-20 h-14">
       <defs>
         <linearGradient id="winArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="hsl(163 100% 45%)" />
           <stop offset="100%" stopColor="hsl(163 100% 55%)" />
         </linearGradient>
         <linearGradient id="lossArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="hsl(212 98% 55%)" />
-          <stop offset="100%" stopColor="hsl(212 98% 70%)" />
+          <stop offset="0%" stopColor="hsl(348 100% 55%)" />
+          <stop offset="100%" stopColor="hsl(348 100% 65%)" />
         </linearGradient>
       </defs>
       {/* Win arc (green/success) */}
@@ -133,7 +133,7 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
           strokeLinecap="round"
         />
       )}
-      {/* Loss arc (blue/primary) */}
+      {/* Loss arc (red/destructive) */}
       {winAngle < 180 && (
         <path
           d={describeArc(50, 50, 32, Math.min(winAngle, 179), 180)}
@@ -143,12 +143,12 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
           strokeLinecap="round"
         />
       )}
-      {/* Win count - positioned below arc on left */}
-      <circle cx="18" cy="42" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
-      <text x="18" y="45" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
-      {/* Loss count - positioned below arc on right */}
-      <circle cx="82" cy="42" r="8" fill="hsl(var(--primary))" className="drop-shadow-sm" />
-      <text x="82" y="45" textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
+      {/* Win count - positioned lower */}
+      <circle cx="18" cy="52" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
+      <text x="18" y="55" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
+      {/* Loss count - positioned lower */}
+      <circle cx="82" cy="52" r="8" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
+      <text x="82" y="55" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
     </svg>
   );
 };
@@ -196,7 +196,7 @@ const ProfitFactorRing = ({ value }: { value: number }) => {
   );
 };
 
-// Horizontal bar for Avg Win/Loss using success/primary
+// Horizontal bar for Avg Win/Loss
 const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) => {
   const total = avgWin + Math.abs(avgLoss);
   const winWidth = total > 0 ? (avgWin / total) * 100 : 50;
@@ -209,7 +209,7 @@ const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number })
           style={{ width: `${winWidth}%` }}
         />
         <div 
-          className="bg-gradient-to-r from-primary to-primary-glow transition-all duration-500 rounded-r-full"
+          className="bg-gradient-to-r from-destructive/90 to-destructive transition-all duration-500 rounded-r-full"
           style={{ width: `${100 - winWidth}%` }}
         />
       </div>
