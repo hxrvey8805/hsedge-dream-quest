@@ -351,7 +351,7 @@ export const DashboardStats = ({
     };
 
     fetchStats();
-  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger]);
+  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode]);
 
   const maxPL = Math.max(Math.abs(stats.netPL), 10000);
 
