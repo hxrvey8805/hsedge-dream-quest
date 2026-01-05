@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus } from "lucide-react";
 import { useAccounts } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -499,20 +499,35 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                     </p>
                   </div>
                 </div>
-                <div className={`text-right px-4 py-2 rounded-lg ${
-                  selectedDay && getDayStats(selectedDay).outcome === 'profit'
-                    ? 'bg-emerald-500/20 text-emerald-500'
-                    : selectedDay && getDayStats(selectedDay).outcome === 'loss'
-                    ? 'bg-rose-500/20 text-rose-500'
-                    : 'bg-primary/20 text-primary'
-                }`}>
-                  <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'pips' ? 'Pips' : 'P&L'}</p>
-                  <p className="text-2xl font-bold">
-                    {selectedDay && viewMode === 'pips' 
-                      ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)}`
-                      : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
-                    }
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className={`text-right px-4 py-2 rounded-lg ${
+                    selectedDay && getDayStats(selectedDay).outcome === 'profit'
+                      ? 'bg-emerald-500/20 text-emerald-500'
+                      : selectedDay && getDayStats(selectedDay).outcome === 'loss'
+                      ? 'bg-rose-500/20 text-rose-500'
+                      : 'bg-primary/20 text-primary'
+                  }`}>
+                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'pips' ? 'Pips' : 'P&L'}</p>
+                    <p className="text-2xl font-bold">
+                      {selectedDay && viewMode === 'pips' 
+                        ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)}`
+                        : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
+                      }
+                    </p>
+                  </div>
+                  {selectedDay && onDaySelect && (
+                    <Button
+                      onClick={() => {
+                        setShowDetailsDialog(false);
+                        onDaySelect(selectedDay);
+                      }}
+                      size="sm"
+                      className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Log Trade
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
