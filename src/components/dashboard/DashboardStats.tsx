@@ -246,16 +246,20 @@ export const DashboardStats = ({
       if (!user) return;
 
       // Calculate Net P&L from accounts (manually entered running_pl)
+      // Only include account running_pl when month filter is NOT enabled
+      // When month filter is enabled, we only want trades from that month
       let accountPL = 0;
-      if (selectedAccountId) {
-        // If specific account selected, use that account's running_pl
-        const selectedAccount = accounts.find(a => a.id === selectedAccountId);
-        accountPL = selectedAccount?.running_pl || 0;
-      } else {
-        // When "All Accounts" is selected, sum personal and funded accounts only
-        accountPL = accounts
-          .filter(acc => acc.type === 'personal' || acc.type === 'funded')
-          .reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
+      if (!monthSwitchEnabled) {
+        if (selectedAccountId) {
+          // If specific account selected, use that account's running_pl
+          const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+          accountPL = selectedAccount?.running_pl || 0;
+        } else {
+          // When "All Accounts" is selected, sum personal and funded accounts only
+          accountPL = accounts
+            .filter(acc => acc.type === 'personal' || acc.type === 'funded')
+            .reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
+        }
       }
 
       // Build query for trades
@@ -323,11 +327,11 @@ export const DashboardStats = ({
         if (!acc[day]) acc[day] = [];
         acc[day].push(trade);
         return acc;
-      }, {} as Record<string, typeof trades>);
+      }, {} as Record<string, Trade[]>);
 
       let winDays = 0;
       let lossDays = 0;
-      Object.values(tradesByDay).forEach(dayTrades => {
+      Object.values(tradesByDay).forEach((dayTrades: Trade[]) => {
         const dayPL = dayTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
         if (dayPL > 0) winDays++;
         else if (dayPL < 0) lossDays++;
