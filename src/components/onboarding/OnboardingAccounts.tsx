@@ -24,7 +24,6 @@ interface AccountForm {
   customCompany?: string;
   size: string;
   profitTarget?: string;
-  instrumentType?: string;
 }
 
 const PROP_FIRMS = ["FTMO", "MyForexFunds", "The Funded Trader", "E8 Funding", "True Forex Funds", "Funded Next", "Other"];
@@ -33,7 +32,7 @@ const ACCOUNT_SIZES = ["$5,000", "$10,000", "$25,000", "$50,000", "$100,000", "$
 export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsProps) => {
   const [accounts, setAccounts] = useState<AccountForm[]>([]);
   const [activeType, setActiveType] = useState<AccountType | null>(null);
-  const [currentForm, setCurrentForm] = useState<Partial<AccountForm>>({ instrumentType: "Forex" });
+  const [currentForm, setCurrentForm] = useState<Partial<AccountForm>>({});
   const [saving, setSaving] = useState(false);
 
   const accountTypes = [
@@ -75,7 +74,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
       company: companyName,
       size: currentForm.size || "",
       profitTarget: currentForm.profitTarget,
-      instrumentType: currentForm.instrumentType || "Forex",
     };
 
     setAccounts([...accounts, newAccount]);
@@ -101,7 +99,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
             account_name: a.name,
             broker: a.broker,
             account_size: parseFloat(a.size.replace(/[$,]/g, "")) || 0,
-            instrument_type: a.instrumentType || "Forex",
           }))
         );
         if (error) throw error;
@@ -117,7 +114,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
             account_size: a.size,
             funded_accounts_goal: 1,
             funded_accounts_count: 1,
-            instrument_type: a.instrumentType || "Forex",
           }))
         );
         if (error) throw error;
@@ -132,7 +128,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
             company: a.company || "",
             account_size: a.size,
             profit_target: parseFloat(a.profitTarget?.replace(/[$,]/g, "") || "0"),
-            instrument_type: a.instrumentType || "Forex",
           }))
         );
         if (error) throw error;
@@ -241,23 +236,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
                         className="premium-input"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Instrument Type</Label>
-                      <Select
-                        value={currentForm.instrumentType || "Forex"}
-                        onValueChange={(v) => setCurrentForm({ ...currentForm, instrumentType: v })}
-                      >
-                        <SelectTrigger className="premium-input">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Forex">Forex</SelectItem>
-                          <SelectItem value="Stocks">Stocks</SelectItem>
-                          <SelectItem value="Futures">Futures</SelectItem>
-                          <SelectItem value="Crypto">Crypto</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </>
                 )}
 
@@ -316,23 +294,6 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
                         />
                       </div>
                     )}
-                    <div className="space-y-2">
-                      <Label>Instrument Type</Label>
-                      <Select
-                        value={currentForm.instrumentType || "Forex"}
-                        onValueChange={(v) => setCurrentForm({ ...currentForm, instrumentType: v })}
-                      >
-                        <SelectTrigger className="premium-input">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Forex">Forex</SelectItem>
-                          <SelectItem value="Stocks">Stocks</SelectItem>
-                          <SelectItem value="Futures">Futures</SelectItem>
-                          <SelectItem value="Crypto">Crypto</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </>
                 )}
               </div>
