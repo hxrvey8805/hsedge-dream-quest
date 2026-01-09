@@ -454,43 +454,34 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
         {(() => {
           const elements: JSX.Element[] = [];
           
-          // Group days by week rows - each row should have Mon-Fri + Week
-          // Find all unique weeks (Monday-Friday groups) in the month
-          const weekRows: Date[][] = [];
-          let currentRow: Date[] = [];
+          // Get all weeks that have at least one weekday in this month
+          // A week is defined by its Monday's week number
+          const getWeekKey = (date: Date) => {
+            // Get the Monday of this date's week
+            const dayOfWeek = date.getDay();
+            const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            const monday = new Date(date);
+            monday.setDate(date.getDate() + mondayOffset);
+            return monday.toISOString().split('T')[0];
+          };
           
+          // Group weekdays by their week (using Monday as the key)
+          const weekMap = new Map<string, Date[]>();
           daysInMonth.forEach((day) => {
-            const dayOfWeek = day.getDay();
-            if (dayOfWeek === 1) { // Monday - start new row
-              if (currentRow.length > 0) {
-                weekRows.push(currentRow);
-              }
-              currentRow = [day];
-            } else if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Mon-Fri only
-              currentRow.push(day);
+            const weekKey = getWeekKey(day);
+            if (!weekMap.has(weekKey)) {
+              weekMap.set(weekKey, []);
             }
+            weekMap.get(weekKey)!.push(day);
           });
-          if (currentRow.length > 0) {
-            weekRows.push(currentRow);
-          }
           
-          weekRows.forEach((rowDays, rowIndex) => {
-            // Find the first day of this row to determine if we need empty cells at the start
-            const firstDayInRow = rowDays[0];
-            const firstDayOfWeek = firstDayInRow?.getDay() || 1;
-            
-            // Add empty cells for days before the first day in this row
-            // If first day is Wednesday (3), we need 2 empty cells (Mon, Tue)
-            if (firstDayOfWeek > 1) {
-              for (let i = 1; i < firstDayOfWeek; i++) {
-                elements.push(<div key={`empty-start-row-${rowIndex}-${i}`} className="min-h-[100px]" />);
-              }
-            }
-            
-            // For each row, render exactly 6 cells: Mon, Tue, Wed, Thu, Fri, Week
-            // Column 1-5: Monday through Friday
+          // Sort weeks chronologically
+          const sortedWeeks = Array.from(weekMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+          
+          sortedWeeks.forEach(([weekKey, weekDays], rowIndex) => {
+            // Render exactly 6 cells for each week row: Mon, Tue, Wed, Thu, Fri, Week
             for (let col = 1; col <= 5; col++) {
-              const day = rowDays.find(d => d.getDay() === col);
+              const day = weekDays.find(d => d.getDay() === col);
               
               if (day) {
                 const dayStats = getDayStats(day);
@@ -558,13 +549,13 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                   </div>
                 );
               } else {
-                // Empty cell for missing day in this row
-                elements.push(<div key={`empty-row-${rowIndex}-col-${col}`} className="min-h-[100px]" />);
+                // Empty cell for days outside this month in this week
+                elements.push(<div key={`empty-${weekKey}-col-${col}`} className="min-h-[100px]" />);
               }
             }
             
-            // Column 6: Week summary (always in the 6th position)
-            const friday = rowDays.find(d => d.getDay() === 5);
+            // Column 6: Week summary
+            const friday = weekDays.find(d => d.getDay() === 5);
             if (friday) {
               const fridayKey = friday.toISOString().split('T')[0];
               const weekSummary = weekSummaries.get(fridayKey);
@@ -602,8 +593,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                 elements.push(<div key={`week-empty-${fridayKey}`} className="min-h-[100px]" />);
               }
             } else {
-              // No Friday in this row, add empty cell to maintain grid alignment
-              elements.push(<div key={`week-empty-row-${rowIndex}`} className="min-h-[100px]" />);
+              // No Friday in this week, add empty cell to maintain grid alignment
+              elements.push(<div key={`week-empty-${weekKey}`} className="min-h-[100px]" />);
             }
           });
           
