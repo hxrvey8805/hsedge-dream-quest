@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,12 +22,15 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
   const [accountName, setAccountName] = useState("");
   const [accountSize, setAccountSize] = useState("");
   const [broker, setBroker] = useState("");
+  const [instrumentType, setInstrumentType] = useState("Forex");
 
   // Funded/Evaluation fields
   const [company, setCompany] = useState("");
   const [size, setSize] = useState("");
   const [maxLoss, setMaxLoss] = useState("");
   const [profitTarget, setProfitTarget] = useState("");
+  const [fundedInstrumentType, setFundedInstrumentType] = useState("Forex");
+  const [evalInstrumentType, setEvalInstrumentType] = useState("Forex");
 
   // Backtesting fields
   const [sessionName, setSessionName] = useState("");
@@ -38,11 +42,14 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
     setAccountName("");
     setAccountSize("");
     setBroker("");
+    setInstrumentType("Forex");
     setCompany("");
     setSize("");
     setMaxLoss("");
     setProfitTarget("");
     setFundedGoal("1");
+    setFundedInstrumentType("Forex");
+    setEvalInstrumentType("Forex");
     setSessionName("");
     setDescription("");
     setStartingBalance("");
@@ -59,6 +66,7 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
           account_name: accountName,
           account_size: parseFloat(accountSize) || 0,
           broker: broker || null,
+          instrument_type: instrumentType,
         });
         if (error) throw error;
       } else if (type === 'funded') {
@@ -68,6 +76,7 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
           account_size: size,
           funded_accounts_goal: parseInt(fundedGoal) || 1,
           max_loss: parseFloat(maxLoss) || 0,
+          instrument_type: fundedInstrumentType,
         });
         if (error) throw error;
       } else if (type === 'evaluation') {
@@ -77,6 +86,7 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
           account_size: size,
           profit_target: parseFloat(profitTarget) || 0,
           max_loss: parseFloat(maxLoss) || 0,
+          instrument_type: evalInstrumentType,
         });
         if (error) throw error;
       } else if (type === 'backtesting') {
@@ -153,6 +163,20 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
                   onChange={(e) => setBroker(e.target.value)}
                   placeholder="Interactive Brokers"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instrumentType">Instrument Type</Label>
+                <Select value={instrumentType} onValueChange={setInstrumentType}>
+                  <SelectTrigger id="instrumentType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Forex">Forex</SelectItem>
+                    <SelectItem value="Stocks">Stocks</SelectItem>
+                    <SelectItem value="Futures">Futures</SelectItem>
+                    <SelectItem value="Crypto">Crypto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </>
           )}
@@ -249,6 +273,23 @@ export const AddAccountDialog = ({ type, userId, onSuccess }: AddAccountDialogPr
                   placeholder="5000"
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${type}InstrumentType`}>Instrument Type</Label>
+                <Select 
+                  value={type === 'funded' ? fundedInstrumentType : evalInstrumentType} 
+                  onValueChange={type === 'funded' ? setFundedInstrumentType : setEvalInstrumentType}
+                >
+                  <SelectTrigger id={`${type}InstrumentType`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Forex">Forex</SelectItem>
+                    <SelectItem value="Stocks">Stocks</SelectItem>
+                    <SelectItem value="Futures">Futures</SelectItem>
+                    <SelectItem value="Crypto">Crypto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </>
           )}

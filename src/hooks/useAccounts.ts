@@ -8,6 +8,7 @@ interface Account {
   displayName: string;
   running_pl: number;
   type: 'personal' | 'funded' | 'evaluation' | 'backtesting';
+  instrument_type?: string;
 }
 
 export const useAccounts = () => {
@@ -21,19 +22,19 @@ export const useAccounts = () => {
     // Fetch personal accounts
     const { data: personalData } = await supabase
       .from("personal_accounts")
-      .select("id, account_name, account_size, running_pl")
+      .select("id, account_name, account_size, running_pl, instrument_type")
       .eq("user_id", user.id);
 
     // Fetch funded accounts
     const { data: fundedData } = await supabase
       .from("funded_accounts")
-      .select("id, company, account_size, running_pl")
+      .select("id, company, account_size, running_pl, instrument_type")
       .eq("user_id", user.id);
 
     // Fetch evaluations
     const { data: evalData } = await supabase
       .from("evaluations")
-      .select("id, company, account_size, running_pl")
+      .select("id, company, account_size, running_pl, instrument_type")
       .eq("user_id", user.id);
 
     // Fetch backtesting sessions
@@ -52,7 +53,8 @@ export const useAccounts = () => {
           account_size: `$${acc.account_size}`,
           displayName: acc.account_name,
           running_pl: acc.running_pl || 0,
-          type: 'personal'
+          type: 'personal',
+          instrument_type: acc.instrument_type || 'Forex'
         });
       });
     }
@@ -65,7 +67,8 @@ export const useAccounts = () => {
           account_size: acc.account_size,
           displayName: `${acc.company} - ${acc.account_size}`,
           running_pl: acc.running_pl || 0,
-          type: 'funded'
+          type: 'funded',
+          instrument_type: acc.instrument_type || 'Forex'
         });
       });
     }
@@ -78,7 +81,8 @@ export const useAccounts = () => {
           account_size: acc.account_size,
           displayName: `${acc.company} - ${acc.account_size} (Eval)`,
           running_pl: acc.running_pl || 0,
-          type: 'evaluation'
+          type: 'evaluation',
+          instrument_type: acc.instrument_type || 'Forex'
         });
       });
     }
