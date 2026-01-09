@@ -184,7 +184,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     if (!entry || !exit || !stop) return "N/A";
     
     const risk = Math.abs(entry - stop);
-    const reward = Math.abs(exit - entry);
+    // For Buy: reward is exit - entry, for Sell: reward is entry - exit
+    const reward = buySell === "Sell" ? Math.abs(entry - exit) : Math.abs(exit - entry);
     
     if (risk === 0) return "N/A";
     return `1:${(reward / risk).toFixed(2)}`;
@@ -226,25 +227,30 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     
     if (!entry || !exit || !tradeSize) return { pips: 0, profit: 0 };
     
+    // Calculate price difference based on direction
+    // For Buy (Long): profit when exit > entry
+    // For Sell (Short): profit when exit < entry
+    const priceDiff = buySell === "Sell" ? entry - exit : exit - entry;
+    
     let pips = 0;
     let profit = 0;
     
     switch(assetClass) {
       case "Forex":
-        pips = (exit - entry) * 10000;
+        pips = priceDiff * 10000;
         profit = pips * tradeSize * 10 - tradeFees;
         break;
       case "Stocks":
-        profit = (exit - entry) * tradeSize - tradeFees;
+        profit = priceDiff * tradeSize - tradeFees;
         break;
       case "Futures":
-        const ticks = exit - entry;
+        const ticks = priceDiff;
         profit = ticks * tradeSize - tradeFees;
         pips = ticks;
         break;
       case "Crypto":
-        profit = (exit - entry) * tradeSize - tradeFees;
-        pips = exit - entry;
+        profit = priceDiff * tradeSize - tradeFees;
+        pips = priceDiff;
         break;
     }
     
