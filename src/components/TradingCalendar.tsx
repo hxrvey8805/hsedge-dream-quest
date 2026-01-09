@@ -581,7 +581,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                         {viewMode === 'profit' && '$'}
                       </div>
                       <div className="flex items-center justify-center">
-                        <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-semibold">
+                        <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
                           {weekSummary.tradingDays} day{weekSummary.tradingDays !== 1 ? 's' : ''}
                         </span>
                       </div>
