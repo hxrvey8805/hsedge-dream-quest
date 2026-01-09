@@ -444,8 +444,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
         </Button>
       </div>
 
-      <div className="grid grid-cols-5 gap-3">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
+      <div className="grid grid-cols-6 gap-3">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Week'].map(day => (
           <div key={day} className="text-center text-sm font-semibold text-muted-foreground/80 py-3 uppercase tracking-wider">
             {day}
           </div>
@@ -454,88 +454,115 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
         {(() => {
           const elements: JSX.Element[] = [];
           
-          // Add empty cells for days before the first Monday
-          const firstDay = daysInMonth[0];
-          if (firstDay) {
-            const firstDayOfWeek = firstDay.getDay();
-            const daysBeforeFirstMonday = firstDayOfWeek === 0 ? 0 : firstDayOfWeek - 1;
-            for (let i = 0; i < daysBeforeFirstMonday; i++) {
-              elements.push(<div key={`empty-${i}`} className="min-h-[100px]" />);
-            }
-          }
+          // Group days by week (Monday-Friday)
+          const weeks: Date[][] = [];
+          let currentWeek: Date[] = [];
           
           daysInMonth.forEach((day) => {
-            const dayStats = getDayStats(day);
-            const isSelected = selectedDay && isSameDay(day, selectedDay);
-            const isToday = isSameDay(day, new Date());
-            const hasTrades = dayStats.trades.length > 0;
             const dayOfWeek = day.getDay();
-            const isFriday = dayOfWeek === 5;
-            
-            const displayValue = viewMode === 'pips' ? dayStats.totalPips : dayStats.totalProfit;
-            
-            // Enhanced styling based on outcome
-            let dayClass = 'border-border/30 bg-card/50';
-            if (hasTrades) {
-              if (dayStats.outcome === 'profit') {
-                dayClass = 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 shadow-md shadow-emerald-500/10';
-              } else if (dayStats.outcome === 'loss') {
-                dayClass = 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 to-rose-600/5 shadow-md shadow-rose-500/10';
-              } else {
-                dayClass = 'border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 shadow-md shadow-primary/5';
+            if (dayOfWeek === 1) { // Monday - start new week
+              if (currentWeek.length > 0) {
+                weeks.push(currentWeek);
+              }
+              currentWeek = [day];
+            } else {
+              currentWeek.push(day);
+            }
+          });
+          if (currentWeek.length > 0) {
+            weeks.push(currentWeek);
+          }
+          
+          weeks.forEach((weekDays, weekIndex) => {
+            // Add empty cells at the start if week doesn't start on Monday
+            const firstDayOfWeek = weekDays[0]?.getDay() || 1;
+            if (firstDayOfWeek !== 1) {
+              const emptyCells = firstDayOfWeek === 0 ? 0 : firstDayOfWeek - 1;
+              for (let i = 0; i < emptyCells; i++) {
+                elements.push(<div key={`empty-start-${weekIndex}-${i}`} className="min-h-[100px]" />);
               }
             }
             
-            if (isSelected) {
-              dayClass = 'border-primary bg-primary/20 shadow-lg shadow-primary/20 ring-2 ring-primary/30';
+            // Render Monday through Friday
+            for (let i = 0; i < 5; i++) {
+              const expectedDayOfWeek = i + 1; // 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri
+              const day = weekDays.find(d => d.getDay() === expectedDayOfWeek);
+              
+              if (day) {
+                const dayStats = getDayStats(day);
+                const isSelected = selectedDay && isSameDay(day, selectedDay);
+                const isToday = isSameDay(day, new Date());
+                const hasTrades = dayStats.trades.length > 0;
+                const displayValue = viewMode === 'pips' ? dayStats.totalPips : dayStats.totalProfit;
+                
+                // Enhanced styling based on outcome
+                let dayClass = 'border-border/30 bg-card/50';
+                if (hasTrades) {
+                  if (dayStats.outcome === 'profit') {
+                    dayClass = 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 shadow-md shadow-emerald-500/10';
+                  } else if (dayStats.outcome === 'loss') {
+                    dayClass = 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 to-rose-600/5 shadow-md shadow-rose-500/10';
+                  } else {
+                    dayClass = 'border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 shadow-md shadow-primary/5';
+                  }
+                }
+                
+                if (isSelected) {
+                  dayClass = 'border-primary bg-primary/20 shadow-lg shadow-primary/20 ring-2 ring-primary/30';
+                }
+                
+                elements.push(
+                  <div
+                    key={day.toISOString()}
+                    onClick={() => handleDayClick(day, dayStats)}
+                    className={`min-h-[100px] p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary/60 ${dayClass} ${
+                      isToday && !hasTrades ? 'ring-2 ring-primary/20' : ''
+                    }`}
+                  >
+                    <div className={`text-sm font-semibold mb-2 ${
+                      isToday ? 'text-primary font-bold' : 'text-muted-foreground'
+                    }`}>
+                      {format(day, 'd')}
+                      {isToday && <span className="ml-1 text-xs">•</span>}
+                    </div>
+                    {hasTrades && (
+                      <div className="space-y-1.5">
+                        <div className={`text-xl font-bold ${
+                          dayStats.outcome === 'profit' ? 'text-emerald-500' :
+                          dayStats.outcome === 'loss' ? 'text-rose-500' :
+                          'text-foreground'
+                        }`}>
+                          {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(viewMode === 'pips' ? 1 : 2)}
+                          {viewMode === 'profit' && '$'}
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground/80 font-medium">
+                            {dayStats.trades.length} trade{dayStats.trades.length !== 1 ? 's' : ''}
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            dayStats.outcome === 'profit' 
+                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                              : dayStats.outcome === 'loss'
+                              ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                              : 'bg-primary/20 text-primary'
+                          }`}>
+                            {Math.round((dayStats.trades.filter(t => t.outcome === 'Win').length / dayStats.trades.length) * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                // Empty cell for missing day in week
+                elements.push(<div key={`empty-${weekIndex}-${i}`} className="min-h-[100px]" />);
+              }
             }
             
-            elements.push(
-              <div
-                key={day.toISOString()}
-                onClick={() => handleDayClick(day, dayStats)}
-                className={`min-h-[100px] p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] hover:border-primary/60 ${dayClass} ${
-                  isToday && !hasTrades ? 'ring-2 ring-primary/20' : ''
-                }`}
-              >
-                <div className={`text-sm font-semibold mb-2 ${
-                  isToday ? 'text-primary font-bold' : 'text-muted-foreground'
-                }`}>
-                  {format(day, 'd')}
-                  {isToday && <span className="ml-1 text-xs">•</span>}
-                </div>
-                {hasTrades && (
-                  <div className="space-y-1.5">
-                    <div className={`text-xl font-bold ${
-                      dayStats.outcome === 'profit' ? 'text-emerald-500' :
-                      dayStats.outcome === 'loss' ? 'text-rose-500' :
-                      'text-foreground'
-                    }`}>
-                      {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(viewMode === 'pips' ? 1 : 2)}
-                      {viewMode === 'profit' && '$'}
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground/80 font-medium">
-                        {dayStats.trades.length} trade{dayStats.trades.length !== 1 ? 's' : ''}
-                      </span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                        dayStats.outcome === 'profit' 
-                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
-                          : dayStats.outcome === 'loss'
-                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
-                          : 'bg-primary/20 text-primary'
-                      }`}>
-                        {Math.round((dayStats.trades.filter(t => t.outcome === 'Win').length / dayStats.trades.length) * 100)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-            
-            // After Friday, add week summary
-            if (isFriday) {
-              const fridayKey = day.toISOString().split('T')[0];
+            // Add week summary in the 6th column (where Saturday was)
+            const friday = weekDays.find(d => d.getDay() === 5);
+            if (friday) {
+              const fridayKey = friday.toISOString().split('T')[0];
               const weekSummary = weekSummaries.get(fridayKey);
               if (weekSummary) {
                 const weekValue = viewMode === 'pips' ? weekSummary.totalPips : weekSummary.totalProfit;
@@ -544,18 +571,12 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                 elements.push(
                   <div
                     key={`week-${fridayKey}`}
-                    className={`min-h-[100px] p-3 rounded-xl border-2 ${
-                      weekOutcome === 'profit' 
-                        ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5' 
-                        : weekOutcome === 'loss'
-                        ? 'border-rose-500/50 bg-gradient-to-br from-rose-500/15 to-rose-600/5'
-                        : 'border-border/30 bg-card/50'
-                    }`}
+                    className={`min-h-[100px] p-3 rounded-xl border-2 border-border/30 bg-card/50`}
                   >
                     <div className="text-sm font-semibold mb-2 text-muted-foreground">
                       Week {weekSummary.weekNumber}
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className={`text-xl font-bold ${
                         weekOutcome === 'profit' ? 'text-emerald-500' :
                         weekOutcome === 'loss' ? 'text-rose-500' :
@@ -565,14 +586,20 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                         {viewMode === 'profit' && '$'}
                       </div>
                       <div className="flex items-center justify-center">
-                        <span className="px-2 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
+                        <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-semibold">
                           {weekSummary.tradingDays} day{weekSummary.tradingDays !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </div>
                   </div>
                 );
+              } else {
+                // Empty week cell if no summary
+                elements.push(<div key={`week-empty-${fridayKey}`} className="min-h-[100px]" />);
               }
+            } else {
+              // No Friday in this week, add empty cell
+              elements.push(<div key={`week-empty-${weekIndex}`} className="min-h-[100px]" />);
             }
           });
           
