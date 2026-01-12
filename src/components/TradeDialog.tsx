@@ -229,22 +229,25 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     let pips = 0;
     let profit = 0;
     
+    // For SELL/short trades, profit is (entry - exit), for BUY/long trades it's (exit - entry)
+    const priceDiff = buySell === "Sell" ? (entry - exit) : (exit - entry);
+    
     switch(assetClass) {
       case "Forex":
-        pips = (exit - entry) * 10000;
+        pips = priceDiff * 10000;
         profit = pips * tradeSize * 10 - tradeFees;
         break;
       case "Stocks":
-        profit = (exit - entry) * tradeSize - tradeFees;
+        profit = priceDiff * tradeSize - tradeFees;
         break;
       case "Futures":
-        const ticks = exit - entry;
+        const ticks = priceDiff;
         profit = ticks * tradeSize - tradeFees;
         pips = ticks;
         break;
       case "Crypto":
-        profit = (exit - entry) * tradeSize - tradeFees;
-        pips = exit - entry;
+        profit = priceDiff * tradeSize - tradeFees;
+        pips = priceDiff;
         break;
     }
     
