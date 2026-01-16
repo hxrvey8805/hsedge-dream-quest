@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/tl-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -18,6 +18,7 @@ import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
 
@@ -73,8 +74,38 @@ const Dashboard = () => {
   });
   const [showVisionMode, setShowVisionMode] = useState(false);
   const [csvUploadOpen, setCsvUploadOpen] = useState(false);
+  const [clearTradesOpen, setClearTradesOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const { accounts } = useAccounts();
   const navigate = useNavigate();
+
+  const handleClearAllTrades = async () => {
+    setIsClearing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      let query = supabase.from("trades").delete().eq("user_id", user.id);
+      
+      // If an account is selected, only clear trades for that account
+      if (selectedAccount) {
+        query = query.eq("account_id", selectedAccount);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+
+      toast.success(selectedAccount ? "Trades cleared for selected account" : "All trades cleared successfully");
+      setClearTradesOpen(false);
+      setRefreshTrigger(prev => prev + 1);
+      fetchStats();
+    } catch (error: any) {
+      console.error("Error clearing trades:", error);
+      toast.error("Failed to clear trades");
+    } finally {
+      setIsClearing(false);
+    }
+  };
   const fetchStats = async () => {
     const {
       data: {
@@ -318,6 +349,15 @@ const Dashboard = () => {
                   <Upload className="w-4 h-4" />
                   Import CSV
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setClearTradesOpen(true)}
+                  className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Clear Trades
+                </Button>
               </div>
               <div className="relative flex flex-col items-end gap-3 transition-all duration-300">
                 <div className="grid grid-cols-[auto_auto_auto] gap-x-2 gap-y-3 items-center justify-end">
@@ -432,6 +472,30 @@ const Dashboard = () => {
         accountType={selectedAccount ? accounts.find(a => a.id === selectedAccount)?.type : null}
         onSuccess={handleTradeAdded}
       />
+
+      <AlertDialog open={clearTradesOpen} onOpenChange={setClearTradesOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear All Trades?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedAccount 
+                ? "This will permanently delete all trades for the selected account. This action cannot be undone."
+                : "This will permanently delete ALL your trades. This action cannot be undone."
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClearing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearAllTrades}
+              disabled={isClearing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isClearing ? "Clearing..." : "Clear Trades"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 };
 export default Dashboard;
