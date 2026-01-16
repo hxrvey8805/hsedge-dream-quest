@@ -202,70 +202,29 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
               </motion.h1>
             </motion.div>
 
-            {/* Welcome text */}
+            {/* Loading indicator */}
             <motion.div
-              className="text-center"
+              className="mt-8 flex items-center justify-center gap-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: phase !== 'logo' ? 1 : 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ delay: 0.5 }}
             >
-              <motion.h1
-                className="text-4xl md:text-6xl lg:text-7xl font-light tracking-wider mb-4"
-                initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-                animate={{ 
-                  opacity: phase !== 'logo' ? 1 : 0, 
-                  y: phase !== 'logo' ? 0 : 30,
-                  filter: phase !== 'logo' ? 'blur(0px)' : 'blur(10px)',
-                }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  background: 'linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(212 60% 80%) 50%, hsl(163 80% 60%) 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                }}
-              >
-                Welcome
-              </motion.h1>
-
-              <motion.div
-                className="overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: phase !== 'logo' ? 1 : 0, 
-                  y: phase !== 'logo' ? 0 : 20 
-                }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <p className="text-lg md:text-xl text-muted-foreground/80 tracking-wide">
-                  Preparing your trading dashboard
-                </p>
-              </motion.div>
-
-              {/* Loading indicator */}
-              <motion.div
-                className="mt-8 flex items-center justify-center gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: phase !== 'logo' ? 1 : 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 rounded-full bg-primary"
-                    animate={{
-                      scale: [1, 1.5, 1],
-                      opacity: [0.5, 1, 0.5],
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      delay: i * 0.15,
-                      ease: "easeInOut",
-                    }}
-                  />
-                ))}
-              </motion.div>
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-primary"
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.15,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
             </motion.div>
           </div>
 
