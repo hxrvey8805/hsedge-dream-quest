@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/tl-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -17,6 +17,7 @@ import { StrategyChecklist } from "@/components/StrategyChecklist";
 import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
 
@@ -71,6 +72,7 @@ const Dashboard = () => {
     totalTrades: 0
   });
   const [showVisionMode, setShowVisionMode] = useState(false);
+  const [csvUploadOpen, setCsvUploadOpen] = useState(false);
   const { accounts } = useAccounts();
   const navigate = useNavigate();
   const fetchStats = async () => {
@@ -303,9 +305,20 @@ const Dashboard = () => {
           {/* Left Column - Trading Calendar */}
           <Card className="p-8 bg-card border-border">
             <div className="flex items-start justify-between mb-6">
-              <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
-                Trading Calendar
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
+                  Trading Calendar
+                </h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCsvUploadOpen(true)}
+                  className="gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Import CSV
+                </Button>
+              </div>
               <div className="relative flex flex-col items-end gap-3 transition-all duration-300">
                 <div className="grid grid-cols-[auto_auto_auto] gap-x-2 gap-y-3 items-center justify-end">
                   <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors text-right ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
@@ -410,6 +423,14 @@ const Dashboard = () => {
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
         selectedAccountId={selectedAccount}
+      />
+
+      <CSVTradeUpload
+        open={csvUploadOpen}
+        onOpenChange={setCsvUploadOpen}
+        selectedAccountId={selectedAccount}
+        accountType={selectedAccount ? accounts.find(a => a.id === selectedAccount)?.type : null}
+        onSuccess={handleTradeAdded}
       />
     </div>;
 };
