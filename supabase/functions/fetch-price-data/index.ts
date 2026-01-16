@@ -21,48 +21,58 @@ interface OHLCData {
 }
 
 // Map common trading platform symbols to Twelve Data symbols
+// Using ETFs for indices (free tier compatible) instead of actual indices which require paid plans
 const symbolMappings: Record<string, string> = {
-  // Indices - common names to Twelve Data symbols
-  "NAS100": "NDX",
-  "NASDAQ": "NDX", 
-  "NASDAQ100": "NDX",
-  "US100": "NDX",
-  "USTEC": "NDX",
-  "US30": "DJI",
-  "DJ30": "DJI",
-  "DOW": "DJI",
-  "DOW30": "DJI",
-  "US500": "SPX",
-  "SPX500": "SPX",
-  "SP500": "SPX",
-  "UK100": "FTSE",
-  "FTSE100": "FTSE",
-  "GER40": "DAX",
-  "GER30": "DAX",
-  "DE40": "DAX",
-  "DE30": "DAX",
-  "JPN225": "N225",
-  "NIKKEI": "N225",
-  "JP225": "N225",
-  "AUS200": "AXJO",
-  "HK50": "HSI",
-  "HANGSENG": "HSI",
-  "FRA40": "FCHI",
-  "CAC40": "FCHI",
-  // Commodities
-  "XAUUSD": "XAU/USD",
-  "GOLD": "XAU/USD",
-  "XAGUSD": "XAG/USD",
-  "SILVER": "XAG/USD",
-  "XTIUSD": "WTI/USD",
-  "USOIL": "WTI/USD",
-  "CRUDEOIL": "WTI/USD",
-  "WTIUSD": "WTI/USD",
-  "XBRUSD": "BRENT/USD",
-  "UKOIL": "BRENT/USD",
-  "BRENTUSD": "BRENT/USD",
-  "XNGUSD": "NG/USD",
-  "NATGAS": "NG/USD",
+  // Indices - mapped to corresponding ETFs (free tier)
+  "NAS100": "QQQ",      // Invesco QQQ Trust tracks NASDAQ 100
+  "NASDAQ": "QQQ", 
+  "NASDAQ100": "QQQ",
+  "US100": "QQQ",
+  "USTEC": "QQQ",
+  "NDX": "QQQ",
+  "US30": "DIA",        // SPDR Dow Jones ETF tracks Dow 30
+  "DJ30": "DIA",
+  "DOW": "DIA",
+  "DOW30": "DIA",
+  "DJI": "DIA",
+  "US500": "SPY",       // SPDR S&P 500 ETF tracks S&P 500
+  "SPX500": "SPY",
+  "SP500": "SPY",
+  "SPX": "SPY",
+  "UK100": "EWU",       // iShares MSCI United Kingdom ETF
+  "FTSE100": "EWU",
+  "FTSE": "EWU",
+  "GER40": "EWG",       // iShares MSCI Germany ETF
+  "GER30": "EWG",
+  "DE40": "EWG",
+  "DE30": "EWG",
+  "DAX": "EWG",
+  "JPN225": "EWJ",      // iShares MSCI Japan ETF
+  "NIKKEI": "EWJ",
+  "JP225": "EWJ",
+  "N225": "EWJ",
+  "AUS200": "EWA",      // iShares MSCI Australia ETF
+  "AXJO": "EWA",
+  "HK50": "EWH",        // iShares MSCI Hong Kong ETF
+  "HANGSENG": "EWH",
+  "HSI": "EWH",
+  "FRA40": "EWQ",       // iShares MSCI France ETF
+  "CAC40": "EWQ",
+  "FCHI": "EWQ",
+  // Commodities - using ETFs
+  "XAUUSD": "GLD",      // SPDR Gold Shares
+  "GOLD": "GLD",
+  "XAGUSD": "SLV",      // iShares Silver Trust
+  "SILVER": "SLV",
+  "XTIUSD": "USO",      // United States Oil Fund
+  "USOIL": "USO",
+  "CRUDEOIL": "USO",
+  "WTIUSD": "USO",
+  "XBRUSD": "BNO",      // United States Brent Oil Fund
+  "UKOIL": "BNO",
+  "BRENTUSD": "BNO",
+  "XNGUSD": "UNG",      // United States Natural Gas Fund
+  "NATGAS": "UNG",
 };
 
 function normalizeSymbol(symbol: string): string {
