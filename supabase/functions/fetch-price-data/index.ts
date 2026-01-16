@@ -20,9 +20,59 @@ interface OHLCData {
   close: number;
 }
 
+// Map common trading platform symbols to Twelve Data symbols
+const symbolMappings: Record<string, string> = {
+  // Indices - common names to Twelve Data symbols
+  "NAS100": "NDX",
+  "NASDAQ": "NDX", 
+  "NASDAQ100": "NDX",
+  "US100": "NDX",
+  "USTEC": "NDX",
+  "US30": "DJI",
+  "DJ30": "DJI",
+  "DOW": "DJI",
+  "DOW30": "DJI",
+  "US500": "SPX",
+  "SPX500": "SPX",
+  "SP500": "SPX",
+  "UK100": "FTSE",
+  "FTSE100": "FTSE",
+  "GER40": "DAX",
+  "GER30": "DAX",
+  "DE40": "DAX",
+  "DE30": "DAX",
+  "JPN225": "N225",
+  "NIKKEI": "N225",
+  "JP225": "N225",
+  "AUS200": "AXJO",
+  "HK50": "HSI",
+  "HANGSENG": "HSI",
+  "FRA40": "FCHI",
+  "CAC40": "FCHI",
+  // Commodities
+  "XAUUSD": "XAU/USD",
+  "GOLD": "XAU/USD",
+  "XAGUSD": "XAG/USD",
+  "SILVER": "XAG/USD",
+  "XTIUSD": "WTI/USD",
+  "USOIL": "WTI/USD",
+  "CRUDEOIL": "WTI/USD",
+  "WTIUSD": "WTI/USD",
+  "XBRUSD": "BRENT/USD",
+  "UKOIL": "BRENT/USD",
+  "BRENTUSD": "BRENT/USD",
+  "XNGUSD": "NG/USD",
+  "NATGAS": "NG/USD",
+};
+
 function normalizeSymbol(symbol: string): string {
   // Remove common separators and standardize
   let normalized = symbol.toUpperCase().replace(/[\/\-_\s]/g, "");
+  
+  // Check direct mappings first
+  if (symbolMappings[normalized]) {
+    return symbolMappings[normalized];
+  }
   
   // Forex pairs - add slash between currencies
   const forexPairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD", 
