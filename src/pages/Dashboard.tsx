@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/tl-icon.png";
+import logo from "@/assets/tl-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
