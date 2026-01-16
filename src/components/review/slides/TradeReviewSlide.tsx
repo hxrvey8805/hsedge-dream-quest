@@ -307,7 +307,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 flex-1 min-h-0">
         {/* Left: Screenshot area */}
         <div className="flex flex-col gap-3 min-h-0">
           <div className="flex items-center justify-between">
@@ -341,39 +341,30 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             />
           </div>
 
-          {/* Image slot - shows full image with markers */}
-          <div
-            className="relative bg-card border rounded-lg overflow-hidden flex-1 min-h-[420px] group flex items-center justify-center"
-          >
+          {/* Image slot - display exactly what the user saved (cropped/landscape) */}
+          <div className="relative bg-card border rounded-lg overflow-hidden flex-1 min-h-[420px] lg:min-h-[520px] group flex items-center justify-center">
             {activeSlot?.screenshot_url ? (
               <>
-                {/* Container that maintains aspect ratio and positions markers correctly */}
-                <div className="relative w-full h-full flex items-center justify-center">
+                {/* Shrink-wrap to the rendered image so marker % coordinates match */}
+                <div className="relative inline-block max-w-full max-h-full">
                   <img
                     src={activeSlot.screenshot_url}
                     alt="Trade screenshot"
-                    className="max-w-full max-h-full object-contain"
-                    onLoad={(e) => {
-                      // Force re-render to ensure markers position correctly
-                      const img = e.target as HTMLImageElement;
-                      img.dataset.loaded = 'true';
-                    }}
+                    className="block max-w-full max-h-full object-contain"
                   />
-                  {/* Markers overlay - positioned relative to the image */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="relative" style={{ width: '100%', height: '100%' }}>
-                      {activeSlot.markers.map((marker) => (
-                        <div
-                          key={marker.id}
-                          className={`absolute w-6 h-6 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg`}
-                          style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                        >
-                          {getMarkerIcon(marker.type, 'sm')}
-                        </div>
-                      ))}
+
+                  {/* Markers (positioned relative to the image box) */}
+                  {activeSlot.markers.map((marker) => (
+                    <div
+                      key={marker.id}
+                      className={`absolute w-6 h-6 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg pointer-events-none`}
+                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                    >
+                      {getMarkerIcon(marker.type, 'sm')}
                     </div>
-                  </div>
+                  ))}
                 </div>
+
                 {/* Edit overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-3 pointer-events-none">
                   <Button
@@ -409,11 +400,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             <DialogContent className="max-w-[95vw] max-h-[95vh] p-4 flex flex-col">
               <DialogTitle className="text-lg font-semibold mb-2">Trade Screenshot - {activeSlot?.label}</DialogTitle>
               <div className="relative flex-1 flex items-center justify-center overflow-auto bg-card rounded-lg">
-                <div className="relative">
+                <div className="relative inline-block">
                   <img
                     src={activeSlot?.screenshot_url || ''}
                     alt="Trade screenshot full size"
-                    className="max-w-full max-h-[80vh] object-contain"
+                    className="block max-w-full max-h-[80vh] object-contain"
                   />
                   {activeSlot?.markers.map((marker) => (
                     <div
