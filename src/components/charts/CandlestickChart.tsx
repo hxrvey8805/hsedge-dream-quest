@@ -86,13 +86,21 @@ export const CandlestickChart = ({ data, trade, height = 400 }: CandlestickChart
     };
   }, [height]);
 
+  // Helper to convert date string to Unix timestamp (seconds)
+  const toUnixTimestamp = (timeStr: string | number): number => {
+    if (typeof timeStr === 'number') return timeStr;
+    // Handle various date formats: "2026-01-12 09:30:00", "2026-01-12T09:30:00", etc.
+    const date = new Date(timeStr.replace(' ', 'T'));
+    return Math.floor(date.getTime() / 1000);
+  };
+
   // Update data when it changes
   useEffect(() => {
     if (!seriesRef.current || !isReady || data.length === 0) return;
 
-    // Transform data to the correct format
+    // Transform data to the correct format with Unix timestamps
     const formattedData = data.map((candle) => ({
-      time: candle.time as string,
+      time: toUnixTimestamp(candle.time as string) as any,
       open: candle.open,
       high: candle.high,
       low: candle.low,
@@ -127,7 +135,7 @@ export const CandlestickChart = ({ data, trade, height = 400 }: CandlestickChart
         });
 
         const exitData = data.map(candle => ({
-          time: candle.time as string,
+          time: toUnixTimestamp(candle.time as string) as any,
           value: trade.exitPrice!,
         }));
         exitLine.setData(exitData);
@@ -146,7 +154,7 @@ export const CandlestickChart = ({ data, trade, height = 400 }: CandlestickChart
         });
 
         const slData = data.map(candle => ({
-          time: candle.time as string,
+          time: toUnixTimestamp(candle.time as string) as any,
           value: trade.stopLoss!,
         }));
         slLine.setData(slData);
@@ -154,7 +162,7 @@ export const CandlestickChart = ({ data, trade, height = 400 }: CandlestickChart
 
       // Set entry line data across entire visible range
       const entryData = data.map(candle => ({
-        time: candle.time as string,
+        time: toUnixTimestamp(candle.time as string) as any,
         value: trade.entryPrice,
       }));
       entryLine.setData(entryData);
