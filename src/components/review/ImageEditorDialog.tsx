@@ -1,0 +1,506 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { 
+  ArrowUpCircle, 
+  ArrowDownCircle, 
+  Target, 
+  X, 
+  Crop, 
+  Check,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  Move
+} from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Marker {
+  id: string;
+  type: 'entry' | 'stop_loss' | 'take_profit';
+  x: number;
+  y: number;
+}
+
+interface ImageEditorDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  imageUrl: string;
+  markers: Marker[];
+  onSave: (imageUrl: string, markers: Marker[]) => void;
+  tradeId: string;
+}
+
+const MARKER_TYPES = [
+  { type: 'entry' as const, label: 'Entry', icon: ArrowUpCircle, color: 'bg-blue-500', borderColor: 'border-blue-300' },
+  { type: 'stop_loss' as const, label: 'Stop Loss', icon: X, color: 'bg-destructive', borderColor: 'border-red-300' },
+  { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'bg-emerald-500', borderColor: 'border-emerald-300' },
+];
+
+export const ImageEditorDialog = ({ 
+  open, 
+  onOpenChange, 
+  imageUrl, 
+  markers: initialMarkers,
+  onSave,
+  tradeId
+}: ImageEditorDialogProps) => {
+  const [markers, setMarkers] = useState<Marker[]>(initialMarkers);
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
+  const [cropEnd, setCropEnd] = useState<{ x: number; y: number } | null>(null);
+  const [selectedMarkerType, setSelectedMarkerType] = useState<'entry' | 'stop_loss' | 'take_profit' | null>(null);
+  const [zoom, setZoom] = useState(100);
+  const [isSaving, setIsSaving] = useState(false);
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setMarkers(initialMarkers);
+      setCroppedImageUrl(null);
+      setIsCropping(false);
+      setCropStart(null);
+      setCropEnd(null);
+      setZoom(100);
+      setSelectedMarkerType(null);
+    }
+  }, [open, initialMarkers]);
+
+  const displayUrl = croppedImageUrl || imageUrl;
+
+  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current || isCropping) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    if (selectedMarkerType) {
+      // Remove existing marker of same type and add new one
+      const newMarkers = markers.filter(m => m.type !== selectedMarkerType);
+      newMarkers.push({
+        id: `${selectedMarkerType}-${Date.now()}`,
+        type: selectedMarkerType,
+        x,
+        y,
+      });
+      setMarkers(newMarkers);
+    }
+  }, [selectedMarkerType, markers, isCropping]);
+
+  const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setCropStart({ x, y });
+    setCropEnd({ x, y });
+  };
+
+  const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping || !cropStart || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+    
+    setCropEnd({ x, y });
+  };
+
+  const handleCropMouseUp = () => {
+    // Crop selection complete
+  };
+
+  const applyCrop = async () => {
+    if (!cropStart || !cropEnd || !imageRef.current || !containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const imgRect = imageRef.current.getBoundingClientRect();
+
+    // Calculate crop area relative to the displayed image
+    const scaleX = imageRef.current.naturalWidth / imgRect.width;
+    const scaleY = imageRef.current.naturalHeight / imgRect.height;
+
+    // Get image offset within container (for object-contain centering)
+    const offsetX = (containerRect.width - imgRect.width) / 2;
+    const offsetY = (containerRect.height - imgRect.height) / 2;
+
+    // Adjust crop coordinates for image offset
+    const adjustedStart = {
+      x: Math.max(0, cropStart.x - offsetX),
+      y: Math.max(0, cropStart.y - offsetY)
+    };
+    const adjustedEnd = {
+      x: Math.max(0, cropEnd.x - offsetX),
+      y: Math.max(0, cropEnd.y - offsetY)
+    };
+
+    const cropX = Math.min(adjustedStart.x, adjustedEnd.x) * scaleX;
+    const cropY = Math.min(adjustedStart.y, adjustedEnd.y) * scaleY;
+    const cropWidth = Math.abs(adjustedEnd.x - adjustedStart.x) * scaleX;
+    const cropHeight = Math.abs(adjustedEnd.y - adjustedStart.y) * scaleY;
+
+    if (cropWidth < 10 || cropHeight < 10) {
+      toast.error("Crop area too small");
+      return;
+    }
+
+    // Create canvas and crop
+    const canvas = document.createElement('canvas');
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+
+    // Load image and draw cropped portion
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = displayUrl;
+    
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
+    ctx.drawImage(
+      img,
+      cropX, cropY, cropWidth, cropHeight,
+      0, 0, cropWidth, cropHeight
+    );
+
+    // Convert to data URL
+    const croppedDataUrl = canvas.toDataURL('image/png');
+    setCroppedImageUrl(croppedDataUrl);
+    
+    // Reset crop state and adjust markers to fit new crop
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    const cropStartPercent = {
+      x: (Math.min(cropStart.x, cropEnd.x) / containerWidth) * 100,
+      y: (Math.min(cropStart.y, cropEnd.y) / containerHeight) * 100
+    };
+    const cropEndPercent = {
+      x: (Math.max(cropStart.x, cropEnd.x) / containerWidth) * 100,
+      y: (Math.max(cropStart.y, cropEnd.y) / containerHeight) * 100
+    };
+    
+    // Recalculate marker positions for cropped area
+    const newMarkers = markers.map(marker => {
+      const newX = ((marker.x - cropStartPercent.x) / (cropEndPercent.x - cropStartPercent.x)) * 100;
+      const newY = ((marker.y - cropStartPercent.y) / (cropEndPercent.y - cropStartPercent.y)) * 100;
+      return {
+        ...marker,
+        x: Math.max(0, Math.min(100, newX)),
+        y: Math.max(0, Math.min(100, newY))
+      };
+    }).filter(m => m.x >= 0 && m.x <= 100 && m.y >= 0 && m.y <= 100);
+    
+    setMarkers(newMarkers);
+    setIsCropping(false);
+    setCropStart(null);
+    setCropEnd(null);
+    toast.success("Image cropped!");
+  };
+
+  const removeMarker = (markerId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMarkers(markers.filter(m => m.id !== markerId));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    
+    try {
+      let finalImageUrl = imageUrl;
+      
+      // If we have a cropped image, upload it
+      if (croppedImageUrl) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("You must be logged in");
+          return;
+        }
+
+        // Convert data URL to blob
+        const response = await fetch(croppedImageUrl);
+        const blob = await response.blob();
+
+        const fileName = `${user.id}/${tradeId}-cropped-${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('review-screenshots')
+          .upload(fileName, blob);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('review-screenshots')
+          .getPublicUrl(fileName);
+
+        finalImageUrl = publicUrl;
+      }
+
+      onSave(finalImageUrl, markers);
+      onOpenChange(false);
+      toast.success("Changes saved!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save changes");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const resetChanges = () => {
+    setMarkers(initialMarkers);
+    setCroppedImageUrl(null);
+    setIsCropping(false);
+    setCropStart(null);
+    setCropEnd(null);
+    setZoom(100);
+  };
+
+  const getCropRect = () => {
+    if (!cropStart || !cropEnd) return null;
+    return {
+      left: Math.min(cropStart.x, cropEnd.x),
+      top: Math.min(cropStart.y, cropEnd.y),
+      width: Math.abs(cropEnd.x - cropStart.x),
+      height: Math.abs(cropEnd.y - cropStart.y),
+    };
+  };
+
+  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+    const config = MARKER_TYPES.find(m => m.type === type);
+    if (!config) return null;
+    const Icon = config.icon;
+    return <Icon className="w-6 h-6" />;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <DialogTitle>Edit Screenshot</DialogTitle>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={resetChanges}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left sidebar - Tools */}
+          <div className="w-64 border-r p-4 space-y-6 overflow-y-auto">
+            {/* Crop Tool */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Crop</Label>
+              <Button
+                variant={isCropping ? "default" : "outline"}
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setIsCropping(!isCropping);
+                  setSelectedMarkerType(null);
+                  if (!isCropping) {
+                    setCropStart(null);
+                    setCropEnd(null);
+                  }
+                }}
+              >
+                <Crop className="w-4 h-4 mr-2" />
+                {isCropping ? "Cancel Crop" : "Crop Image"}
+              </Button>
+              {isCropping && cropStart && cropEnd && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                  onClick={applyCrop}
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Apply Crop
+                </Button>
+              )}
+              {isCropping && (
+                <p className="text-xs text-muted-foreground">
+                  Click and drag on the image to select crop area
+                </p>
+              )}
+            </div>
+
+            {/* Zoom */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Zoom: {zoom}%</Label>
+              <div className="flex items-center gap-2">
+                <ZoomOut className="w-4 h-4 text-muted-foreground" />
+                <Slider
+                  value={[zoom]}
+                  onValueChange={([v]) => setZoom(v)}
+                  min={50}
+                  max={200}
+                  step={10}
+                  className="flex-1"
+                />
+                <ZoomIn className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </div>
+
+            {/* Markers */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Place Markers</Label>
+              <p className="text-xs text-muted-foreground">
+                Select a marker type, then click on the image to place it
+              </p>
+              <div className="space-y-2">
+                {MARKER_TYPES.map((marker) => (
+                  <Button
+                    key={marker.type}
+                    variant={selectedMarkerType === marker.type ? "default" : "outline"}
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setSelectedMarkerType(
+                        selectedMarkerType === marker.type ? null : marker.type
+                      );
+                      setIsCropping(false);
+                    }}
+                  >
+                    <marker.icon className="w-4 h-4 mr-2" />
+                    {marker.label}
+                    {markers.some(m => m.type === marker.type) && (
+                      <Check className="w-3 h-3 ml-auto text-emerald-500" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Current Markers */}
+            {markers.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Placed Markers</Label>
+                <div className="space-y-2">
+                  {markers.map((marker) => {
+                    const config = MARKER_TYPES.find(m => m.type === marker.type);
+                    if (!config) return null;
+                    return (
+                      <div 
+                        key={marker.id}
+                        className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <config.icon className="w-4 h-4" />
+                          <span>{config.label}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => removeMarker(marker.id, e)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Main image area */}
+          <div className="flex-1 p-4 bg-muted/20 overflow-auto">
+            <div 
+              className="relative inline-block min-w-full min-h-full flex items-center justify-center"
+              style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center center' }}
+            >
+              <div
+                ref={containerRef}
+                className={`relative ${isCropping ? 'cursor-crosshair' : selectedMarkerType ? 'cursor-crosshair' : 'cursor-default'}`}
+                onClick={handleImageClick}
+                onMouseDown={handleCropMouseDown}
+                onMouseMove={handleCropMouseMove}
+                onMouseUp={handleCropMouseUp}
+                style={{ maxWidth: '100%', maxHeight: '100%' }}
+              >
+                <img
+                  ref={imageRef}
+                  src={displayUrl}
+                  alt="Trade screenshot"
+                  className="max-w-full max-h-[70vh] object-contain"
+                  draggable={false}
+                />
+
+                {/* Crop overlay */}
+                {isCropping && cropStart && cropEnd && (
+                  <>
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+                    {/* Crop selection */}
+                    <div
+                      className="absolute border-2 border-white border-dashed bg-transparent pointer-events-none"
+                      style={{
+                        left: getCropRect()?.left,
+                        top: getCropRect()?.top,
+                        width: getCropRect()?.width,
+                        height: getCropRect()?.height,
+                        boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)',
+                        clipPath: 'inset(0)',
+                      }}
+                    />
+                  </>
+                )}
+
+                {/* Markers */}
+                {!isCropping && markers.map((marker) => {
+                  const config = MARKER_TYPES.find(m => m.type === marker.type);
+                  if (!config) return null;
+                  return (
+                    <div
+                      key={marker.id}
+                      className={`absolute w-10 h-10 rounded-full ${config.color} ${config.borderColor} border-2 flex items-center justify-center text-white cursor-pointer transform -translate-x-1/2 -translate-y-1/2 shadow-lg hover:scale-110 transition-transform z-10`}
+                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                      onClick={(e) => removeMarker(marker.id, e)}
+                      title="Click to remove"
+                    >
+                      {getMarkerIcon(marker.type)}
+                    </div>
+                  );
+                })}
+
+                {/* Click hint */}
+                {selectedMarkerType && !isCropping && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 border rounded-lg px-4 py-2 text-sm shadow-lg">
+                    <Move className="w-4 h-4 inline mr-2" />
+                    Click anywhere to place {MARKER_TYPES.find(m => m.type === selectedMarkerType)?.label}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
