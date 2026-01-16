@@ -50,6 +50,7 @@ export const ImageEditorDialog = ({
 }: ImageEditorDialogProps) => {
   const [markers, setMarkers] = useState<Marker[]>(initialMarkers);
   const [isCropping, setIsCropping] = useState(false);
+  const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
   const [cropEnd, setCropEnd] = useState<{ x: number; y: number } | null>(null);
   const [selectedMarkerType, setSelectedMarkerType] = useState<'entry' | 'stop_loss' | 'take_profit' | null>(null);
@@ -97,6 +98,8 @@ export const ImageEditorDialog = ({
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isCropping || !containerRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -104,10 +107,12 @@ export const ImageEditorDialog = ({
     
     setCropStart({ x, y });
     setCropEnd({ x, y });
+    setIsDraggingCrop(true);
   };
 
   const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isCropping || !cropStart || !containerRef.current) return;
+    if (!isCropping || !isDraggingCrop || !cropStart || !containerRef.current) return;
+    e.preventDefault();
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
@@ -116,8 +121,12 @@ export const ImageEditorDialog = ({
     setCropEnd({ x, y });
   };
 
-  const handleCropMouseUp = () => {
-    // Crop selection complete
+  const handleCropMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingCrop(false);
+    // Keep cropStart and cropEnd so user can apply the crop
   };
 
   const applyCrop = async () => {
