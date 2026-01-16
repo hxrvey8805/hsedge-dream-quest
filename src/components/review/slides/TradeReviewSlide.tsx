@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image } from "lucide-react";
+import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image, MonitorUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -46,9 +46,82 @@ const MARKER_TYPES = [
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [draggedMarker, setDraggedMarker] = useState<string | null>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScreenCapture = async () => {
+    // Check if Screen Capture API is supported
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      toast.error("Screen capture not supported in this browser. Please use upload instead.");
+      return;
+    }
+
+    setIsCapturing(true);
+    
+    try {
+      // Request screen capture permission
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: "window" } as any,
+        audio: false,
+      });
+
+      // Create video element to capture frame
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+
+      // Wait a moment for the video to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Create canvas and capture frame
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(video, 0, 0);
+
+      // Stop the stream
+      stream.getTracks().forEach(track => track.stop());
+
+      // Convert to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create image"));
+        }, 'image/png');
+      });
+
+      // Upload to storage
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const fileName = `${user.id}/${trade.id}-capture-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('review-screenshots')
+        .upload(fileName, blob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('review-screenshots')
+        .getPublicUrl(fileName);
+
+      onUpdate({ screenshot_url: publicUrl });
+      toast.success("Screenshot captured!");
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+        toast.error(error.message || "Failed to capture screen");
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,15 +226,26 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Label className="text-base font-semibold">Chart Screenshot</Label>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {isUploading ? "Uploading..." : "Upload"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleScreenCapture}
+              disabled={isCapturing || isUploading}
+            >
+              <MonitorUp className="w-4 h-4 mr-2" />
+              {isCapturing ? "Selecting..." : "Screenshot"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || isCapturing}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {isUploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
           <input
             ref={fileInputRef}
             type="file"
