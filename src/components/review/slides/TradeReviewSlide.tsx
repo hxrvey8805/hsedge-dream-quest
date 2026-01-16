@@ -341,33 +341,45 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             />
           </div>
 
-          {/* Image slot - larger and fills container */}
+          {/* Image slot - shows full image with markers */}
           <div
-            className="relative bg-muted/30 border-2 border-dashed rounded-lg overflow-hidden flex-1 min-h-[350px] group"
+            className="relative bg-card border rounded-lg overflow-hidden flex-1 min-h-[420px] group flex items-center justify-center"
           >
             {activeSlot?.screenshot_url ? (
               <>
-                <img
-                  src={activeSlot.screenshot_url}
-                  alt="Trade screenshot"
-                  className="w-full h-full object-cover"
-                />
-                {/* Markers displayed on image */}
-                {activeSlot.markers.map((marker) => (
-                  <div
-                    key={marker.id}
-                    className={`absolute w-5 h-5 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg pointer-events-none`}
-                    style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                  >
-                    {getMarkerIcon(marker.type)}
+                {/* Container that maintains aspect ratio and positions markers correctly */}
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <img
+                    src={activeSlot.screenshot_url}
+                    alt="Trade screenshot"
+                    className="max-w-full max-h-full object-contain"
+                    onLoad={(e) => {
+                      // Force re-render to ensure markers position correctly
+                      const img = e.target as HTMLImageElement;
+                      img.dataset.loaded = 'true';
+                    }}
+                  />
+                  {/* Markers overlay - positioned relative to the image */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="relative" style={{ width: '100%', height: '100%' }}>
+                      {activeSlot.markers.map((marker) => (
+                        <div
+                          key={marker.id}
+                          className={`absolute w-6 h-6 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg`}
+                          style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                        >
+                          {getMarkerIcon(marker.type, 'sm')}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                </div>
                 {/* Edit overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-3">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-3 pointer-events-none">
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-lg"
                     onClick={() => setIsEditorOpen(true)}
                   >
                     <Maximize2 className="w-4 h-4 mr-2" />
@@ -376,7 +388,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                   <Button
                     variant="outline"
                     size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-background/80"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-background/90 pointer-events-auto shadow-lg"
                     onClick={() => setIsImageViewerOpen(true)}
                   >
                     View Full
@@ -384,9 +396,9 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                <Image className="w-12 h-12 mb-2 opacity-50" />
-                <p className="text-sm">Capture or upload a screenshot</p>
+              <div className="flex flex-col items-center justify-center text-muted-foreground p-8">
+                <Image className="w-16 h-16 mb-3 opacity-40" />
+                <p className="text-sm font-medium">Capture or upload a screenshot</p>
                 <p className="text-xs opacity-60 mt-1">for {activeSlot?.label || 'this timeframe'}</p>
               </div>
             )}
@@ -394,23 +406,25 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
           {/* Full size image viewer */}
           <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
-            <DialogContent className="max-w-[95vw] max-h-[95vh] p-2">
-              <DialogTitle className="sr-only">Trade Screenshot - {activeSlot?.label}</DialogTitle>
-              <div className="relative w-full h-full overflow-auto">
-                <img
-                  src={activeSlot?.screenshot_url || ''}
-                  alt="Trade screenshot full size"
-                  className="w-full h-auto"
-                />
-                {activeSlot?.markers.map((marker) => (
-                  <div
-                    key={marker.id}
-                    className={`absolute w-8 h-8 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg`}
-                    style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                  >
-                    {getMarkerIcon(marker.type, 'lg')}
-                  </div>
-                ))}
+            <DialogContent className="max-w-[95vw] max-h-[95vh] p-4 flex flex-col">
+              <DialogTitle className="text-lg font-semibold mb-2">Trade Screenshot - {activeSlot?.label}</DialogTitle>
+              <div className="relative flex-1 flex items-center justify-center overflow-auto bg-card rounded-lg">
+                <div className="relative">
+                  <img
+                    src={activeSlot?.screenshot_url || ''}
+                    alt="Trade screenshot full size"
+                    className="max-w-full max-h-[80vh] object-contain"
+                  />
+                  {activeSlot?.markers.map((marker) => (
+                    <div
+                      key={marker.id}
+                      className={`absolute w-10 h-10 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-xl`}
+                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                    >
+                      {getMarkerIcon(marker.type, 'lg')}
+                    </div>
+                  ))}
+                </div>
               </div>
             </DialogContent>
           </Dialog>
