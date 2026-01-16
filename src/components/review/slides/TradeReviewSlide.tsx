@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image } from "lucide-react";
+import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image, Clipboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -50,10 +50,29 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const imageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle paste from clipboard
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            await uploadFile(file);
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [trade.id]);
+
+  const uploadFile = async (file: File) => {
     setIsUploading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -63,7 +82,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.type.split('/')[1] || 'png';
       const fileName = `${user.id}/${trade.id}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
@@ -77,12 +96,18 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         .getPublicUrl(fileName);
 
       onUpdate({ screenshot_url: publicUrl });
-      toast.success("Screenshot uploaded!");
+      toast.success("Screenshot added!");
     } catch (error: any) {
       toast.error(error.message || "Failed to upload screenshot");
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -186,9 +211,9 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
               className="w-full h-full object-contain"
             />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-              <Image className="w-12 h-12 mb-2 opacity-50" />
-              <p>Upload a screenshot or drag markers here</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+              <Clipboard className="w-12 h-12 mb-2 opacity-50" />
+              <p className="text-center">Take a screenshot and paste here<br/><span className="text-xs opacity-70">(Ctrl/Cmd + V)</span></p>
             </div>
           )}
 
