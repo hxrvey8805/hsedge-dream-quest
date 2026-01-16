@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from "date-fns";
-import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus, LineChart } from "lucide-react";
 import { useAccounts } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { TradeChartDialog } from "@/components/TradeChartDialog";
 
 interface Trade {
   id: string;
@@ -90,6 +91,8 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   const [moveAccountDialogOpen, setMoveAccountDialogOpen] = useState(false);
   const [tradeToMove, setTradeToMove] = useState<Trade | null>(null);
   const [selectedMoveAccountId, setSelectedMoveAccountId] = useState<string>("");
+  const [chartDialogOpen, setChartDialogOpen] = useState(false);
+  const [tradeForChart, setTradeForChart] = useState<Trade | null>(null);
   
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -936,6 +939,18 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => {
+                              setTradeForChart(trade);
+                              setChartDialogOpen(true);
+                            }}
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
+                            title="View Chart"
+                          >
+                            <LineChart className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleMoveAccount(trade)}
                             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
                             title="Move to Account"
@@ -1146,6 +1161,13 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Trade Chart Dialog */}
+      <TradeChartDialog
+        open={chartDialogOpen}
+        onOpenChange={setChartDialogOpen}
+        trade={tradeForChart}
+      />
     </div>
   );
 };
