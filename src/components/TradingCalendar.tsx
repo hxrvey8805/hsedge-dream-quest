@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from "date-fns";
-import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus, LineChart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus, LineChart, ClipboardList } from "lucide-react";
 import { useAccounts } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TradeChartDialog } from "@/components/TradeChartDialog";
+import { DailyReviewDialog } from "@/components/review/DailyReviewDialog";
 
 interface Trade {
   id: string;
@@ -93,6 +94,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   const [selectedMoveAccountId, setSelectedMoveAccountId] = useState<string>("");
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [tradeForChart, setTradeForChart] = useState<Trade | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -642,17 +644,28 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                     </p>
                   </div>
                   {selectedDay && onDaySelect && (
-                    <Button
-                      onClick={() => {
-                        setShowDetailsDialog(false);
-                        onDaySelect(selectedDay);
-                      }}
-                      size="sm"
-                      className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Log Trade
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setReviewDialogOpen(true)}
+                        size="sm"
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <ClipboardList className="h-4 w-4" />
+                        Review Day
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowDetailsDialog(false);
+                          onDaySelect(selectedDay);
+                        }}
+                        size="sm"
+                        className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Log Trade
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1168,6 +1181,17 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
         onOpenChange={setChartDialogOpen}
         trade={tradeForChart}
       />
+
+      {/* Daily Review Dialog */}
+      {selectedDay && (
+        <DailyReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          date={selectedDay}
+          trades={getDayStats(selectedDay).trades}
+          totalPL={getDayStats(selectedDay).totalProfit}
+        />
+      )}
     </div>
   );
 };

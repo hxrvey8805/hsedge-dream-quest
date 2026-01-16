@@ -95,6 +95,42 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          lessons_learned: string | null
+          missed_opportunities: string | null
+          review_date: string
+          total_pl: number | null
+          updated_at: string
+          user_id: string
+          what_went_well: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lessons_learned?: string | null
+          missed_opportunities?: string | null
+          review_date: string
+          total_pl?: number | null
+          updated_at?: string
+          user_id: string
+          what_went_well?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lessons_learned?: string | null
+          missed_opportunities?: string | null
+          review_date?: string
+          total_pl?: number | null
+          updated_at?: string
+          user_id?: string
+          what_went_well?: string | null
+        }
+        Relationships: []
+      }
       dream_profiles: {
         Row: {
           created_at: string
@@ -493,6 +529,60 @@ export type Database = {
             columns: ["strategy_id"]
             isOneToOne: false
             referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_review_slides: {
+        Row: {
+          created_at: string
+          daily_review_id: string
+          id: string
+          markers: Json | null
+          reflection: string | null
+          screenshot_url: string | null
+          slide_order: number
+          trade_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_review_id: string
+          id?: string
+          markers?: Json | null
+          reflection?: string | null
+          screenshot_url?: string | null
+          slide_order?: number
+          trade_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_review_id?: string
+          id?: string
+          markers?: Json | null
+          reflection?: string | null
+          screenshot_url?: string | null
+          slide_order?: number
+          trade_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_review_slides_daily_review_id_fkey"
+            columns: ["daily_review_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_review_slides_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
             referencedColumns: ["id"]
           },
         ]
