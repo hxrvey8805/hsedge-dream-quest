@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import tlIcon from "@/assets/tl-icon.png";
 
 interface LucidAnimationProps {
   onComplete?: () => void;
@@ -141,7 +142,7 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
 
           {/* Central content */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* TradeLucid text with glow - matching homepage style */}
+            {/* TL Logo with glow */}
             <motion.div
               className="relative mb-8"
               initial={{ opacity: 0, scale: 0.5, y: 20 }}
@@ -151,20 +152,20 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              {/* Glow behind text */}
+              {/* Glow behind logo */}
               <motion.div
                 className="absolute inset-0 blur-3xl pointer-events-none"
                 style={{
-                  background: 'radial-gradient(circle, hsl(212 98% 62% / 0.4) 0%, transparent 70%)',
-                  width: 300,
-                  height: 150,
+                  background: 'radial-gradient(circle, hsl(212 98% 62% / 0.5) 0%, transparent 70%)',
+                  width: 400,
+                  height: 400,
                   left: '50%',
                   top: '50%',
                   transform: 'translate(-50%, -50%)',
                 }}
                 animate={{
                   scale: [1, 1.2, 1],
-                  opacity: [0.4, 0.6, 0.4],
+                  opacity: [0.4, 0.7, 0.4],
                 }}
                 transition={{
                   duration: 3,
@@ -173,22 +174,18 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                 }}
               />
               
-              <motion.h1
-                className="text-6xl md:text-7xl lg:text-8xl font-light italic relative z-10"
+              <motion.img
+                src={tlIcon}
+                alt="TradeLucid"
+                className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 object-contain relative z-10"
                 style={{
-                  fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  letterSpacing: '0.08em',
-                  fontWeight: 300,
-                  filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))',
+                  filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.6))',
                 }}
                 animate={{
                   y: [0, -8, 0],
                   filter: [
                     'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
-                    'drop-shadow(0 0 60px rgba(59, 130, 246, 0.7))',
+                    'drop-shadow(0 0 60px rgba(59, 130, 246, 0.8))',
                     'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
                   ],
                 }}
@@ -197,37 +194,16 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-              >
-                TradeLucid
-              </motion.h1>
+              />
             </motion.div>
 
-            {/* Welcome text */}
+            {/* Status text */}
             <motion.div
               className="text-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: phase !== 'logo' ? 1 : 0 }}
               transition={{ duration: 0.6 }}
             >
-              <motion.h1
-                className="text-4xl md:text-6xl lg:text-7xl font-light tracking-wider mb-4"
-                initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-                animate={{ 
-                  opacity: phase !== 'logo' ? 1 : 0, 
-                  y: phase !== 'logo' ? 0 : 30,
-                  filter: phase !== 'logo' ? 'blur(0px)' : 'blur(10px)',
-                }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  background: 'linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(212 60% 80%) 50%, hsl(163 80% 60%) 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontFamily: "'Inter', system-ui, sans-serif",
-                }}
-              >
-                Welcome
-              </motion.h1>
-
               <motion.div
                 className="overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
@@ -235,7 +211,7 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                   opacity: phase !== 'logo' ? 1 : 0, 
                   y: phase !== 'logo' ? 0 : 20 
                 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
                 <p className="text-lg md:text-xl text-muted-foreground/80 tracking-wide">
                   Preparing your trading dashboard
