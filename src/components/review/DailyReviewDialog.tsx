@@ -293,7 +293,7 @@ export const DailyReviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div>
