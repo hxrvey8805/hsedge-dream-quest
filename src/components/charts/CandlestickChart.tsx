@@ -109,63 +109,81 @@ export const CandlestickChart = ({ data, trade, height = 400 }: CandlestickChart
 
     seriesRef.current.setData(formattedData);
 
-    // Add trade price lines and markers
-    if (trade && chartRef.current) {
-      // Add entry line
-      const entryLine = chartRef.current.addSeries(LineSeries, {
-        color: "#22c55e",
-        lineWidth: 2,
-        lineStyle: LineStyle.Solid,
-        title: `Entry: ${trade.entryPrice.toFixed(5)}`,
-        crosshairMarkerVisible: false,
-        lastValueVisible: true,
-        priceLineVisible: false,
-      });
+    // Calculate price range of the candlestick data
+    const priceMin = Math.min(...data.map(c => c.low));
+    const priceMax = Math.max(...data.map(c => c.high));
+    const priceRange = priceMax - priceMin;
 
-      // Add exit line if exists
-      if (trade.exitPrice) {
-        const exitLine = chartRef.current.addSeries(LineSeries, {
-          color: trade.isWin ? "#22c55e" : "#ef4444",
+    // Helper to check if a price is within reasonable range of chart data
+    const isPriceInRange = (price: number): boolean => {
+      // Allow prices within 50% of the data range from min/max
+      const buffer = priceRange * 0.5;
+      return price >= priceMin - buffer && price <= priceMax + buffer;
+    };
+
+    // Add trade price lines and markers only if prices are compatible
+    if (trade && chartRef.current) {
+      const entryInRange = isPriceInRange(trade.entryPrice);
+      const exitInRange = trade.exitPrice ? isPriceInRange(trade.exitPrice) : true;
+      const slInRange = trade.stopLoss ? isPriceInRange(trade.stopLoss) : true;
+
+      // Only add lines if at least the entry price is in range
+      if (entryInRange) {
+        // Add entry line
+        const entryLine = chartRef.current.addSeries(LineSeries, {
+          color: "#22c55e",
           lineWidth: 2,
           lineStyle: LineStyle.Solid,
-          title: `Exit: ${trade.exitPrice.toFixed(5)}`,
+          title: `Entry: ${trade.entryPrice.toFixed(2)}`,
           crosshairMarkerVisible: false,
           lastValueVisible: true,
           priceLineVisible: false,
         });
 
-        const exitData = data.map(candle => ({
+        const entryData = data.map(candle => ({
           time: toUnixTimestamp(candle.time as string) as any,
-          value: trade.exitPrice!,
+          value: trade.entryPrice,
         }));
-        exitLine.setData(exitData);
+        entryLine.setData(entryData);
+
+        // Add exit line if exists and in range
+        if (trade.exitPrice && exitInRange) {
+          const exitLine = chartRef.current.addSeries(LineSeries, {
+            color: trade.isWin ? "#22c55e" : "#ef4444",
+            lineWidth: 2,
+            lineStyle: LineStyle.Solid,
+            title: `Exit: ${trade.exitPrice.toFixed(2)}`,
+            crosshairMarkerVisible: false,
+            lastValueVisible: true,
+            priceLineVisible: false,
+          });
+
+          const exitData = data.map(candle => ({
+            time: toUnixTimestamp(candle.time as string) as any,
+            value: trade.exitPrice!,
+          }));
+          exitLine.setData(exitData);
+        }
+
+        // Add stop loss line if in range
+        if (trade.stopLoss && slInRange) {
+          const slLine = chartRef.current.addSeries(LineSeries, {
+            color: "#ef4444",
+            lineWidth: 1,
+            lineStyle: LineStyle.Dashed,
+            title: `SL: ${trade.stopLoss.toFixed(2)}`,
+            crosshairMarkerVisible: false,
+            lastValueVisible: true,
+            priceLineVisible: false,
+          });
+
+          const slData = data.map(candle => ({
+            time: toUnixTimestamp(candle.time as string) as any,
+            value: trade.stopLoss!,
+          }));
+          slLine.setData(slData);
+        }
       }
-
-      // Add stop loss line
-      if (trade.stopLoss) {
-        const slLine = chartRef.current.addSeries(LineSeries, {
-          color: "#ef4444",
-          lineWidth: 1,
-          lineStyle: LineStyle.Dashed,
-          title: `SL: ${trade.stopLoss.toFixed(5)}`,
-          crosshairMarkerVisible: false,
-          lastValueVisible: true,
-          priceLineVisible: false,
-        });
-
-        const slData = data.map(candle => ({
-          time: toUnixTimestamp(candle.time as string) as any,
-          value: trade.stopLoss!,
-        }));
-        slLine.setData(slData);
-      }
-
-      // Set entry line data across entire visible range
-      const entryData = data.map(candle => ({
-        time: toUnixTimestamp(candle.time as string) as any,
-        value: trade.entryPrice,
-      }));
-      entryLine.setData(entryData);
 
       // Fit content
       chartRef.current.timeScale().fitContent();
