@@ -16,6 +16,18 @@ export interface ParsedTrade {
   notes: string | null;
 }
 
+interface RawTransaction {
+  trade_date: string;
+  symbol: string;
+  asset_class: string;
+  buy_sell: string;
+  price: number;
+  size: number;
+  fees: number;
+  time: string | null;
+  rowNum: number;
+}
+
 export interface TradeCSVParseResult {
   data: ParsedTrade[];
   errors: string[];
@@ -44,6 +56,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
 
 /**
  * Parses CSV data for bulk trade import - supports multiple brokerage formats
+ * Automatically pairs buy/sell transactions into complete trades
  */
 export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
   const lines = csvText.trim().split('\n');
@@ -65,6 +78,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
   const hasDateColumn = columnMap.trade_date !== -1;
   const hasSymbolColumn = columnMap.symbol !== -1;
   const hasSideColumn = columnMap.buy_sell !== -1;
+  const hasExitPriceColumn = columnMap.exit_price !== -1;
 
   if (!hasDateColumn) {
     return { data: [], errors: [`Missing date column. Found columns: ${header.join(', ')}`], warnings: [] };
@@ -73,7 +87,8 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
     return { data: [], errors: [`Missing symbol column. Found columns: ${header.join(', ')}`], warnings: [] };
   }
 
-  const data: ParsedTrade[] = [];
+  // Collect all transactions first
+  const transactions: RawTransaction[] = [];
 
   // Parse data rows
   for (let i = 1; i < lines.length; i++) {
@@ -106,7 +121,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
       symbol = symbol.toUpperCase().trim();
 
       // Parse buy/sell direction
-      let buySell = 'Buy'; // Default
+      let buySell = 'Buy';
       if (hasSideColumn) {
         const sideRaw = getColumnValue(values, columnMap.buy_sell);
         buySell = normalizeBuySell(sideRaw) || 'Buy';
@@ -117,73 +132,203 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
       if (size !== null && size < 0) {
         size = Math.abs(size);
         // Negative quantity often indicates a sell
-        if (!hasSideColumn) {
+        if (!hasSideColumn || buySell === 'Buy') {
           buySell = 'Sell';
         }
       }
 
-      // Parse prices
-      const entryPrice = parseNumberValue(getColumnValue(values, columnMap.entry_price));
-      const exitPrice = parseNumberValue(getColumnValue(values, columnMap.exit_price));
-      const stopLoss = parseNumberValue(getColumnValue(values, columnMap.stop_loss));
+      // Parse price
+      const price = parseNumberValue(getColumnValue(values, columnMap.entry_price));
+      if (!price) {
+        errors.push(`Row ${rowNum}: Missing price`);
+        continue;
+      }
 
       // Parse fees
       let fees = parseNumberValue(getColumnValue(values, columnMap.fees));
       if (fees !== null) {
-        fees = Math.abs(fees); // Fees are always positive
+        fees = Math.abs(fees);
       }
 
       // Parse time
-      let timeOpened = parseTimeValue(getColumnValue(values, columnMap.time_opened));
-      const timeClosed = parseTimeValue(getColumnValue(values, columnMap.time_closed));
+      const time = parseTimeValue(getColumnValue(values, columnMap.time_opened));
 
       // Parse asset class
       const assetClassRaw = getColumnValue(values, columnMap.asset_class);
       const assetClass = normalizeAssetClass(assetClassRaw) || 'Stocks';
 
-      // Parse optional fields
-      const session = getColumnValue(values, columnMap.session);
-      const strategyType = getColumnValue(values, columnMap.strategy_type);
-      const entryTimeframe = getColumnValue(values, columnMap.entry_timeframe);
-      const notes = getColumnValue(values, columnMap.notes);
-
-      const trade: ParsedTrade = {
+      transactions.push({
         trade_date: tradeDate,
         symbol,
         asset_class: assetClass,
         buy_sell: buySell,
-        entry_price: entryPrice,
-        exit_price: exitPrice,
-        stop_loss: stopLoss,
-        size: size || 100, // Default to 100 if not provided
-        fees,
-        time_opened: timeOpened,
-        time_closed: timeClosed,
-        session: session || null,
-        strategy_type: strategyType || null,
-        entry_timeframe: entryTimeframe || null,
-        notes: notes || null,
-      };
-
-      data.push(trade);
+        price,
+        size: size || 100,
+        fees: fees || 0,
+        time,
+        rowNum,
+      });
     } catch (err) {
       errors.push(`Row ${rowNum}: Parse error`);
     }
   }
 
-  if (data.length === 0 && errors.length === 0) {
-    errors.push("No valid data rows found");
+  // Check if this looks like a brokerage statement (separate buy/sell rows) or journaled trades
+  const isBrokerageFormat = !hasExitPriceColumn && transactions.length > 0;
+  
+  let data: ParsedTrade[] = [];
+
+  if (isBrokerageFormat) {
+    // Pair buy/sell transactions into complete trades
+    data = pairTransactions(transactions, warnings);
+  } else {
+    // Already formatted as complete trades - convert directly
+    data = transactions.map(t => ({
+      trade_date: t.trade_date,
+      symbol: t.symbol,
+      asset_class: t.asset_class,
+      buy_sell: t.buy_sell,
+      entry_price: t.price,
+      exit_price: null,
+      stop_loss: null,
+      size: t.size,
+      fees: t.fees,
+      time_opened: t.time,
+      time_closed: null,
+      session: null,
+      strategy_type: null,
+      entry_timeframe: null,
+      notes: null,
+    }));
   }
 
-  // Add warning about format detection
+  if (data.length === 0 && errors.length === 0) {
+    errors.push("No valid trades could be created from the data");
+  }
+
+  // Add format detection warning
   if (data.length > 0) {
     const detectedFormat = detectFormat(header);
     if (detectedFormat) {
-      warnings.push(`Detected ${detectedFormat} format`);
+      warnings.unshift(`Detected ${detectedFormat} format - paired ${transactions.length} transactions into ${data.length} trades`);
     }
   }
 
   return { data, errors, warnings };
+}
+
+/**
+ * Pairs buy and sell transactions into complete trades using FIFO matching
+ */
+function pairTransactions(transactions: RawTransaction[], warnings: string[]): ParsedTrade[] {
+  const trades: ParsedTrade[] = [];
+  
+  // Group by symbol and date
+  const grouped = new Map<string, RawTransaction[]>();
+  
+  for (const tx of transactions) {
+    const key = `${tx.symbol}_${tx.trade_date}`;
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key)!.push(tx);
+  }
+
+  // Process each group
+  for (const [key, txs] of grouped) {
+    // Sort by time
+    txs.sort((a, b) => {
+      if (a.time && b.time) {
+        return a.time.localeCompare(b.time);
+      }
+      return a.rowNum - b.rowNum;
+    });
+
+    // Separate buys and sells
+    const buys = txs.filter(t => t.buy_sell === 'Buy');
+    const sells = txs.filter(t => t.buy_sell === 'Sell');
+
+    // FIFO matching
+    let buyIdx = 0;
+    let sellIdx = 0;
+
+    while (buyIdx < buys.length && sellIdx < sells.length) {
+      const buy = buys[buyIdx];
+      const sell = sells[sellIdx];
+
+      // Match the transaction that comes first with the next opposite transaction
+      const buyFirst = !buy.time || !sell.time || buy.time <= sell.time;
+
+      if (buyFirst) {
+        // This is a long trade: Buy then Sell
+        const trade: ParsedTrade = {
+          trade_date: buy.trade_date,
+          symbol: buy.symbol,
+          asset_class: buy.asset_class,
+          buy_sell: 'Buy',
+          entry_price: buy.price,
+          exit_price: sell.price,
+          stop_loss: null,
+          size: Math.min(buy.size, sell.size),
+          fees: (buy.fees || 0) + (sell.fees || 0),
+          time_opened: buy.time,
+          time_closed: sell.time,
+          session: null,
+          strategy_type: null,
+          entry_timeframe: null,
+          notes: null,
+        };
+        trades.push(trade);
+        buyIdx++;
+        sellIdx++;
+      } else {
+        // This is a short trade: Sell then Buy (cover)
+        const trade: ParsedTrade = {
+          trade_date: sell.trade_date,
+          symbol: sell.symbol,
+          asset_class: sell.asset_class,
+          buy_sell: 'Sell',
+          entry_price: sell.price,
+          exit_price: buy.price,
+          stop_loss: null,
+          size: Math.min(buy.size, sell.size),
+          fees: (buy.fees || 0) + (sell.fees || 0),
+          time_opened: sell.time,
+          time_closed: buy.time,
+          session: null,
+          strategy_type: null,
+          entry_timeframe: null,
+          notes: null,
+        };
+        trades.push(trade);
+        buyIdx++;
+        sellIdx++;
+      }
+    }
+
+    // Report unpaired transactions
+    const unpairedBuys = buys.length - buyIdx;
+    const unpairedSells = sells.length - sellIdx;
+    
+    if (unpairedBuys > 0) {
+      warnings.push(`${key.split('_')[0]}: ${unpairedBuys} unpaired buy transaction(s) - likely still open positions`);
+    }
+    if (unpairedSells > 0) {
+      warnings.push(`${key.split('_')[0]}: ${unpairedSells} unpaired sell transaction(s) - likely short positions`);
+    }
+  }
+
+  // Sort trades by date and time
+  trades.sort((a, b) => {
+    const dateCompare = a.trade_date.localeCompare(b.trade_date);
+    if (dateCompare !== 0) return dateCompare;
+    if (a.time_opened && b.time_opened) {
+      return a.time_opened.localeCompare(b.time_opened);
+    }
+    return 0;
+  });
+
+  return trades;
 }
 
 function buildColumnMap(header: string[]): Record<string, number> {
@@ -300,9 +445,10 @@ function normalizeBuySell(value: string | null): string | null {
   if (lower === 'b' || lower === 'l' || lower === 'long') return 'Buy';
   if (lower === 's' || lower === 'short') return 'Sell';
   
-  // Handle Side column with B/S
-  if (lower === 'b  ' || lower.startsWith('b')) return 'Buy';
-  if (lower === 's  ' || lower.startsWith('s')) return 'Sell';
+  // Handle Side column with B/S (with trailing spaces)
+  const trimmed = lower.replace(/\s+/g, '');
+  if (trimmed === 'b') return 'Buy';
+  if (trimmed === 's') return 'Sell';
   
   return null;
 }
@@ -315,7 +461,7 @@ function normalizeAssetClass(value: string | null): string | null {
   if (lower.includes('stock') || lower.includes('equity') || lower.includes('equities')) return 'Stocks';
   if (lower.includes('future') || lower.includes('futures')) return 'Futures';
   if (lower.includes('crypto') || lower.includes('cryptocurrency') || lower.includes('coin')) return 'Crypto';
-  if (lower.includes('option')) return 'Stocks'; // Treat options as stocks for now
+  if (lower.includes('option')) return 'Stocks';
   
   return null;
 }
@@ -374,7 +520,7 @@ function detectFormat(header: string[]): string | null {
     return 'Interactive Brokers';
   }
   
-  return null;
+  return 'Brokerage Statement';
 }
 
 /**
@@ -386,16 +532,12 @@ export function calculateTradePnL(trade: ParsedTrade): { pips: number; profit: n
   const size = trade.size;
   const fees = trade.fees || 0;
 
-  // If no exit price, we only have entry (single transaction)
   if (!entry || !exit || !size) {
-    // For single transactions, calculate based on entry price and size
-    if (entry && size) {
-      // This is a single transaction, not a complete trade
-      return { pips: 0, profit: 0, outcome: 'Open' };
-    }
     return { pips: 0, profit: 0, outcome: 'Break Even' };
   }
 
+  // For long trades (Buy): profit = (exit - entry) * size
+  // For short trades (Sell): profit = (entry - exit) * size
   const priceDiff = trade.buy_sell === 'Sell' ? (entry - exit) : (exit - entry);
   let pips = 0;
   let profit = 0;
@@ -419,10 +561,10 @@ export function calculateTradePnL(trade: ParsedTrade): { pips: number; profit: n
       break;
   }
 
-  const outcome = profit > 0 ? 'Win' : profit < 0 ? 'Loss' : 'Break Even';
+  const outcome = profit > 0.01 ? 'Win' : profit < -0.01 ? 'Loss' : 'Break Even';
 
   return {
-    pips: parseFloat(pips.toFixed(2)),
+    pips: parseFloat(pips.toFixed(4)),
     profit: parseFloat(profit.toFixed(2)),
     outcome
   };
