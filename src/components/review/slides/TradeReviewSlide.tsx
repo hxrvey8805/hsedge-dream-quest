@@ -2,9 +2,10 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image, MonitorUp } from "lucide-react";
+import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image, MonitorUp, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ImageEditorDialog } from "../ImageEditorDialog";
 
 interface Trade {
   id: string;
@@ -48,8 +49,16 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const [isUploading, setIsUploading] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [draggedMarker, setDraggedMarker] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleEditorSave = (newImageUrl: string, newMarkers: Marker[]) => {
+    onUpdate({ 
+      screenshot_url: newImageUrl, 
+      markers: newMarkers 
+    });
+  };
 
   const handleScreenCapture = async () => {
     // Check if Screen Capture API is supported
@@ -258,17 +267,36 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         {/* Image with markers */}
         <div
           ref={imageRef}
-          className="relative bg-muted/50 border-2 border-dashed rounded-lg overflow-hidden aspect-video"
+          className="relative bg-muted/50 border-2 border-dashed rounded-lg overflow-hidden aspect-video group"
           onDrop={handleImageDrop}
           onDragOver={handleDragOver}
           onClick={handleImageClick}
         >
           {slideData.screenshot_url ? (
-            <img
-              src={slideData.screenshot_url}
-              alt="Trade screenshot"
-              className="w-full h-full object-contain"
-            />
+            <>
+              <img
+                src={slideData.screenshot_url}
+                alt="Trade screenshot"
+                className="w-full h-full object-contain"
+              />
+              {/* Edit overlay */}
+              <div 
+                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditorOpen(true);
+                }}
+              >
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Maximize2 className="w-4 h-4 mr-2" />
+                  Edit & Add Markers
+                </Button>
+              </div>
+            </>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
               <Image className="w-12 h-12 mb-2 opacity-50" />
@@ -292,6 +320,18 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             </div>
           ))}
         </div>
+
+        {/* Image Editor Dialog */}
+        {slideData.screenshot_url && (
+          <ImageEditorDialog
+            open={isEditorOpen}
+            onOpenChange={setIsEditorOpen}
+            imageUrl={slideData.screenshot_url}
+            markers={slideData.markers}
+            onSave={handleEditorSave}
+            tradeId={trade.id}
+          />
+        )}
 
         {/* Marker palette */}
         <div className="space-y-2">
