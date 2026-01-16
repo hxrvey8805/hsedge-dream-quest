@@ -38,6 +38,21 @@ interface OHLCData {
   close: number;
 }
 
+// Symbols that are mapped to ETF proxies (prices won't match)
+const ETF_PROXY_SYMBOLS = [
+  "NAS100", "NASDAQ", "NASDAQ100", "US100", "USTEC", "NDX",
+  "US30", "DJ30", "DOW", "DOW30", "DJI",
+  "US500", "SPX500", "SP500", "SPX",
+  "UK100", "FTSE100", "FTSE",
+  "GER40", "GER30", "DE40", "DE30", "DAX",
+  "JPN225", "NIKKEI", "JP225", "N225",
+  "AUS200", "AXJO", "HK50", "HANGSENG", "HSI",
+  "FRA40", "CAC40", "FCHI",
+  "XAUUSD", "GOLD", "XAGUSD", "SILVER",
+  "XTIUSD", "USOIL", "CRUDEOIL", "WTIUSD",
+  "XBRUSD", "UKOIL", "BRENTUSD", "XNGUSD", "NATGAS",
+];
+
 export const TradeChartDialog = ({ open, onOpenChange, trade }: TradeChartDialogProps) => {
   const [priceData, setPriceData] = useState<OHLCData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,8 +118,11 @@ export const TradeChartDialog = ({ open, onOpenChange, trade }: TradeChartDialog
   const symbol = trade?.symbol || trade?.pair || "Unknown";
   const isWin = trade?.outcome === "Win";
   const isBuy = trade?.buy_sell === "Buy";
+  
+  // Check if this symbol uses an ETF proxy (prices won't match)
+  const isProxySymbol = ETF_PROXY_SYMBOLS.includes(symbol.toUpperCase().replace(/[\/\-_\s]/g, ""));
 
-  const tradeMarker = trade?.entry_price ? {
+  const tradeMarker = trade?.entry_price && !isProxySymbol ? {
     entryTime: `${trade.trade_date}T${trade.time_opened || "09:00:00"}`,
     entryPrice: trade.entry_price,
     exitTime: trade.time_closed ? `${trade.trade_date}T${trade.time_closed}` : undefined,
@@ -192,11 +210,20 @@ export const TradeChartDialog = ({ open, onOpenChange, trade }: TradeChartDialog
           )}
 
           {!loading && !error && priceData.length > 0 && (
-            <CandlestickChart 
-              data={priceData} 
-              trade={tradeMarker}
-              height={400}
-            />
+            <>
+              {isProxySymbol && (
+                <div className="absolute top-2 left-2 right-2 z-10">
+                  <div className="bg-amber-500/20 border border-amber-500/50 text-amber-200 text-xs px-3 py-2 rounded-md">
+                    <strong>Note:</strong> Using ETF proxy for {symbol}. Chart shows price action pattern only - actual prices differ from your trade levels.
+                  </div>
+                </div>
+              )}
+              <CandlestickChart 
+                data={priceData} 
+                trade={tradeMarker}
+                height={400}
+              />
+            </>
           )}
 
           {!loading && !error && priceData.length === 0 && (
@@ -207,7 +234,7 @@ export const TradeChartDialog = ({ open, onOpenChange, trade }: TradeChartDialog
         </div>
 
         <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-          Price data provided by Twelve Data • Date: {trade ? format(new Date(trade.trade_date), "PPP") : ""}
+          Price data provided by Twelve Data{isProxySymbol ? " (ETF proxy)" : ""} • Date: {trade ? format(new Date(trade.trade_date), "PPP") : ""}
         </div>
       </DialogContent>
     </Dialog>
