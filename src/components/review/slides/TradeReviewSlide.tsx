@@ -2,10 +2,11 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, ArrowUpCircle, ArrowDownCircle, Target, X, Image, MonitorUp, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Upload, ArrowUpCircle, Target, X, Image, MonitorUp, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ImageEditorDialog } from "../ImageEditorDialog";
+import { ImageEditorDialog, Marker } from "../ImageEditorDialog";
 
 interface Trade {
   id: string;
@@ -17,13 +18,6 @@ interface Trade {
   profit: number | null;
   outcome: string;
   pips: number | null;
-}
-
-interface Marker {
-  id: string;
-  type: 'entry' | 'stop_loss' | 'take_profit';
-  x: number; // percentage
-  y: number; // percentage
 }
 
 interface TradeSlideData {
@@ -50,6 +44,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const [isCapturing, setIsCapturing] = useState(false);
   const [draggedMarker, setDraggedMarker] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -214,11 +209,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     onUpdate({ markers: slideData.markers.filter(m => m.id !== markerId) });
   };
 
-  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit', size: 'sm' | 'md' = 'sm') => {
     const config = MARKER_TYPES.find(m => m.type === type);
     if (!config) return null;
     const Icon = config.icon;
-    return <Icon className="w-6 h-6" />;
+    return <Icon className={size === 'sm' ? "w-4 h-4" : "w-5 h-5"} />;
   };
 
   const getMarkerColor = (type: 'entry' | 'stop_loss' | 'take_profit') => {
@@ -264,10 +259,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           />
         </div>
 
-        {/* Image with markers */}
+        {/* Image with markers - Larger display */}
         <div
           ref={imageRef}
-          className="relative bg-muted/50 border-2 border-dashed rounded-lg overflow-hidden aspect-video group"
+          className="relative bg-muted/50 border-2 border-dashed rounded-lg overflow-hidden min-h-[400px] group"
           onDrop={handleImageDrop}
           onDragOver={handleDragOver}
           onClick={handleImageClick}
@@ -277,23 +272,34 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
               <img
                 src={slideData.screenshot_url}
                 alt="Trade screenshot"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain max-h-[500px]"
               />
               {/* Edit overlay */}
               <div 
-                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditorOpen(true);
-                }}
+                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2"
               >
                 <Button
                   variant="secondary"
                   size="sm"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditorOpen(true);
+                  }}
                 >
                   <Maximize2 className="w-4 h-4 mr-2" />
                   Edit & Add Markers
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity bg-background/80"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsImageViewerOpen(true);
+                  }}
+                >
+                  View Full Size
                 </Button>
               </div>
             </>
@@ -304,11 +310,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             </div>
           )}
 
-          {/* Markers on image */}
+          {/* Markers on image - smaller default size */}
           {slideData.markers.map((marker) => (
             <div
               key={marker.id}
-              className={`absolute w-8 h-8 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white cursor-pointer transform -translate-x-1/2 -translate-y-1/2 shadow-lg hover:scale-110 transition-transform`}
+              className={`absolute w-6 h-6 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white cursor-pointer transform -translate-x-1/2 -translate-y-1/2 shadow-lg hover:scale-110 transition-transform`}
               style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -320,6 +326,30 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             </div>
           ))}
         </div>
+
+        {/* Full size image viewer */}
+        <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2">
+            <DialogTitle className="sr-only">Trade Screenshot</DialogTitle>
+            <div className="relative w-full h-full overflow-auto">
+              <img
+                src={slideData.screenshot_url || ''}
+                alt="Trade screenshot full size"
+                className="w-full h-auto object-contain"
+              />
+              {/* Markers on full size image */}
+              {slideData.markers.map((marker) => (
+                <div
+                  key={marker.id}
+                  className={`absolute w-8 h-8 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg`}
+                  style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                >
+                  {getMarkerIcon(marker.type, 'md')}
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Image Editor Dialog */}
         {slideData.screenshot_url && (
@@ -344,7 +374,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 onDragStart={(e) => handleMarkerDragStart(e, marker.type)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-grab active:cursor-grabbing ${marker.color} border transition-transform hover:scale-105`}
               >
-                <marker.icon className="w-5 h-5" />
+                <marker.icon className="w-4 h-4" />
                 <span className="text-sm font-medium">{marker.label}</span>
               </div>
             ))}

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { 
   ArrowUpCircle, 
   ArrowDownCircle, 
@@ -13,12 +14,13 @@ import {
   RotateCcw,
   ZoomIn,
   ZoomOut,
-  Move
+  Move,
+  Minus
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Marker {
+export interface Marker {
   id: string;
   type: 'entry' | 'stop_loss' | 'take_profit';
   x: number;
@@ -35,9 +37,9 @@ interface ImageEditorDialogProps {
 }
 
 const MARKER_TYPES = [
-  { type: 'entry' as const, label: 'Entry', icon: ArrowUpCircle, color: 'bg-blue-500', borderColor: 'border-blue-300' },
-  { type: 'stop_loss' as const, label: 'Stop Loss', icon: X, color: 'bg-destructive', borderColor: 'border-red-300' },
-  { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'bg-emerald-500', borderColor: 'border-emerald-300' },
+  { type: 'entry' as const, label: 'Entry', icon: ArrowUpCircle, color: 'bg-blue-500', borderColor: 'border-blue-300', lineColor: '#3b82f6' },
+  { type: 'stop_loss' as const, label: 'Stop Loss', icon: X, color: 'bg-destructive', borderColor: 'border-red-300', lineColor: '#ef4444' },
+  { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'bg-emerald-500', borderColor: 'border-emerald-300', lineColor: '#10b981' },
 ];
 
 export const ImageEditorDialog = ({ 
@@ -58,6 +60,12 @@ export const ImageEditorDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   
+  // New state for marker customization
+  const [markerSize, setMarkerSize] = useState(24);
+  const [useLineMode, setUseLineMode] = useState(false);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const [isDraggingMarker, setIsDraggingMarker] = useState(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -71,17 +79,25 @@ export const ImageEditorDialog = ({
       setCropEnd(null);
       setZoom(100);
       setSelectedMarkerType(null);
+      setSelectedMarkerId(null);
+      setIsDraggingMarker(false);
     }
   }, [open, initialMarkers]);
 
   const displayUrl = croppedImageUrl || imageUrl;
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || isCropping) return;
+    if (!containerRef.current || isCropping || isDraggingMarker) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // If clicking on empty space while a marker is selected, deselect it
+    if (selectedMarkerId && !selectedMarkerType) {
+      setSelectedMarkerId(null);
+      return;
+    }
 
     if (selectedMarkerType) {
       // Remove existing marker of same type and add new one
@@ -94,7 +110,31 @@ export const ImageEditorDialog = ({
       });
       setMarkers(newMarkers);
     }
-  }, [selectedMarkerType, markers, isCropping]);
+  }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker]);
+
+  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSelectedMarkerId(markerId);
+    setSelectedMarkerType(null);
+    setIsDraggingMarker(true);
+  };
+
+  const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
+    if (!isDraggingMarker || !selectedMarkerId || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+
+    setMarkers(prev => prev.map(m => 
+      m.id === selectedMarkerId ? { ...m, x, y } : m
+    ));
+  }, [isDraggingMarker, selectedMarkerId]);
+
+  const handleMarkerMouseUp = () => {
+    setIsDraggingMarker(false);
+  };
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isCropping || !containerRef.current) return;
@@ -111,6 +151,12 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle marker dragging
+    if (isDraggingMarker) {
+      handleMarkerDrag(e);
+      return;
+    }
+    
     if (!isCropping || !isDraggingCrop || !cropStart || !containerRef.current) return;
     e.preventDefault();
     
@@ -122,11 +168,15 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDraggingMarker) {
+      handleMarkerMouseUp();
+      return;
+    }
+    
     if (!isCropping) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingCrop(false);
-    // Keep cropStart and cropEnd so user can apply the crop
   };
 
   const applyCrop = async () => {
@@ -135,15 +185,12 @@ export const ImageEditorDialog = ({
     const containerRect = containerRef.current.getBoundingClientRect();
     const imgRect = imageRef.current.getBoundingClientRect();
 
-    // Calculate crop area relative to the displayed image
     const scaleX = imageRef.current.naturalWidth / imgRect.width;
     const scaleY = imageRef.current.naturalHeight / imgRect.height;
 
-    // Get image offset within container (for object-contain centering)
     const offsetX = (containerRect.width - imgRect.width) / 2;
     const offsetY = (containerRect.height - imgRect.height) / 2;
 
-    // Adjust crop coordinates for image offset
     const adjustedStart = {
       x: Math.max(0, cropStart.x - offsetX),
       y: Math.max(0, cropStart.y - offsetY)
@@ -163,7 +210,6 @@ export const ImageEditorDialog = ({
       return;
     }
 
-    // Create canvas and crop
     const canvas = document.createElement('canvas');
     canvas.width = cropWidth;
     canvas.height = cropHeight;
@@ -171,7 +217,6 @@ export const ImageEditorDialog = ({
     
     if (!ctx) return;
 
-    // Load image and draw cropped portion
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.src = displayUrl;
@@ -186,11 +231,9 @@ export const ImageEditorDialog = ({
       0, 0, cropWidth, cropHeight
     );
 
-    // Convert to data URL
     const croppedDataUrl = canvas.toDataURL('image/png');
     setCroppedImageUrl(croppedDataUrl);
     
-    // Reset crop state and adjust markers to fit new crop
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
     
@@ -203,7 +246,6 @@ export const ImageEditorDialog = ({
       y: (Math.max(cropStart.y, cropEnd.y) / containerHeight) * 100
     };
     
-    // Recalculate marker positions for cropped area
     const newMarkers = markers.map(marker => {
       const newX = ((marker.x - cropStartPercent.x) / (cropEndPercent.x - cropStartPercent.x)) * 100;
       const newY = ((marker.y - cropStartPercent.y) / (cropEndPercent.y - cropStartPercent.y)) * 100;
@@ -224,6 +266,9 @@ export const ImageEditorDialog = ({
   const removeMarker = (markerId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setMarkers(markers.filter(m => m.id !== markerId));
+    if (selectedMarkerId === markerId) {
+      setSelectedMarkerId(null);
+    }
   };
 
   const handleSave = async () => {
@@ -232,7 +277,6 @@ export const ImageEditorDialog = ({
     try {
       let finalImageUrl = imageUrl;
       
-      // If we have a cropped image, upload it
       if (croppedImageUrl) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -240,7 +284,6 @@ export const ImageEditorDialog = ({
           return;
         }
 
-        // Convert data URL to blob
         const response = await fetch(croppedImageUrl);
         const blob = await response.blob();
 
@@ -275,6 +318,9 @@ export const ImageEditorDialog = ({
     setCropStart(null);
     setCropEnd(null);
     setZoom(100);
+    setSelectedMarkerId(null);
+    setMarkerSize(24);
+    setUseLineMode(false);
   };
 
   const getCropRect = () => {
@@ -287,11 +333,85 @@ export const ImageEditorDialog = ({
     };
   };
 
-  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit', size: number) => {
     const config = MARKER_TYPES.find(m => m.type === type);
     if (!config) return null;
     const Icon = config.icon;
-    return <Icon className="w-6 h-6" />;
+    const iconSize = Math.max(12, size - 8);
+    return <Icon style={{ width: iconSize, height: iconSize }} />;
+  };
+
+  const renderMarker = (marker: Marker) => {
+    const config = MARKER_TYPES.find(m => m.type === marker.type);
+    if (!config) return null;
+    
+    const isSelected = selectedMarkerId === marker.id;
+    const baseSize = markerSize;
+    
+    if (useLineMode) {
+      // Render as horizontal line
+      return (
+        <div
+          key={marker.id}
+          className={`absolute flex items-center cursor-move ${isSelected ? 'z-20' : 'z-10'}`}
+          style={{ 
+            left: 0, 
+            right: 0,
+            top: `${marker.y}%`,
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none'
+          }}
+        >
+          {/* Line */}
+          <div 
+            className="w-full flex items-center"
+            style={{ height: baseSize / 2 }}
+          >
+            <div 
+              className="w-full"
+              style={{ 
+                height: Math.max(2, baseSize / 8),
+                backgroundColor: config.lineColor,
+                boxShadow: isSelected ? `0 0 8px ${config.lineColor}` : 'none'
+              }}
+            />
+          </div>
+          {/* Label */}
+          <div
+            className={`absolute left-4 px-2 py-1 rounded text-white text-xs font-medium cursor-move ${isSelected ? 'ring-2 ring-white' : ''}`}
+            style={{ 
+              backgroundColor: config.lineColor,
+              fontSize: Math.max(10, baseSize / 2),
+              pointerEvents: 'auto'
+            }}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
+            onDoubleClick={(e) => removeMarker(marker.id, e)}
+            title="Drag to move, double-click to remove"
+          >
+            {config.label}
+          </div>
+        </div>
+      );
+    }
+
+    // Icon mode
+    return (
+      <div
+        key={marker.id}
+        className={`absolute rounded-full ${config.color} ${config.borderColor} border-2 flex items-center justify-center text-white cursor-move transform -translate-x-1/2 -translate-y-1/2 shadow-lg transition-all ${isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-110' : 'hover:scale-105'} z-10`}
+        style={{ 
+          left: `${marker.x}%`, 
+          top: `${marker.y}%`,
+          width: baseSize,
+          height: baseSize
+        }}
+        onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
+        onDoubleClick={(e) => removeMarker(marker.id, e)}
+        title="Drag to move, double-click to remove"
+      >
+        {getMarkerIcon(marker.type, baseSize)}
+      </div>
+    );
   };
 
   return (
@@ -320,7 +440,7 @@ export const ImageEditorDialog = ({
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left sidebar - Tools */}
-          <div className="w-64 border-r p-4 space-y-6 overflow-y-auto">
+          <div className="w-72 border-r p-4 space-y-5 overflow-y-auto">
             {/* Crop Tool */}
             <div className="space-y-3">
               <Label className="text-sm font-semibold">Crop</Label>
@@ -331,6 +451,7 @@ export const ImageEditorDialog = ({
                 onClick={() => {
                   setIsCropping(!isCropping);
                   setSelectedMarkerType(null);
+                  setSelectedMarkerId(null);
                   if (!isCropping) {
                     setCropStart(null);
                     setCropEnd(null);
@@ -375,11 +496,40 @@ export const ImageEditorDialog = ({
               </div>
             </div>
 
+            {/* Marker Style */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">Marker Style</Label>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Use Lines</span>
+                <Switch 
+                  checked={useLineMode} 
+                  onCheckedChange={setUseLineMode}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Size: {markerSize}px</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Minus className="w-4 h-4 text-muted-foreground" />
+                  <Slider
+                    value={[markerSize]}
+                    onValueChange={([v]) => setMarkerSize(v)}
+                    min={16}
+                    max={48}
+                    step={4}
+                    className="flex-1"
+                  />
+                  <ArrowUpCircle className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </div>
+            </div>
+
             {/* Markers */}
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">Place Markers</Label>
+              <Label className="text-sm font-semibold">Add Markers</Label>
               <p className="text-xs text-muted-foreground">
-                Select a marker type, then click on the image to place it
+                Select type below, then click on the image. Or click existing markers to drag them.
               </p>
               <div className="space-y-2">
                 {MARKER_TYPES.map((marker) => (
@@ -392,6 +542,7 @@ export const ImageEditorDialog = ({
                       setSelectedMarkerType(
                         selectedMarkerType === marker.type ? null : marker.type
                       );
+                      setSelectedMarkerId(null);
                       setIsCropping(false);
                     }}
                   >
@@ -409,14 +560,19 @@ export const ImageEditorDialog = ({
             {markers.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Placed Markers</Label>
+                <p className="text-xs text-muted-foreground">
+                  Click to select, double-click on chart to remove
+                </p>
                 <div className="space-y-2">
                   {markers.map((marker) => {
                     const config = MARKER_TYPES.find(m => m.type === marker.type);
                     if (!config) return null;
+                    const isSelected = selectedMarkerId === marker.id;
                     return (
                       <div 
                         key={marker.id}
-                        className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm"
+                        className={`flex items-center justify-between p-2 rounded-lg text-sm cursor-pointer transition-colors ${isSelected ? 'bg-primary/20 ring-1 ring-primary' : 'bg-muted/50 hover:bg-muted'}`}
+                        onClick={() => setSelectedMarkerId(isSelected ? null : marker.id)}
                       >
                         <div className="flex items-center gap-2">
                           <config.icon className="w-4 h-4" />
@@ -446,11 +602,12 @@ export const ImageEditorDialog = ({
             >
               <div
                 ref={containerRef}
-                className={`relative ${isCropping ? 'cursor-crosshair' : selectedMarkerType ? 'cursor-crosshair' : 'cursor-default'}`}
+                className={`relative select-none ${isCropping ? 'cursor-crosshair' : selectedMarkerType ? 'cursor-crosshair' : isDraggingMarker ? 'cursor-grabbing' : 'cursor-default'}`}
                 onClick={handleImageClick}
                 onMouseDown={handleCropMouseDown}
                 onMouseMove={handleCropMouseMove}
                 onMouseUp={handleCropMouseUp}
+                onMouseLeave={handleMarkerMouseUp}
                 style={{ maxWidth: '100%', maxHeight: '100%' }}
               >
                 <img
@@ -464,9 +621,7 @@ export const ImageEditorDialog = ({
                 {/* Crop overlay */}
                 {isCropping && cropStart && cropEnd && (
                   <>
-                    {/* Dark overlay */}
                     <div className="absolute inset-0 bg-black/50 pointer-events-none" />
-                    {/* Crop selection */}
                     <div
                       className="absolute border-2 border-white border-dashed bg-transparent pointer-events-none"
                       style={{
@@ -482,21 +637,7 @@ export const ImageEditorDialog = ({
                 )}
 
                 {/* Markers */}
-                {!isCropping && markers.map((marker) => {
-                  const config = MARKER_TYPES.find(m => m.type === marker.type);
-                  if (!config) return null;
-                  return (
-                    <div
-                      key={marker.id}
-                      className={`absolute w-10 h-10 rounded-full ${config.color} ${config.borderColor} border-2 flex items-center justify-center text-white cursor-pointer transform -translate-x-1/2 -translate-y-1/2 shadow-lg hover:scale-110 transition-transform z-10`}
-                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                      onClick={(e) => removeMarker(marker.id, e)}
-                      title="Click to remove"
-                    >
-                      {getMarkerIcon(marker.type)}
-                    </div>
-                  );
-                })}
+                {!isCropping && markers.map(renderMarker)}
 
                 {/* Click hint */}
                 {selectedMarkerType && !isCropping && (
