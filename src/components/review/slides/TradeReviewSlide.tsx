@@ -342,23 +342,32 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           </div>
 
           {/* Image slot - display exactly what the user saved (cropped/landscape) */}
-          <div className="relative bg-card border rounded-lg overflow-hidden flex-1 min-h-[420px] lg:min-h-[520px] group flex items-center justify-center">
+          <div className="relative bg-card border rounded-lg overflow-hidden flex-1 min-h-[420px] lg:min-h-[520px] group flex items-center justify-center p-4">
             {activeSlot?.screenshot_url ? (
               <>
-                {/* Shrink-wrap to the rendered image so marker % coordinates match */}
-                <div className="relative inline-block max-w-full max-h-full">
+                {/* 
+                  CRITICAL: The outer wrapper is position:relative with inline-block sizing.
+                  The image inside sets the actual dimensions. Markers use % positioning
+                  relative to this wrapper, which matches the image bounds exactly.
+                */}
+                <div className="relative inline-block" style={{ maxWidth: '100%', maxHeight: '100%' }}>
                   <img
                     src={activeSlot.screenshot_url}
                     alt="Trade screenshot"
-                    className="block max-w-full max-h-full object-contain"
+                    className="block w-auto h-auto max-w-full max-h-[480px] lg:max-h-[580px]"
+                    style={{ objectFit: 'contain' }}
                   />
 
-                  {/* Markers (positioned relative to the image box) */}
+                  {/* Markers positioned relative to the image wrapper (same size as image) */}
                   {activeSlot.markers.map((marker) => (
                     <div
                       key={marker.id}
-                      className={`absolute w-6 h-6 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-lg pointer-events-none`}
-                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                      className={`absolute w-7 h-7 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-lg pointer-events-none`}
+                      style={{ 
+                        left: `${marker.x}%`, 
+                        top: `${marker.y}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
                     >
                       {getMarkerIcon(marker.type, 'sm')}
                     </div>
@@ -366,7 +375,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 </div>
 
                 {/* Edit overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-3 pointer-events-none">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center gap-3 pointer-events-none">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -399,18 +408,24 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
             <DialogContent className="max-w-[95vw] max-h-[95vh] p-4 flex flex-col">
               <DialogTitle className="text-lg font-semibold mb-2">Trade Screenshot - {activeSlot?.label}</DialogTitle>
-              <div className="relative flex-1 flex items-center justify-center overflow-auto bg-card rounded-lg">
-                <div className="relative inline-block">
+              <div className="relative flex-1 flex items-center justify-center overflow-auto bg-card rounded-lg p-4">
+                {/* Same inline-block pattern for consistent marker positioning */}
+                <div className="relative inline-block" style={{ maxWidth: '100%', maxHeight: '100%' }}>
                   <img
                     src={activeSlot?.screenshot_url || ''}
                     alt="Trade screenshot full size"
-                    className="block max-w-full max-h-[80vh] object-contain"
+                    className="block w-auto h-auto max-w-full max-h-[80vh]"
+                    style={{ objectFit: 'contain' }}
                   />
                   {activeSlot?.markers.map((marker) => (
                     <div
                       key={marker.id}
-                      className={`absolute w-10 h-10 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white transform -translate-x-1/2 -translate-y-1/2 shadow-xl`}
-                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                      className={`absolute w-10 h-10 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-xl`}
+                      style={{ 
+                        left: `${marker.x}%`, 
+                        top: `${marker.y}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
                     >
                       {getMarkerIcon(marker.type, 'lg')}
                     </div>

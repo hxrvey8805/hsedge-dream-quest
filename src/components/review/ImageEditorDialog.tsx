@@ -86,12 +86,25 @@ export const ImageEditorDialog = ({
 
   const displayUrl = croppedImageUrl || imageUrl;
 
-  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || isCropping || isDraggingMarker) return;
+  // Get coordinates relative to the actual image bounds, not container
+  const getImageRelativeCoords = useCallback((clientX: number, clientY: number) => {
+    if (!imageRef.current) return null;
+    const imgRect = imageRef.current.getBoundingClientRect();
+    const x = ((clientX - imgRect.left) / imgRect.width) * 100;
+    const y = ((clientY - imgRect.top) / imgRect.height) * 100;
+    return { x, y };
+  }, []);
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+  const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current || isCropping || isDraggingMarker) return;
+
+    const coords = getImageRelativeCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const { x, y } = coords;
+    
+    // Ignore clicks outside image bounds
+    if (x < 0 || x > 100 || y < 0 || y > 100) return;
 
     // If clicking on empty space while a marker is selected, deselect it
     if (selectedMarkerId && !selectedMarkerType) {
@@ -110,7 +123,7 @@ export const ImageEditorDialog = ({
       });
       setMarkers(newMarkers);
     }
-  }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker]);
+  }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
 
   const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string) => {
     e.stopPropagation();
@@ -121,16 +134,18 @@ export const ImageEditorDialog = ({
   };
 
   const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
-    if (!isDraggingMarker || !selectedMarkerId || !containerRef.current) return;
+    if (!isDraggingMarker || !selectedMarkerId || !imageRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    const coords = getImageRelativeCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    
+    const x = Math.max(0, Math.min(100, coords.x));
+    const y = Math.max(0, Math.min(100, coords.y));
 
     setMarkers(prev => prev.map(m => 
       m.id === selectedMarkerId ? { ...m, x, y } : m
     ));
-  }, [isDraggingMarker, selectedMarkerId]);
+  }, [isDraggingMarker, selectedMarkerId, getImageRelativeCoords]);
 
   const handleMarkerMouseUp = () => {
     setIsDraggingMarker(false);
