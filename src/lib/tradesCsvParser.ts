@@ -218,7 +218,8 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
 }
 
 /**
- * Pairs buy and sell transactions into complete trades using FIFO matching
+ * Pairs buy and sell transactions into complete trades using chronological FIFO matching
+ * Processes all transactions in strict time order to correctly pair entries with exits
  */
 function pairTransactions(transactions: RawTransaction[], warnings: string[]): ParsedTrade[] {
   const trades: ParsedTrade[] = [];
@@ -236,7 +237,7 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
 
   // Process each group
   for (const [key, txs] of grouped) {
-    // Sort by time
+    // Sort ALL transactions by time chronologically
     txs.sort((a, b) => {
       if (a.time && b.time) {
         return a.time.localeCompare(b.time);
@@ -244,77 +245,75 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
       return a.rowNum - b.rowNum;
     });
 
-    // Separate buys and sells
-    const buys = txs.filter(t => t.buy_sell === 'Buy');
-    const sells = txs.filter(t => t.buy_sell === 'Sell');
+    // Process transactions in order, maintaining open positions
+    const openBuyPositions: RawTransaction[] = [];
+    const openSellPositions: RawTransaction[] = [];
 
-    // FIFO matching
-    let buyIdx = 0;
-    let sellIdx = 0;
-
-    while (buyIdx < buys.length && sellIdx < sells.length) {
-      const buy = buys[buyIdx];
-      const sell = sells[sellIdx];
-
-      // Match the transaction that comes first with the next opposite transaction
-      const buyFirst = !buy.time || !sell.time || buy.time <= sell.time;
-
-      if (buyFirst) {
-        // This is a long trade: Buy then Sell
-        const trade: ParsedTrade = {
-          trade_date: buy.trade_date,
-          symbol: buy.symbol,
-          asset_class: buy.asset_class,
-          buy_sell: 'Buy',
-          entry_price: buy.price,
-          exit_price: sell.price,
-          stop_loss: null,
-          size: Math.min(buy.size, sell.size),
-          fees: (buy.fees || 0) + (sell.fees || 0),
-          time_opened: buy.time,
-          time_closed: sell.time,
-          session: null,
-          strategy_type: null,
-          entry_timeframe: null,
-          notes: null,
-        };
-        trades.push(trade);
-        buyIdx++;
-        sellIdx++;
+    for (const tx of txs) {
+      if (tx.buy_sell === 'Buy') {
+        // Check if this closes a short position
+        if (openSellPositions.length > 0) {
+          const entry = openSellPositions.shift()!;
+          // Short trade: Sold first (entry), then bought to cover (exit)
+          const trade: ParsedTrade = {
+            trade_date: entry.trade_date,
+            symbol: entry.symbol,
+            asset_class: entry.asset_class,
+            buy_sell: 'Sell',
+            entry_price: entry.price,
+            exit_price: tx.price,
+            stop_loss: null,
+            size: Math.min(entry.size, tx.size),
+            fees: (entry.fees || 0) + (tx.fees || 0),
+            time_opened: entry.time,
+            time_closed: tx.time,
+            session: null,
+            strategy_type: null,
+            entry_timeframe: null,
+            notes: null,
+          };
+          trades.push(trade);
+        } else {
+          // Open a new long position
+          openBuyPositions.push(tx);
+        }
       } else {
-        // This is a short trade: Sell then Buy (cover)
-        const trade: ParsedTrade = {
-          trade_date: sell.trade_date,
-          symbol: sell.symbol,
-          asset_class: sell.asset_class,
-          buy_sell: 'Sell',
-          entry_price: sell.price,
-          exit_price: buy.price,
-          stop_loss: null,
-          size: Math.min(buy.size, sell.size),
-          fees: (buy.fees || 0) + (sell.fees || 0),
-          time_opened: sell.time,
-          time_closed: buy.time,
-          session: null,
-          strategy_type: null,
-          entry_timeframe: null,
-          notes: null,
-        };
-        trades.push(trade);
-        buyIdx++;
-        sellIdx++;
+        // Sell transaction
+        // Check if this closes a long position
+        if (openBuyPositions.length > 0) {
+          const entry = openBuyPositions.shift()!;
+          // Long trade: Bought first (entry), then sold (exit)
+          const trade: ParsedTrade = {
+            trade_date: entry.trade_date,
+            symbol: entry.symbol,
+            asset_class: entry.asset_class,
+            buy_sell: 'Buy',
+            entry_price: entry.price,
+            exit_price: tx.price,
+            stop_loss: null,
+            size: Math.min(entry.size, tx.size),
+            fees: (entry.fees || 0) + (tx.fees || 0),
+            time_opened: entry.time,
+            time_closed: tx.time,
+            session: null,
+            strategy_type: null,
+            entry_timeframe: null,
+            notes: null,
+          };
+          trades.push(trade);
+        } else {
+          // Open a new short position
+          openSellPositions.push(tx);
+        }
       }
     }
 
     // Report unpaired transactions
-    const unpairedBuys = buys.length - buyIdx;
-    const unpairedSells = sells.length - sellIdx;
-    
-    if (unpairedBuys > 0) {
-      warnings.push(`${key.split('_')[0]}: ${unpairedBuys} unpaired buy transaction(s) - likely still open positions`);
+    if (openBuyPositions.length > 0) {
+      warnings.push(`${key.split('_')[0]}: ${openBuyPositions.length} unpaired buy transaction(s) - likely still open positions`);
     }
-    if (unpairedSells > 0) {
-      warnings.push(`${key.split('_')[0]}: ${unpairedSells} unpaired sell transaction(s) - likely short positions`);
+    if (openSellPositions.length > 0) {
+      warnings.push(`${key.split('_')[0]}: ${openSellPositions.length} unpaired sell transaction(s) - likely short positions`);
     }
   }
 
