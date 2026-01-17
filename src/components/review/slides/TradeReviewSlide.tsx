@@ -131,6 +131,14 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     });
   };
 
+  const handleDeleteScreenshot = () => {
+    updateActiveSlot({ 
+      screenshot_url: null, 
+      markers: [] 
+    });
+    toast.success("Screenshot deleted");
+  };
+
   const handleScreenCapture = async () => {
     if (!navigator.mediaDevices?.getDisplayMedia) {
       toast.error("Screen capture not supported in this browser. Please use upload instead.");
@@ -392,6 +400,15 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     onClick={() => setIsImageViewerOpen(true)}
                   >
                     View Full
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shadow-lg"
+                    onClick={handleDeleteScreenshot}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
                   </Button>
                 </div>
               </>
