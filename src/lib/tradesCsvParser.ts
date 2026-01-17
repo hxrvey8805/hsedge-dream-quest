@@ -352,13 +352,56 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
 function buildColumnMap(header: string[]): Record<string, number> {
   const map: Record<string, number> = {};
   
+  // Columns that should NEVER be matched for price fields
+  const timeRelatedPatterns = ['entry time', 'exec time', 'execution time', 'raw exec', 'fill time', 'trade time', 'time opened', 'time closed'];
+  
   for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
     map[field] = -1;
+    
+    // First pass: look for EXACT matches only
     for (const alias of aliases) {
-      const idx = header.findIndex(h => h === alias || h.includes(alias));
+      const idx = header.findIndex(h => h === alias);
       if (idx !== -1) {
-        map[field] = idx;
-        break;
+        // For price fields, make sure we're not matching a time column
+        if (field === 'entry_price' || field === 'exit_price') {
+          const headerVal = header[idx];
+          const isTimeColumn = timeRelatedPatterns.some(pattern => headerVal.includes(pattern));
+          if (!isTimeColumn) {
+            map[field] = idx;
+            break;
+          }
+        } else {
+          map[field] = idx;
+          break;
+        }
+      }
+    }
+    
+    // Second pass: if no exact match found, try partial matches (but be careful with price fields)
+    if (map[field] === -1) {
+      for (const alias of aliases) {
+        const idx = header.findIndex(h => {
+          // Skip generic 'time' alias for entry_price matching
+          if ((field === 'entry_price' || field === 'exit_price') && alias === 'time') {
+            return false;
+          }
+          
+          // Check if header contains the alias
+          if (!h.includes(alias)) return false;
+          
+          // For price fields, exclude time-related columns
+          if (field === 'entry_price' || field === 'exit_price') {
+            const isTimeColumn = timeRelatedPatterns.some(pattern => h.includes(pattern));
+            if (isTimeColumn) return false;
+          }
+          
+          return true;
+        });
+        
+        if (idx !== -1) {
+          map[field] = idx;
+          break;
+        }
       }
     }
   }
