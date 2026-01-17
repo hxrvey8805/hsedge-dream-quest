@@ -36,22 +36,41 @@ export interface TradeCSVParseResult {
 
 // Column name aliases for flexible matching
 const COLUMN_ALIASES: Record<string, string[]> = {
-  trade_date: ['trade_date', 'trade date', 'date', 'datetime', 'timestamp', 'time', 'execution date', 'exec date', 'transaction date', 'trans date', 'order date'],
+  trade_date: ['trade_date', 'trade date', 'date', 'datetime', 'timestamp', 'execution date', 'exec date', 'transaction date', 'trans date', 'order date'],
   symbol: ['symbol', 'ticker', 'stock', 'instrument', 'security', 'asset', 'pair', 'market', 'name'],
-  buy_sell: ['buy_sell', 'buy/sell', 'side', 'direction', 'type', 'action', 'order type', 'trade type', 'b/s', 'position'],
-  entry_price: ['entry_price', 'entry', 'price', 'open price', 'fill price', 'exec price', 'execution price', 'avg price', 'average price', 'cost'],
-  exit_price: ['exit_price', 'exit', 'close price', 'closing price'],
-  stop_loss: ['stop_loss', 'stop', 'sl', 'stoploss'],
-  size: ['size', 'qty', 'quantity', 'shares', 'lots', 'contracts', 'units', 'volume', 'amount', 'position size'],
-  fees: ['fees', 'fee', 'commission', 'commission amount', 'commissions', 'cost', 'charges', 'trading fees'],
-  time_opened: ['time_opened', 'time', 'open time', 'entry time', 'execution time', 'exec time', 'raw exec. time', 'fill time', 'trade time'],
+  buy_sell: ['buy_sell', 'buy/sell', 'buy sell', 'direction', 'action', 'order type', 'trade type', 'b/s', 'position', 'side'],
+
+  // IMPORTANT: avoid overly-generic aliases like "entry" here because they can incorrectly match
+  // brokerage exports that contain "Entry Time" (which is NOT a price).
+  entry_price: [
+    'entry_price',
+    'entry price',
+    'open price',
+    'fill price',
+    'exec price',
+    'execution price',
+    'avg price',
+    'average price',
+    'price',
+  ],
+
+  exit_price: ['exit_price', 'exit price', 'exit', 'close price', 'closing price'],
+  stop_loss: ['stop_loss', 'stop loss', 'stop', 'sl', 'stoploss'],
+  size: ['size', 'qty', 'quantity', 'shares', 'lots', 'contracts', 'units', 'volume', 'position size'],
+
+  // For many brokerage statements, the most accurate "fees" are derived from (net_amount - principal_amount).
+  fees: ['fees', 'fee', 'commission', 'commission amount', 'commissions', 'charges', 'trading fees'],
+
+  time_opened: ['time_opened', 'execution time', 'exec time', 'raw exec. time', 'fill time', 'trade time', 'time'],
   time_closed: ['time_closed', 'close time', 'exit time'],
   session: ['session', 'market session', 'trading session'],
   strategy_type: ['strategy_type', 'strategy', 'setup', 'pattern', 'trade setup'],
   entry_timeframe: ['entry_timeframe', 'timeframe', 'tf', 'chart'],
   notes: ['notes', 'note', 'comment', 'comments', 'description', 'memo', 'remarks'],
   asset_class: ['asset_class', 'asset class', 'security type', 'instrument type', 'market type', 'product type', 'type'],
-  net_amount: ['net amount', 'net', 'total', 'principal amount', 'amount'],
+
+  principal_amount: ['principal amount', 'principal'],
+  net_amount: ['net amount', 'net'],
 };
 
 /**
