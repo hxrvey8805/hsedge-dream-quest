@@ -8,6 +8,7 @@ export interface ParsedTrade {
   stop_loss: number | null;
   size: number | null;
   fees: number | null;
+  profit: number | null; // Pre-calculated profit from NET amounts
   time_opened: string | null;
   time_closed: string | null;
   session: string | null;
@@ -24,6 +25,7 @@ interface RawTransaction {
   price: number;
   size: number;
   fees: number;
+  net_amount: number; // The actual cash flow including all fees
   time: string | null;
   rowNum: number;
 }
@@ -40,37 +42,28 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   symbol: ['symbol', 'ticker', 'stock', 'instrument', 'security', 'asset', 'pair', 'market', 'name'],
   buy_sell: ['buy_sell', 'buy/sell', 'buy sell', 'direction', 'action', 'order type', 'trade type', 'b/s', 'position', 'side'],
 
-  // IMPORTANT: avoid overly-generic aliases like "entry" here because they can incorrectly match
-  // brokerage exports that contain "Entry Time" (which is NOT a price).
-  entry_price: [
-    'entry_price',
-    'entry price',
-    'open price',
-    'fill price',
-    'exec price',
-    'execution price',
-    'avg price',
-    'average price',
-    'price',
-  ],
-
+  // Price column - be very specific to avoid matching time columns
+  price: ['price', 'fill price', 'exec price', 'execution price', 'avg price', 'average price'],
+  
+  entry_price: ['entry_price', 'entry price', 'open price'],
   exit_price: ['exit_price', 'exit price', 'exit', 'close price', 'closing price'],
   stop_loss: ['stop_loss', 'stop loss', 'stop', 'sl', 'stoploss'],
   size: ['size', 'qty', 'quantity', 'shares', 'lots', 'contracts', 'units', 'volume', 'position size'],
 
-  // For many brokerage statements, the most accurate "fees" are derived from (net_amount - principal_amount).
-  fees: ['fees', 'fee', 'commission', 'commission amount', 'commissions', 'charges', 'trading fees'],
+  // For brokerage statements - commission and net amount are key
+  fees: ['commission amount', 'commission', 'fees', 'fee', 'commissions', 'charges', 'trading fees'],
+  
+  // NET Amount is the actual money in/out including all fees - this is what matters for P&L
+  net_amount: ['net amount', 'net', 'net_amount', 'proceeds', 'total'],
+  principal_amount: ['principal amount', 'principal', 'gross amount', 'gross'],
 
-  time_opened: ['time_opened', 'execution time', 'exec time', 'raw exec. time', 'fill time', 'trade time', 'time'],
+  time_opened: ['execution time', 'exec time', 'raw exec. time', 'fill time', 'trade time'],
   time_closed: ['time_closed', 'close time', 'exit time'],
   session: ['session', 'market session', 'trading session'],
   strategy_type: ['strategy_type', 'strategy', 'setup', 'pattern', 'trade setup'],
   entry_timeframe: ['entry_timeframe', 'timeframe', 'tf', 'chart'],
   notes: ['notes', 'note', 'comment', 'comments', 'description', 'memo', 'remarks'],
   asset_class: ['asset_class', 'asset class', 'security type', 'instrument type', 'market type', 'product type', 'type'],
-
-  principal_amount: ['principal amount', 'principal'],
-  net_amount: ['net amount', 'net'],
 };
 
 /**
@@ -156,17 +149,33 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
         }
       }
 
-      // Parse price
-      const price = parseNumberValue(getColumnValue(values, columnMap.entry_price));
+      // Parse price - prefer the dedicated 'price' column, fallback to entry_price
+      let price = parseNumberValue(getColumnValue(values, columnMap.price));
+      if (!price) {
+        price = parseNumberValue(getColumnValue(values, columnMap.entry_price));
+      }
       if (!price) {
         errors.push(`Row ${rowNum}: Missing price`);
         continue;
       }
 
-      // Parse fees
+      // Parse fees (commission)
       let fees = parseNumberValue(getColumnValue(values, columnMap.fees));
       if (fees !== null) {
         fees = Math.abs(fees);
+      }
+
+      // Parse NET Amount - this is the actual cash flow including all fees
+      // Positive for buys (money out), Negative for sells (money in)
+      let netAmount = parseNumberValue(getColumnValue(values, columnMap.net_amount));
+      if (netAmount === null) {
+        // Fallback: calculate from principal + fees
+        const principal = parseNumberValue(getColumnValue(values, columnMap.principal_amount));
+        if (principal !== null) {
+          netAmount = principal + (fees || 0);
+        } else {
+          netAmount = price * (size || 100) + (fees || 0);
+        }
       }
 
       // Parse time
@@ -184,6 +193,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
         price,
         size: size || 100,
         fees: fees || 0,
+        net_amount: netAmount,
         time,
         rowNum,
       });
@@ -212,6 +222,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
       stop_loss: null,
       size: t.size,
       fees: t.fees,
+      profit: null,
       time_opened: t.time,
       time_closed: null,
       session: null,
@@ -274,6 +285,9 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
         if (openSellPositions.length > 0) {
           const entry = openSellPositions.shift()!;
           // Short trade: Sold first (entry), then bought to cover (exit)
+          // Profit = entry.net_amount + tx.net_amount (sell is negative, buy is positive)
+          // For short: we get money when we sell (negative net_amount), pay when we buy (positive net_amount)
+          const profit = -entry.net_amount - tx.net_amount; // Flip signs: -(-sell) - (+buy) = sell - buy
           const trade: ParsedTrade = {
             trade_date: entry.trade_date,
             symbol: entry.symbol,
@@ -284,6 +298,7 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
             stop_loss: null,
             size: Math.min(entry.size, tx.size),
             fees: (entry.fees || 0) + (tx.fees || 0),
+            profit: parseFloat(profit.toFixed(2)),
             time_opened: entry.time,
             time_closed: tx.time,
             session: null,
@@ -302,6 +317,9 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
         if (openBuyPositions.length > 0) {
           const entry = openBuyPositions.shift()!;
           // Long trade: Bought first (entry), then sold (exit)
+          // Profit = -entry.net_amount + (-tx.net_amount) = proceeds - cost
+          // Buy is positive (cost), Sell is negative (proceeds)
+          const profit = -entry.net_amount - tx.net_amount; // -cost + proceeds
           const trade: ParsedTrade = {
             trade_date: entry.trade_date,
             symbol: entry.symbol,
@@ -312,6 +330,7 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
             stop_loss: null,
             size: Math.min(entry.size, tx.size),
             fees: (entry.fees || 0) + (tx.fees || 0),
+            profit: parseFloat(profit.toFixed(2)),
             time_opened: entry.time,
             time_closed: tx.time,
             session: null,
@@ -355,6 +374,9 @@ function buildColumnMap(header: string[]): Record<string, number> {
   // Columns that should NEVER be matched for price fields
   const timeRelatedPatterns = ['entry time', 'exec time', 'execution time', 'raw exec', 'fill time', 'trade time', 'time opened', 'time closed'];
   
+  // Price-related fields that need special handling
+  const priceFields = ['price', 'entry_price', 'exit_price'];
+  
   for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
     map[field] = -1;
     
@@ -363,7 +385,7 @@ function buildColumnMap(header: string[]): Record<string, number> {
       const idx = header.findIndex(h => h === alias);
       if (idx !== -1) {
         // For price fields, make sure we're not matching a time column
-        if (field === 'entry_price' || field === 'exit_price') {
+        if (priceFields.includes(field)) {
           const headerVal = header[idx];
           const isTimeColumn = timeRelatedPatterns.some(pattern => headerVal.includes(pattern));
           if (!isTimeColumn) {
@@ -381,8 +403,8 @@ function buildColumnMap(header: string[]): Record<string, number> {
     if (map[field] === -1) {
       for (const alias of aliases) {
         const idx = header.findIndex(h => {
-          // Skip generic 'time' alias for entry_price matching
-          if ((field === 'entry_price' || field === 'exit_price') && alias === 'time') {
+          // Skip generic 'time' alias for price matching
+          if (priceFields.includes(field) && alias === 'time') {
             return false;
           }
           
@@ -390,7 +412,7 @@ function buildColumnMap(header: string[]): Record<string, number> {
           if (!h.includes(alias)) return false;
           
           // For price fields, exclude time-related columns
-          if (field === 'entry_price' || field === 'exit_price') {
+          if (priceFields.includes(field)) {
             const isTimeColumn = timeRelatedPatterns.some(pattern => h.includes(pattern));
             if (isTimeColumn) return false;
           }
@@ -586,8 +608,24 @@ function detectFormat(header: string[]): string | null {
 
 /**
  * Calculate P&L for a parsed trade
+ * Uses pre-calculated profit from NET amounts if available (brokerage imports)
+ * Otherwise calculates from entry/exit prices
  */
 export function calculateTradePnL(trade: ParsedTrade): { pips: number; profit: number; outcome: string } {
+  // If profit was pre-calculated from NET amounts (brokerage format), use it
+  if (trade.profit !== null && trade.profit !== undefined) {
+    const priceDiff = trade.entry_price && trade.exit_price 
+      ? (trade.buy_sell === 'Sell' ? (trade.entry_price - trade.exit_price) : (trade.exit_price - trade.entry_price))
+      : 0;
+    
+    return {
+      pips: parseFloat(priceDiff.toFixed(4)),
+      profit: trade.profit,
+      outcome: trade.profit > 0.01 ? 'Win' : trade.profit < -0.01 ? 'Loss' : 'Break Even'
+    };
+  }
+
+  // Fallback: calculate from prices
   const entry = trade.entry_price;
   const exit = trade.exit_price;
   const size = trade.size;
