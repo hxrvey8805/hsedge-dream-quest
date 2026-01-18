@@ -148,9 +148,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
 
     setIsCapturing(true);
+    let stream: MediaStream | null = null;
     
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
+      stream = await navigator.mediaDevices.getDisplayMedia({
         video: { 
           displaySurface: "window",
           width: { ideal: 1920 },
@@ -159,80 +160,119 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         audio: false,
       });
 
+      const track = stream.getVideoTracks()[0];
+      if (!track) {
+        throw new Error("No video track available");
+      }
+
+      // Try ImageCapture API first (more reliable)
+      if ('ImageCapture' in window) {
+        try {
+          const imageCapture = new (window as any).ImageCapture(track);
+          const bitmap = await imageCapture.grabFrame();
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error("Failed to get canvas context");
+          
+          ctx.drawImage(bitmap, 0, 0);
+          bitmap.close();
+          
+          // Stop stream immediately after capture
+          stream.getTracks().forEach(t => t.stop());
+          stream = null;
+          
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Failed to create image")), 'image/png');
+          });
+          
+          await uploadScreenshot(blob);
+          return;
+        } catch (icError) {
+          console.log("ImageCapture failed, falling back to video method:", icError);
+        }
+      }
+
+      // Fallback: video element method
       const video = document.createElement('video');
       video.srcObject = stream;
       video.muted = true;
       video.playsInline = true;
+      video.autoplay = true;
       
-      // Wait for video to be ready
       await new Promise<void>((resolve, reject) => {
-        video.onloadedmetadata = () => {
-          video.play()
-            .then(() => resolve())
-            .catch(reject);
+        const timeout = setTimeout(() => reject(new Error("Video load timeout")), 5000);
+        video.onloadeddata = () => {
+          clearTimeout(timeout);
+          resolve();
         };
-        video.onerror = () => reject(new Error("Video load failed"));
-        // Timeout fallback
-        setTimeout(() => reject(new Error("Video load timeout")), 5000);
+        video.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("Video load failed"));
+        };
       });
 
-      // Wait a bit more for stable frame
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Multiple frame waits for stability
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Verify video has valid dimensions
       if (video.videoWidth === 0 || video.videoHeight === 0) {
-        throw new Error("Failed to capture valid video frame");
+        throw new Error("Invalid video dimensions");
       }
 
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error("Failed to get canvas context");
-      }
+      if (!ctx) throw new Error("Failed to get canvas context");
       
       ctx.drawImage(video, 0, 0);
-
-      // Stop all tracks
-      stream.getTracks().forEach(track => track.stop());
+      
+      video.pause();
+      video.srcObject = null;
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
 
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Failed to create image"));
-        }, 'image/png');
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Failed to create image")), 'image/png');
       });
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in");
-        setIsCapturing(false);
-        return;
-      }
-
-      const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
-      const { error: uploadError } = await supabase.storage
-        .from('review-screenshots')
-        .upload(fileName, blob);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('review-screenshots')
-        .getPublicUrl(fileName);
-
-      updateActiveSlot({ screenshot_url: publicUrl });
-      toast.success("Screenshot captured!");
+      await uploadScreenshot(blob);
     } catch (error: any) {
       console.error("Screen capture error:", error);
       if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
         toast.error(error.message || "Failed to capture screen");
       }
     } finally {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
       setIsCapturing(false);
     }
+  };
+
+  const uploadScreenshot = async (blob: Blob) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
+    const { error: uploadError } = await supabase.storage
+      .from('review-screenshots')
+      .upload(fileName, blob);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('review-screenshots')
+      .getPublicUrl(fileName);
+
+    updateActiveSlot({ screenshot_url: publicUrl });
+    toast.success("Screenshot captured!");
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
