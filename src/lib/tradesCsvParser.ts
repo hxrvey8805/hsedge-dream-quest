@@ -21,7 +21,8 @@ interface RawTransaction {
   trade_date: string;
   symbol: string;
   asset_class: string;
-  buy_sell: string;
+  buy_sell: 'Buy' | 'Sell';
+  isLongTrade: boolean; // true = Long trade, false = Short trade
   price: number;
   size: number;
   fees: number;
@@ -137,10 +138,15 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
       symbol = symbol.toUpperCase().trim();
 
       // Parse buy/sell direction
-      let buySell = 'Buy';
+      let buySell: 'Buy' | 'Sell' = 'Buy';
+      let isLongTrade = true;
       if (hasSideColumn) {
         const sideRaw = getColumnValue(values, columnMap.buy_sell);
-        buySell = normalizeBuySell(sideRaw) || 'Buy';
+        const result = normalizeBuySell(sideRaw);
+        if (result) {
+          buySell = result.action;
+          isLongTrade = result.isLongTrade;
+        }
       }
 
       // Parse size (handle negative quantities)
@@ -197,6 +203,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
         symbol,
         asset_class: assetClass,
         buy_sell: buySell,
+        isLongTrade,
         price,
         size: size || 100,
         fees: fees || 0,
@@ -293,83 +300,92 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
       return a.rowNum - b.rowNum;
     });
 
-    // Process transactions in order, maintaining open positions
-    const openBuyPositions: RawTransaction[] = [];
-    const openSellPositions: RawTransaction[] = [];
+    // Process transactions using isLongTrade flag for correct pairing
+    // For Long trades: Buy opens, Sell closes
+    // For Short trades: Sell opens, Buy closes
+    const openLongPositions: RawTransaction[] = []; // Opened with "Long Buy"
+    const openShortPositions: RawTransaction[] = []; // Opened with "Short Sell"
 
     for (const tx of txs) {
-      if (tx.buy_sell === 'Buy') {
-        // Check if this closes a short position
-        if (openSellPositions.length > 0) {
-          const entry = openSellPositions.shift()!;
-          // Short trade: Sold first (entry), then bought to cover (exit)
-          // Profit = entry.net_amount + tx.net_amount (sell is negative, buy is positive)
-          // For short: we get money when we sell (negative net_amount), pay when we buy (positive net_amount)
-          const profit = -entry.net_amount - tx.net_amount; // Flip signs: -(-sell) - (+buy) = sell - buy
-          const trade: ParsedTrade = {
-            trade_date: entry.trade_date,
-            symbol: entry.symbol,
-            asset_class: entry.asset_class,
-            buy_sell: 'Sell',
-            entry_price: entry.price,
-            exit_price: tx.price,
-            stop_loss: null,
-            size: Math.min(entry.size, tx.size),
-            fees: (entry.fees || 0) + (tx.fees || 0),
-            profit: parseFloat(profit.toFixed(2)),
-            time_opened: entry.time,
-            time_closed: tx.time,
-            session: null,
-            strategy_type: null,
-            entry_timeframe: null,
-            notes: null,
-          };
-          trades.push(trade);
+      if (tx.isLongTrade) {
+        // This is part of a LONG trade
+        if (tx.buy_sell === 'Buy') {
+          // "Long Buy" - Opening a long position
+          openLongPositions.push(tx);
         } else {
-          // Open a new long position
-          openBuyPositions.push(tx);
+          // "Long Sell" - Closing a long position
+          if (openLongPositions.length > 0) {
+            const entry = openLongPositions.shift()!;
+            // Long trade: Bought first (entry), then sold (exit)
+            const profit = -entry.net_amount - tx.net_amount; // -cost + proceeds
+            const trade: ParsedTrade = {
+              trade_date: entry.trade_date,
+              symbol: entry.symbol,
+              asset_class: entry.asset_class,
+              buy_sell: 'Buy', // Long trade = "Buy" direction
+              entry_price: entry.price,
+              exit_price: tx.price,
+              stop_loss: null,
+              size: Math.min(entry.size, tx.size),
+              fees: (entry.fees || 0) + (tx.fees || 0),
+              profit: parseFloat(profit.toFixed(2)),
+              time_opened: entry.time,
+              time_closed: tx.time,
+              session: null,
+              strategy_type: null,
+              entry_timeframe: null,
+              notes: null,
+            };
+            trades.push(trade);
+          } else {
+            // No open long position to close - this is an orphaned sell
+            warnings.push(`${tx.symbol}: Orphaned Long Sell at ${tx.time || 'unknown time'} - no matching Long Buy`);
+          }
         }
       } else {
-        // Sell transaction
-        // Check if this closes a long position
-        if (openBuyPositions.length > 0) {
-          const entry = openBuyPositions.shift()!;
-          // Long trade: Bought first (entry), then sold (exit)
-          // Profit = -entry.net_amount + (-tx.net_amount) = proceeds - cost
-          // Buy is positive (cost), Sell is negative (proceeds)
-          const profit = -entry.net_amount - tx.net_amount; // -cost + proceeds
-          const trade: ParsedTrade = {
-            trade_date: entry.trade_date,
-            symbol: entry.symbol,
-            asset_class: entry.asset_class,
-            buy_sell: 'Buy',
-            entry_price: entry.price,
-            exit_price: tx.price,
-            stop_loss: null,
-            size: Math.min(entry.size, tx.size),
-            fees: (entry.fees || 0) + (tx.fees || 0),
-            profit: parseFloat(profit.toFixed(2)),
-            time_opened: entry.time,
-            time_closed: tx.time,
-            session: null,
-            strategy_type: null,
-            entry_timeframe: null,
-            notes: null,
-          };
-          trades.push(trade);
+        // This is part of a SHORT trade
+        if (tx.buy_sell === 'Sell') {
+          // "Short Sell" - Opening a short position
+          openShortPositions.push(tx);
         } else {
-          // Open a new short position
-          openSellPositions.push(tx);
+          // "Short Buy/Cover" - Closing a short position
+          if (openShortPositions.length > 0) {
+            const entry = openShortPositions.shift()!;
+            // Short trade: Sold first (entry), then bought to cover (exit)
+            const profit = -entry.net_amount - tx.net_amount;
+            const trade: ParsedTrade = {
+              trade_date: entry.trade_date,
+              symbol: entry.symbol,
+              asset_class: entry.asset_class,
+              buy_sell: 'Sell', // Short trade = "Sell" direction
+              entry_price: entry.price,
+              exit_price: tx.price,
+              stop_loss: null,
+              size: Math.min(entry.size, tx.size),
+              fees: (entry.fees || 0) + (tx.fees || 0),
+              profit: parseFloat(profit.toFixed(2)),
+              time_opened: entry.time,
+              time_closed: tx.time,
+              session: null,
+              strategy_type: null,
+              entry_timeframe: null,
+              notes: null,
+            };
+            trades.push(trade);
+          } else {
+            // No open short position to close - this is an orphaned buy
+            warnings.push(`${tx.symbol}: Orphaned Short Cover at ${tx.time || 'unknown time'} - no matching Short Sell`);
+          }
         }
       }
     }
 
     // Report unpaired transactions
-    if (openBuyPositions.length > 0) {
-      warnings.push(`${key.split('_')[0]}: ${openBuyPositions.length} unpaired buy transaction(s) - likely still open positions`);
+    if (openLongPositions.length > 0) {
+      warnings.push(`${key.split('_')[0]}: ${openLongPositions.length} unpaired Long Buy(s) - likely still open positions`);
     }
-    if (openSellPositions.length > 0) {
-      warnings.push(`${key.split('_')[0]}: ${openSellPositions.length} unpaired sell transaction(s) - likely short positions`);
+    if (openShortPositions.length > 0) {
+      warnings.push(`${key.split('_')[0]}: ${openShortPositions.length} unpaired Short Sell(s) - likely open short positions`);
     }
   }
 
@@ -539,22 +555,36 @@ function normalizeDate(dateStr: string): string | null {
   return null;
 }
 
-function normalizeBuySell(value: string | null): string | null {
+interface BuySellResult {
+  action: 'Buy' | 'Sell';
+  isLongTrade: boolean;
+}
+
+function normalizeBuySell(value: string | null): BuySellResult | null {
   if (!value) return null;
   const lower = value.toLowerCase().trim();
   
-  // Handle "Long Buy", "Long Sell", "Short Sell", etc.
-  if (lower.includes('buy') || lower.includes('long buy')) return 'Buy';
-  if (lower.includes('sell') || lower.includes('long sell') || lower.includes('short')) return 'Sell';
+  // Handle "Long Buy" - opening a long position
+  if (lower.includes('long buy')) return { action: 'Buy', isLongTrade: true };
+  // Handle "Long Sell" - closing a long position (this is still a LONG trade, just exiting)
+  if (lower.includes('long sell')) return { action: 'Sell', isLongTrade: true };
+  // Handle "Short Sell" - opening a short position
+  if (lower.includes('short sell')) return { action: 'Sell', isLongTrade: false };
+  // Handle "Short Buy" or "Short Cover" - closing a short position
+  if (lower.includes('short buy') || lower.includes('short cover')) return { action: 'Buy', isLongTrade: false };
+  
+  // Generic buy/sell - assume based on action, isLongTrade determined by pairing
+  if (lower.includes('buy')) return { action: 'Buy', isLongTrade: true };
+  if (lower.includes('sell') || lower.includes('short')) return { action: 'Sell', isLongTrade: true };
   
   // Handle simple values
-  if (lower === 'b' || lower === 'l' || lower === 'long') return 'Buy';
-  if (lower === 's' || lower === 'short') return 'Sell';
+  if (lower === 'b' || lower === 'l' || lower === 'long') return { action: 'Buy', isLongTrade: true };
+  if (lower === 's' || lower === 'short') return { action: 'Sell', isLongTrade: true };
   
   // Handle Side column with B/S (with trailing spaces)
   const trimmed = lower.replace(/\s+/g, '');
-  if (trimmed === 'b') return 'Buy';
-  if (trimmed === 's') return 'Sell';
+  if (trimmed === 'b') return { action: 'Buy', isLongTrade: true };
+  if (trimmed === 's') return { action: 'Sell', isLongTrade: true };
   
   return null;
 }
