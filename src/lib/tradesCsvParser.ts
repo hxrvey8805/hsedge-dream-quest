@@ -28,6 +28,7 @@ interface RawTransaction {
   net_amount: number; // The actual cash flow including all fees
   time: string | null;
   rowNum: number;
+  sequence: number | null; // Sequence number for ordering same-time transactions
 }
 
 export interface TradeCSVParseResult {
@@ -64,6 +65,9 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   entry_timeframe: ['entry_timeframe', 'timeframe', 'tf', 'chart'],
   notes: ['notes', 'note', 'comment', 'comments', 'description', 'memo', 'remarks'],
   asset_class: ['asset_class', 'asset class', 'security type', 'instrument type', 'market type', 'product type', 'type'],
+  
+  // Sequence number for ordering - critical for same-time transactions
+  sequence: ['sequence number', 'sequence', 'seq', 'trade number', 'order id', 'exec id', 'fill id'],
 };
 
 /**
@@ -185,6 +189,9 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
       const assetClassRaw = getColumnValue(values, columnMap.asset_class);
       const assetClass = normalizeAssetClass(assetClassRaw) || 'Stocks';
 
+      // Parse sequence number for ordering same-time transactions
+      const sequence = parseNumberValue(getColumnValue(values, columnMap.sequence));
+
       transactions.push({
         trade_date: tradeDate,
         symbol,
@@ -196,6 +203,7 @@ export function parseTradesFromCSV(csvText: string): TradeCSVParseResult {
         net_amount: netAmount,
         time,
         rowNum,
+        sequence,
       });
     } catch (err) {
       errors.push(`Row ${rowNum}: Parse error`);
@@ -267,11 +275,21 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
 
   // Process each group
   for (const [key, txs] of grouped) {
-    // Sort ALL transactions by time chronologically
+    // Sort ALL transactions by time chronologically, then by sequence number
+    // This is critical for same-timestamp transactions to be ordered correctly
     txs.sort((a, b) => {
+      // First sort by time
       if (a.time && b.time) {
-        return a.time.localeCompare(b.time);
+        const timeCompare = a.time.localeCompare(b.time);
+        if (timeCompare !== 0) return timeCompare;
       }
+      
+      // For same time, use sequence number if available
+      if (a.sequence !== null && b.sequence !== null) {
+        return a.sequence - b.sequence;
+      }
+      
+      // Fallback to row number
       return a.rowNum - b.rowNum;
     });
 
@@ -355,13 +373,18 @@ function pairTransactions(transactions: RawTransaction[], warnings: string[]): P
     }
   }
 
-  // Sort trades by date and time
+  // Sort trades by date and time_opened (entry time) chronologically
   trades.sort((a, b) => {
     const dateCompare = a.trade_date.localeCompare(b.trade_date);
     if (dateCompare !== 0) return dateCompare;
+    
+    // Sort by entry time
     if (a.time_opened && b.time_opened) {
       return a.time_opened.localeCompare(b.time_opened);
     }
+    // Trades without time go to the end
+    if (a.time_opened && !b.time_opened) return -1;
+    if (!a.time_opened && b.time_opened) return 1;
     return 0;
   });
 
