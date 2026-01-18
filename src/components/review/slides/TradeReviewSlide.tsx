@@ -151,21 +151,51 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { displaySurface: "window" } as any,
+        video: { 
+          displaySurface: "window",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } as any,
         audio: false,
       });
 
       const video = document.createElement('video');
       video.srcObject = stream;
-      await video.play();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      video.muted = true;
+      video.playsInline = true;
+      
+      // Wait for video to be ready
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => {
+          video.play()
+            .then(() => resolve())
+            .catch(reject);
+        };
+        video.onerror = () => reject(new Error("Video load failed"));
+        // Timeout fallback
+        setTimeout(() => reject(new Error("Video load timeout")), 5000);
+      });
+
+      // Wait a bit more for stable frame
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Verify video has valid dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        throw new Error("Failed to capture valid video frame");
+      }
 
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(video, 0, 0);
+      
+      if (!ctx) {
+        throw new Error("Failed to get canvas context");
+      }
+      
+      ctx.drawImage(video, 0, 0);
 
+      // Stop all tracks
       stream.getTracks().forEach(track => track.stop());
 
       const blob = await new Promise<Blob>((resolve, reject) => {
@@ -178,6 +208,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("You must be logged in");
+        setIsCapturing(false);
         return;
       }
 
@@ -195,6 +226,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       updateActiveSlot({ screenshot_url: publicUrl });
       toast.success("Screenshot captured!");
     } catch (error: any) {
+      console.error("Screen capture error:", error);
       if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
         toast.error(error.message || "Failed to capture screen");
       }
