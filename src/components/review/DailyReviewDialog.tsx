@@ -24,6 +24,8 @@ interface Trade {
   entry_price: number | null;
   exit_price: number | null;
   pips: number | null;
+  time_opened: string | null;
+  time_closed: string | null;
 }
 
 interface DailyReviewDialogProps {
@@ -73,19 +75,26 @@ export const DailyReviewDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [reviewId, setReviewId] = useState<string | null>(null);
 
+  // Sort trades chronologically (first to last by time_opened)
+  const sortedTrades = [...trades].sort((a, b) => {
+    const timeA = a.time_opened || '00:00:00';
+    const timeB = b.time_opened || '00:00:00';
+    return timeA.localeCompare(timeB);
+  });
+
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons)
-  const totalSlides = 2 + trades.length + 3;
+  const totalSlides = 2 + sortedTrades.length + 3;
 
   useEffect(() => {
     if (open && date) {
       loadExistingReview();
       initializeTradeSlides();
     }
-  }, [open, date, trades]);
+  }, [open, date, sortedTrades]);
 
   const initializeTradeSlides = () => {
-    setTradeSlides(trades.map(trade => ({
+    setTradeSlides(sortedTrades.map(trade => ({
       trade_id: trade.id,
       screenshot_url: null,
       markers: [],
@@ -123,7 +132,7 @@ export const DailyReviewDialog = ({
         .order("slide_order");
 
       if (slides && slides.length > 0) {
-        setTradeSlides(trades.map(trade => {
+        setTradeSlides(sortedTrades.map(trade => {
           const existingSlide = slides.find(s => s.trade_id === trade.id);
           const markersData = existingSlide?.markers;
           const parsedMarkers: Marker[] = Array.isArray(markersData) 
@@ -224,31 +233,31 @@ export const DailyReviewDialog = ({
   const getSlideTitle = () => {
     if (currentSlide === 0) return "Day Summary";
     if (currentSlide === 1) return "Trades Overview";
-    if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
+    if (currentSlide >= 2 && currentSlide < 2 + sortedTrades.length) {
       const tradeIndex = currentSlide - 2;
-      const trade = trades[tradeIndex];
+      const trade = sortedTrades[tradeIndex];
       return `Trade ${tradeIndex + 1}: ${trade.symbol || trade.pair || 'Unknown'}`;
     }
-    if (currentSlide === 2 + trades.length) return "Missed Opportunities";
-    if (currentSlide === 3 + trades.length) return "What Went Well";
+    if (currentSlide === 2 + sortedTrades.length) return "Missed Opportunities";
+    if (currentSlide === 3 + sortedTrades.length) return "What Went Well";
     return "Lessons Learned";
   };
 
   const renderSlide = () => {
     // Slide 0: Day Summary
     if (currentSlide === 0) {
-      return <DaySummarySlide date={date} totalPL={totalPL} tradesCount={trades.length} />;
+      return <DaySummarySlide date={date} totalPL={totalPL} tradesCount={sortedTrades.length} />;
     }
     
     // Slide 1: Trades Overview
     if (currentSlide === 1) {
-      return <TradesOverviewSlide trades={trades} />;
+      return <TradesOverviewSlide trades={sortedTrades} />;
     }
     
     // Trade slides
-    if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
+    if (currentSlide >= 2 && currentSlide < 2 + sortedTrades.length) {
       const tradeIndex = currentSlide - 2;
-      const trade = trades[tradeIndex];
+      const trade = sortedTrades[tradeIndex];
       const slideData = tradeSlides[tradeIndex];
       
       return (
@@ -261,7 +270,7 @@ export const DailyReviewDialog = ({
     }
     
     // Missed Opportunities
-    if (currentSlide === 2 + trades.length) {
+    if (currentSlide === 2 + sortedTrades.length) {
       return (
         <MissedOpportunitiesSlide
           content={reviewData.missed_opportunities}
@@ -273,7 +282,7 @@ export const DailyReviewDialog = ({
     }
     
     // What Went Well
-    if (currentSlide === 3 + trades.length) {
+    if (currentSlide === 3 + sortedTrades.length) {
       return (
         <WhatWentWellSlide
           content={reviewData.what_went_well}
