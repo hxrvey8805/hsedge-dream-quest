@@ -674,7 +674,15 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
           <div className="px-6 pb-6">
             <div className="space-y-3 max-h-[65vh] overflow-y-auto pt-4">
-              {selectedDay && getDayStats(selectedDay).trades.map((trade) => {
+              {selectedDay && [...getDayStats(selectedDay).trades].sort((a, b) => {
+                // Sort by time_opened descending (latest first)
+                if (a.time_opened && b.time_opened) {
+                  return b.time_opened.localeCompare(a.time_opened);
+                }
+                if (a.time_opened && !b.time_opened) return -1;
+                if (!a.time_opened && b.time_opened) return 1;
+                return 0;
+              }).map((trade) => {
                 const isWin = trade.outcome === 'Win';
                 const isLoss = trade.outcome === 'Loss';
                 const asset = ASSET_CLASSES.find(ac => ac.value === (trade.asset_class || "Forex"));
