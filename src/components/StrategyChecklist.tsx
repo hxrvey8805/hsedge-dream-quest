@@ -247,7 +247,7 @@ export const StrategyChecklist = () => {
         </div>
       )}
 
-      <div className={`space-y-2 ${items.length > 4 ? 'max-h-[280px] overflow-y-auto pr-2' : ''}`}>
+      <div className="space-y-2">
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             No checklist items for {getSelectedStrategyName()}. Add items to follow your strategy!
