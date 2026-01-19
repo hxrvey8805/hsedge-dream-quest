@@ -254,25 +254,34 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   };
 
   const uploadScreenshot = async (blob: Blob) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("You must be logged in");
-      return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('review-screenshots')
+        .upload(fileName, blob);
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast.error(uploadError.message || "Failed to upload screenshot");
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('review-screenshots')
+        .getPublicUrl(fileName);
+
+      updateActiveSlot({ screenshot_url: publicUrl });
+      toast.success("Screenshot captured!");
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload screenshot");
     }
-
-    const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
-    const { error: uploadError } = await supabase.storage
-      .from('review-screenshots')
-      .upload(fileName, blob);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('review-screenshots')
-      .getPublicUrl(fileName);
-
-    updateActiveSlot({ screenshot_url: publicUrl });
-    toast.success("Screenshot captured!");
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
