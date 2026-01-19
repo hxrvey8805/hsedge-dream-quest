@@ -45,6 +45,7 @@ const ASSET_CLASSES = [
   { value: "Forex", icon: Globe, iconString: "", label: "Forex", isString: false },
   { value: "Stocks", icon: BarChart3, iconString: "", label: "Stocks", isString: false },
   { value: "Futures", icon: Activity, iconString: "", label: "Futures", isString: false },
+  { value: "Indices", icon: TrendingUp, iconString: "", label: "Indices", isString: false },
   { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
 ];
 
@@ -79,6 +80,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [pointValue, setPointValue] = useState<string>("1");
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -102,6 +104,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setNewStrategyName("");
       setSizeInputMode('units');
       setRiskAmount("");
+      setPointValue("1");
     } else {
       fetchStrategies();
     }
@@ -216,6 +219,11 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
             // For Futures: risk per contract = riskPerUnit
             tradeSize = riskDollar / riskPerUnit;
             break;
+          case "Indices":
+            // For Indices: risk per contract = riskPerUnit * pointValue
+            const ptVal = parseFloat(pointValue) || 1;
+            tradeSize = riskDollar / (riskPerUnit * ptVal);
+            break;
           case "Crypto":
             // For Crypto: risk per unit = riskPerUnit
             tradeSize = riskDollar / riskPerUnit;
@@ -244,6 +252,13 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         const ticks = priceDiff;
         profit = ticks * tradeSize - tradeFees;
         pips = ticks;
+        break;
+      case "Indices":
+        // For Indices: profit = points * size * pointValue
+        const points = priceDiff;
+        const ptValue = parseFloat(pointValue) || 1;
+        profit = points * tradeSize * ptValue - tradeFees;
+        pips = points; // Display as "points" not "pips"
         break;
       case "Crypto":
         profit = priceDiff * tradeSize - tradeFees;
@@ -288,6 +303,10 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
               break;
             case "Futures":
               finalSize = riskDollar / riskPerUnit;
+              break;
+            case "Indices":
+              const ptVal = parseFloat(pointValue) || 1;
+              finalSize = riskDollar / (riskPerUnit * ptVal);
               break;
             case "Crypto":
               finalSize = riskDollar / riskPerUnit;
@@ -494,7 +513,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                 {/* Asset Class Selection */}
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">What are you trading?</Label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     {ASSET_CLASSES.map((ac) => {
                       const IconComponent = ac.isString ? null : ac.icon;
                       return (
@@ -682,6 +701,24 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                   </div>
                 </div>
 
+                {/* Point Value for Indices */}
+                {assetClass === "Indices" && (
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                      Point Value ($)
+                      <span className="text-[10px] normal-case ml-2 text-muted-foreground/70">$ per point movement</span>
+                    </Label>
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      value={pointValue}
+                      onChange={(e) => setPointValue(e.target.value)}
+                      placeholder="1.00"
+                      className="bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                  </div>
+                )}
+
                 {/* Live P&L Preview */}
                 {entryPrice && exitPrice && (sizeInputMode === 'units' ? size : riskAmount) && (
                   <motion.div 
@@ -704,11 +741,13 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                         <p className="text-xs text-muted-foreground mb-1">R:R</p>
                         <p className="text-lg font-bold text-foreground">{previewRR}</p>
                       </div>
-                      {(assetClass === "Forex" || assetClass === "Futures") && (
+                      {(assetClass === "Forex" || assetClass === "Futures" || assetClass === "Indices") && (
                         <div className="text-center">
-                          <p className="text-xs text-muted-foreground mb-1">{assetClass === "Forex" ? "Pips" : "Ticks"}</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {assetClass === "Forex" ? "Pips" : assetClass === "Indices" ? "Points" : "Ticks"}
+                          </p>
                           <p className={`text-lg font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
-                            {previewPips >= 0 ? '+' : ''}{previewPips.toFixed(1)}
+                            {previewPips >= 0 ? '+' : ''}{previewPips.toFixed(assetClass === "Indices" ? 2 : 1)}
                           </p>
                         </div>
                       )}

@@ -677,6 +677,12 @@ export function calculateTradePnL(trade: ParsedTrade): { pips: number; profit: n
       profit = priceDiff * size - fees;
       pips = priceDiff;
       break;
+    case 'Indices':
+      // For Indices: profit = points * size (default point value = 1)
+      // CSV imports use raw calculation; point value adjustment happens at import time
+      profit = priceDiff * size - fees;
+      pips = priceDiff;
+      break;
     case 'Crypto':
       profit = priceDiff * size - fees;
       pips = priceDiff;
@@ -698,4 +704,5 @@ export function calculateTradePnL(trade: ParsedTrade): { pips: number; profit: n
 export const TRADES_CSV_EXAMPLE = `trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,stop_loss,size,fees,session,strategy_type,notes
 2024-01-15,EURUSD,Buy,Forex,1.0850,1.0920,1.0800,0.5,2.50,London,Breakout,Strong momentum trade
 2024-01-16,AAPL,Sell,Stocks,185.50,182.25,188.00,100,1.00,Regular,Mean Reversion,Overbought setup
-2024-01-17,BTCUSD,Buy,Crypto,42500,43200,41800,0.1,5.00,Asia,Trend Follow,`;
+2024-01-17,NAS100,Sell,Indices,25758.95,25764.40,25773.40,1,0.00,New York,Scalp,Quick index trade
+2024-01-18,BTCUSD,Buy,Crypto,42500,43200,41800,0.1,5.00,Asia,Trend Follow,`;
