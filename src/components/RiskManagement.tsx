@@ -247,7 +247,7 @@ export const RiskManagement = () => {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className={`space-y-2 ${rules.length > 4 ? 'max-h-[280px] overflow-y-auto pr-2' : ''}`}>
         {rules.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             No risk management rules for {getSelectedStrategyName()}. Add rules to protect your capital!
