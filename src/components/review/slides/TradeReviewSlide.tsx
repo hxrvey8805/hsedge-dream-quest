@@ -52,12 +52,29 @@ const MARKER_TYPES = [
 ];
 
 const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
-  return await Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out. Please try again.`)), ms)
-    ),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out. Please try again.`)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+};
+
+const getUserId = async (): Promise<string> => {
+  // getSession() is fast + local; getUser() can block on network refresh.
+  const {
+    data: { session },
+    error,
+  } = await withTimeout(supabase.auth.getSession(), 15000, "Authentication");
+  if (error) throw error;
+  const userId = session?.user?.id;
+  if (!userId) throw new Error("You must be logged in");
+  return userId;
 };
 
 const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) => {
@@ -164,6 +181,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
     setIsCapturing(true);
     let stream: MediaStream | null = null;
+    let videoEl: HTMLVideoElement | null = null;
 
     try {
       stream = await withTimeout(
@@ -208,9 +226,19 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
       // Fallback: video element method
       const video = document.createElement('video');
+      videoEl = video;
       video.srcObject = stream;
       video.muted = true;
       video.playsInline = true;
+      video.autoplay = true;
+
+      // Some browsers don't reliably fire media events unless the element is in the DOM.
+      video.style.position = 'fixed';
+      video.style.left = '-9999px';
+      video.style.top = '0';
+      video.style.width = '1px';
+      video.style.height = '1px';
+      document.body.appendChild(video);
 
       // Safari can require an explicit play() for metadata to load.
       try {
@@ -221,10 +249,12 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
       await withTimeout(
         new Promise<void>((resolve, reject) => {
-          video.onloadedmetadata = () => resolve();
-          video.onerror = () => reject(new Error("Video load failed"));
+          const onReady = () => resolve();
+          const onErr = () => reject(new Error("Video load failed"));
+          video.addEventListener('loadeddata', onReady, { once: true });
+          video.addEventListener('error', onErr, { once: true });
         }),
-        8000,
+        15000,
         "Video initialization"
       );
 
@@ -254,21 +284,23 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       }
     } finally {
       if (stream) stream.getTracks().forEach((t) => t.stop());
+      if (videoEl) {
+        try {
+          videoEl.pause();
+          videoEl.srcObject = null;
+          videoEl.remove();
+        } catch {
+          // ignore
+        }
+      }
       setIsCapturing(false);
     }
   };
 
   const uploadScreenshot = async (blob: Blob) => {
-    const { data: { user }, error: userError } = await withTimeout(
-      supabase.auth.getUser(),
-      8000,
-      "Authentication"
-    );
+    const userId = await getUserId();
 
-    if (userError) throw userError;
-    if (!user) throw new Error("You must be logged in");
-
-    const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
+    const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
     const file = new File([blob], `capture-${trade.id}.png`, { type: 'image/png' });
 
     const { error: uploadError } = await withTimeout(
@@ -295,16 +327,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     setIsUploading(true);
 
     try {
-      const { data: { user }, error: userError } = await withTimeout(
-        supabase.auth.getUser(),
-        8000,
-        "Authentication"
-      );
-      if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in");
+      const userId = await getUserId();
 
       const fileExt = file.name.split('.').pop() || 'png';
-      const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.${fileExt}`;
+      const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await withTimeout(
         supabase.storage
