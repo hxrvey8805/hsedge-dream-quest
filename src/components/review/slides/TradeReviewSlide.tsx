@@ -186,7 +186,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       if ('ImageCapture' in window) {
         try {
           const imageCapture = new (window as any).ImageCapture(track);
-          const bitmap = await withTimeout(imageCapture.grabFrame(), 8000, "Frame capture");
+          const bitmap = await withTimeout(imageCapture.grabFrame(), 8000, "Frame capture") as ImageBitmap;
 
           const canvas = document.createElement('canvas');
           canvas.width = bitmap.width;
