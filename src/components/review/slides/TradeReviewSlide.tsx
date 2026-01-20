@@ -51,6 +51,21 @@ const MARKER_TYPES = [
   { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'text-emerald-500 bg-emerald-500/20' },
 ];
 
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out. Please try again.`)), ms)
+    ),
+  ]);
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) => {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to create image'))), type, quality);
+  });
+};
+
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
   // Initialize slots from slideData or create default with legacy data
   const [slots, setSlots] = useState<ScreenshotSlot[]>(() => {
@@ -149,46 +164,42 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
     setIsCapturing(true);
     let stream: MediaStream | null = null;
-    
+
     try {
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { 
-          displaySurface: "window",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } as any,
-        audio: false,
-      });
+      stream = await withTimeout(
+        navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: "window",
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          } as any,
+          audio: false,
+        }),
+        15000,
+        "Screen capture permission"
+      );
 
       const track = stream.getVideoTracks()[0];
-      if (!track) {
-        throw new Error("No video track available");
-      }
+      if (!track) throw new Error("No video track available");
 
-      // Try ImageCapture API first (more reliable)
+      // Try ImageCapture API first (more reliable when available)
       if ('ImageCapture' in window) {
         try {
           const imageCapture = new (window as any).ImageCapture(track);
-          const bitmap = await imageCapture.grabFrame();
-          
+          const bitmap = await withTimeout(imageCapture.grabFrame(), 8000, "Frame capture");
+
           const canvas = document.createElement('canvas');
           canvas.width = bitmap.width;
           canvas.height = bitmap.height;
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error("Failed to get canvas context");
-          
+
           ctx.drawImage(bitmap, 0, 0);
           bitmap.close();
-          
-          // Stop stream immediately after capture
-          stream.getTracks().forEach(t => t.stop());
-          stream = null;
-          
-          const blob = await new Promise<Blob>((resolve, reject) => {
-            canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Failed to create image")), 'image/png');
-          });
-          
+
+          const blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
           await uploadScreenshot(blob);
+          toast.success("Screenshot captured!");
           return;
         } catch (icError) {
           console.log("ImageCapture failed, falling back to video method:", icError);
@@ -200,23 +211,26 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       video.srcObject = stream;
       video.muted = true;
       video.playsInline = true;
-      video.autoplay = true;
-      
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Video load timeout")), 5000);
-        video.onloadeddata = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-        video.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("Video load failed"));
-        };
-      });
 
-      // Multiple frame waits for stability
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Safari can require an explicit play() for metadata to load.
+      try {
+        await video.play();
+      } catch {
+        // ignore; we'll rely on metadata/timeout below
+      }
+
+      await withTimeout(
+        new Promise<void>((resolve, reject) => {
+          video.onloadedmetadata = () => resolve();
+          video.onerror = () => reject(new Error("Video load failed"));
+        }),
+        8000,
+        "Video initialization"
+      );
+
+      // Give the browser a moment to render a frame
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         throw new Error("Invalid video dimensions");
@@ -227,61 +241,51 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error("Failed to get canvas context");
-      
+
       ctx.drawImage(video, 0, 0);
-      
-      video.pause();
-      video.srcObject = null;
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
 
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Failed to create image")), 'image/png');
-      });
-
+      const blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
       await uploadScreenshot(blob);
+      toast.success("Screenshot captured!");
     } catch (error: any) {
       console.error("Screen capture error:", error);
-      if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
-        toast.error(error.message || "Failed to capture screen");
+      if (error?.name !== 'AbortError' && error?.name !== 'NotAllowedError') {
+        toast.error(error?.message || "Failed to capture screen");
       }
     } finally {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-      }
+      if (stream) stream.getTracks().forEach((t) => t.stop());
       setIsCapturing(false);
     }
   };
 
   const uploadScreenshot = async (blob: Blob) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in");
-        return;
-      }
+    const { data: { user }, error: userError } = await withTimeout(
+      supabase.auth.getUser(),
+      8000,
+      "Authentication"
+    );
 
-      const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
-      const { error: uploadError } = await supabase.storage
+    if (userError) throw userError;
+    if (!user) throw new Error("You must be logged in");
+
+    const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
+    const file = new File([blob], `capture-${trade.id}.png`, { type: 'image/png' });
+
+    const { error: uploadError } = await withTimeout(
+      supabase.storage
         .from('review-screenshots')
-        .upload(fileName, blob);
+        .upload(fileName, file, { contentType: 'image/png', upsert: true }),
+      20000,
+      "Upload"
+    );
 
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        toast.error(uploadError.message || "Failed to upload screenshot");
-        return;
-      }
+    if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('review-screenshots')
-        .getPublicUrl(fileName);
+    const { data: { publicUrl } } = supabase.storage
+      .from('review-screenshots')
+      .getPublicUrl(fileName);
 
-      updateActiveSlot({ screenshot_url: publicUrl });
-      toast.success("Screenshot captured!");
-    } catch (error: any) {
-      console.error("Upload error:", error);
-      toast.error(error.message || "Failed to upload screenshot");
-    }
+    updateActiveSlot({ screenshot_url: publicUrl });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,20 +293,26 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     if (!file) return;
 
     setIsUploading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("You must be logged in");
-      setIsUploading(false);
-      return;
-    }
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const { data: { user }, error: userError } = await withTimeout(
+        supabase.auth.getUser(),
+        8000,
+        "Authentication"
+      );
+      if (userError) throw userError;
+      if (!user) throw new Error("You must be logged in");
+
+      const fileExt = file.name.split('.').pop() || 'png';
       const fileName = `${user.id}/${trade.id}-${activeSlotId}-${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('review-screenshots')
-        .upload(fileName, file);
+      const { error: uploadError } = await withTimeout(
+        supabase.storage
+          .from('review-screenshots')
+          .upload(fileName, file, { contentType: file.type || undefined, upsert: true }),
+        20000,
+        "Upload"
+      );
 
       if (uploadError) throw uploadError;
 
@@ -313,7 +323,8 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       updateActiveSlot({ screenshot_url: publicUrl });
       toast.success("Screenshot uploaded!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to upload screenshot");
+      console.error("Upload error:", error);
+      toast.error(error?.message || "Failed to upload screenshot");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -411,7 +422,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 disabled={isCapturing || isUploading}
               >
                 <MonitorUp className="w-4 h-4 mr-1" />
-                {isCapturing ? "..." : "Capture"}
+                {isCapturing ? "Capturing..." : "Capture"}
               </Button>
               <Button
                 variant="ghost"
@@ -420,7 +431,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 disabled={isUploading || isCapturing}
               >
                 <Upload className="w-4 h-4 mr-1" />
-                {isUploading ? "..." : "Upload"}
+                {isUploading ? "Uploading..." : "Upload"}
               </Button>
             </div>
             <input
