@@ -69,16 +69,38 @@ const getUserIdFromLocalStorage = (): string | null => {
   try {
     if (typeof window === 'undefined') return null;
 
-    // Auth session is cached in localStorage by the client.
+    const tryExtractUserId = (value: unknown): string | null => {
+      if (!value) return null;
+      const userId =
+        (value as any)?.user?.id ??
+        (value as any)?.currentSession?.user?.id ??
+        (value as any)?.session?.user?.id ??
+        (value as any)?.data?.session?.user?.id;
+
+      return typeof userId === 'string' && userId.length > 0 ? userId : null;
+    };
+
+    // Prefer a deterministic key when available, but fall back to scanning.
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-    if (!projectId) return null;
+    const preferredKey = projectId ? `sb-${projectId}-auth-token` : null;
+    const candidateKeys = [
+      ...(preferredKey ? [preferredKey] : []),
+      ...Object.keys(window.localStorage).filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token')),
+    ];
 
-    const raw = window.localStorage.getItem(`sb-${projectId}-auth-token`);
-    if (!raw) return null;
+    for (const key of candidateKeys) {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        const userId = tryExtractUserId(parsed);
+        if (userId) return userId;
+      } catch {
+        // ignore and continue
+      }
+    }
 
-    const parsed = JSON.parse(raw);
-    const userId = parsed?.user?.id;
-    return typeof userId === 'string' && userId.length > 0 ? userId : null;
+    return null;
   } catch {
     return null;
   }
@@ -89,12 +111,19 @@ const getUserId = async (): Promise<string> => {
   const cached = getUserIdFromLocalStorage();
   if (cached) return cached;
 
-  const { data, error } = await supabase.auth.getSession();
+  // getSession *should* resolve quickly from local storage, but if it ever hangs,
+  // we must not leave the UI stuck on “Uploading…”.
+  const { data, error } = await withTimeout(supabase.auth.getSession(), 10000, "Authentication");
   if (error) throw error;
 
   const userId = data.session?.user?.id;
-  if (!userId) throw new Error("You must be logged in");
-  return userId;
+  if (userId) return userId;
+
+  // Last resort: validate the token by fetching the user.
+  const userRes = await withTimeout(supabase.auth.getUser(), 10000, "Authentication");
+  if (userRes.error) throw userRes.error;
+  if (!userRes.data.user?.id) throw new Error("You must be logged in");
+  return userRes.data.user.id;
 };
 
 const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) => {
