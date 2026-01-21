@@ -65,14 +65,34 @@ const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): 
   }
 };
 
+const getUserIdFromLocalStorage = (): string | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+
+    // Auth session is cached in localStorage by the client.
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    if (!projectId) return null;
+
+    const raw = window.localStorage.getItem(`sb-${projectId}-auth-token`);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    const userId = parsed?.user?.id;
+    return typeof userId === 'string' && userId.length > 0 ? userId : null;
+  } catch {
+    return null;
+  }
+};
+
 const getUserId = async (): Promise<string> => {
-  // getSession() is fast + local; getUser() can block on network refresh.
-  const {
-    data: { session },
-    error,
-  } = await withTimeout(supabase.auth.getSession(), 15000, "Authentication");
+  // Prefer the cached session (sync, avoids any network/refresh edge cases).
+  const cached = getUserIdFromLocalStorage();
+  if (cached) return cached;
+
+  const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
-  const userId = session?.user?.id;
+
+  const userId = data.session?.user?.id;
   if (!userId) throw new Error("You must be logged in");
   return userId;
 };
@@ -200,6 +220,8 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       const track = stream.getVideoTracks()[0];
       if (!track) throw new Error("No video track available");
 
+      let blob: Blob | null = null;
+
       // Try ImageCapture API first (more reliable when available)
       if ('ImageCapture' in window) {
         try {
@@ -215,66 +237,65 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           ctx.drawImage(bitmap, 0, 0);
           bitmap.close();
 
-          const blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
-          await uploadScreenshot(blob);
-          toast.success("Screenshot captured!");
-          return;
+          blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
         } catch (icError) {
           console.log("ImageCapture failed, falling back to video method:", icError);
         }
       }
 
-      // Fallback: video element method
-      const video = document.createElement('video');
-      videoEl = video;
-      video.srcObject = stream;
-      video.muted = true;
-      video.playsInline = true;
-      video.autoplay = true;
+      if (!blob) {
+        // Fallback: video element method
+        const video = document.createElement('video');
+        videoEl = video;
+        video.srcObject = stream;
+        video.muted = true;
+        video.playsInline = true;
+        video.autoplay = true;
 
-      // Some browsers don't reliably fire media events unless the element is in the DOM.
-      video.style.position = 'fixed';
-      video.style.left = '-9999px';
-      video.style.top = '0';
-      video.style.width = '1px';
-      video.style.height = '1px';
-      document.body.appendChild(video);
+        // Some browsers don't reliably fire media events unless the element is in the DOM.
+        video.style.position = 'fixed';
+        video.style.left = '-9999px';
+        video.style.top = '0';
+        video.style.width = '1px';
+        video.style.height = '1px';
+        document.body.appendChild(video);
 
-      // Safari can require an explicit play() for metadata to load.
-      try {
-        await video.play();
-      } catch {
-        // ignore; we'll rely on metadata/timeout below
+        // Safari can require an explicit play() for metadata to load.
+        try {
+          await video.play();
+        } catch {
+          // ignore; we'll rely on metadata/timeout below
+        }
+
+        await withTimeout(
+          new Promise<void>((resolve, reject) => {
+            const onReady = () => resolve();
+            const onErr = () => reject(new Error("Video load failed"));
+            video.addEventListener('loadeddata', onReady, { once: true });
+            video.addEventListener('error', onErr, { once: true });
+          }),
+          15000,
+          "Video initialization"
+        );
+
+        // Give the browser a moment to render a frame
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          throw new Error("Invalid video dimensions");
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error("Failed to get canvas context");
+
+        ctx.drawImage(video, 0, 0);
+        blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
       }
 
-      await withTimeout(
-        new Promise<void>((resolve, reject) => {
-          const onReady = () => resolve();
-          const onErr = () => reject(new Error("Video load failed"));
-          video.addEventListener('loadeddata', onReady, { once: true });
-          video.addEventListener('error', onErr, { once: true });
-        }),
-        15000,
-        "Video initialization"
-      );
-
-      // Give the browser a moment to render a frame
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        throw new Error("Invalid video dimensions");
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error("Failed to get canvas context");
-
-      ctx.drawImage(video, 0, 0);
-
-      const blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
       await uploadScreenshot(blob);
       toast.success("Screenshot captured!");
     } catch (error: any) {
