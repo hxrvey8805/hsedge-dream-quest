@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -561,9 +561,94 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     return <Icon className={sizeClass} />;
   };
 
+  // If files were uploaded but the URL never got saved into the review record (e.g. upload timed out),
+  // the image will exist in storage but won't be displayed. This provides a read-only fallback.
+  const [unlinkedScreenshotUrl, setUnlinkedScreenshotUrl] = useState<string | null>(null);
+  const [isFindingScreenshot, setIsFindingScreenshot] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const findLatestForTrade = async () => {
+      if (slideData.screenshot_url) {
+        setUnlinkedScreenshotUrl(null);
+        return;
+      }
+
+      setIsFindingScreenshot(true);
+      try {
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userRes.user) return;
+
+        const userId = userRes.user.id;
+        const { data: objects, error: listError } = await supabase.storage
+          .from('review-screenshots')
+          .list(userId, { limit: 100 });
+
+        if (listError || !objects?.length) return;
+
+        const match = objects.find((o) => o.name?.startsWith(`${trade.id}-`));
+        if (!match) return;
+
+        const { data: urlData } = supabase.storage
+          .from('review-screenshots')
+          .getPublicUrl(`${userId}/${match.name}`);
+
+        if (!cancelled) setUnlinkedScreenshotUrl(urlData.publicUrl ?? null);
+      } finally {
+        if (!cancelled) setIsFindingScreenshot(false);
+      }
+    };
+
+    findLatestForTrade();
+    return () => {
+      cancelled = true;
+    };
+  }, [slideData.screenshot_url, trade.id]);
+
+  const displayScreenshotUrl = slideData.screenshot_url || unlinkedScreenshotUrl;
+
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex flex-col gap-4 min-h-0">
+        {/* Screenshot (view-only) */}
+        <div className="bg-card border rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <Label className="text-base font-semibold">Trade Screenshot</Label>
+            {!slideData.screenshot_url && unlinkedScreenshotUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onUpdate({ screenshot_url: unlinkedScreenshotUrl });
+                  toast.success("Screenshot linked to this trade (save review to persist)");
+                }}
+              >
+                Link to trade
+              </Button>
+            )}
+          </div>
+
+          {displayScreenshotUrl ? (
+            <img
+              src={displayScreenshotUrl}
+              alt="Trade screenshot"
+              className="w-full max-h-[420px] object-contain rounded-md border bg-background"
+              loading="lazy"
+            />
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              {isFindingScreenshot ? "Looking for recent uploads…" : "No screenshot linked to this trade."}
+            </div>
+          )}
+
+          {!slideData.screenshot_url && unlinkedScreenshotUrl && (
+            <p className="text-xs text-muted-foreground">
+              Found a recent upload in file storage that isn’t linked to this review yet.
+            </p>
+          )}
+        </div>
+
         {/* Trade details */}
         <div className="bg-card border rounded-lg p-4 space-y-3">
           <h4 className="font-semibold text-lg">
