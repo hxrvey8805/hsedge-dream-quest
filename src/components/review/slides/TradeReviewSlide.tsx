@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Upload, ArrowUpCircle, Target, X, Image, MonitorUp, Maximize2, Plus, Trash2 } from "lucide-react";
+import { Upload, ArrowUpCircle, Target, X, Image as ImageIcon, MonitorUp, Maximize2, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageEditorDialog, Marker } from "../ImageEditorDialog";
@@ -129,6 +129,20 @@ const getUserId = async (): Promise<string> => {
 const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png', quality?: number) => {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to create image'))), type, quality);
+  });
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image'));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') return reject(new Error('Failed to read image'));
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.readAsDataURL(blob);
   });
 };
 
@@ -383,24 +397,25 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const UPLOAD_TIMEOUT_MS = 90000;
 
   const uploadScreenshot = async (image: EncodedImage) => {
-    const userId = await getUserId();
-
-    const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${image.ext}`;
-    const file = new File([image.blob], `capture-${trade.id}.${image.ext}`, { type: image.contentType });
-
-    const { error: uploadError } = await withTimeout(
-      supabase.storage
-        .from('review-screenshots')
-        .upload(fileName, file, { contentType: image.contentType, upsert: true }),
-      UPLOAD_TIMEOUT_MS,
-      "Upload"
+    // Upload via backend function to avoid client-side storage hangs/timeouts.
+    const base64 = await withTimeout(blobToBase64(image.blob), 15000, 'Image encoding');
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('upload-review-screenshot', {
+        body: {
+          tradeId: trade.id,
+          slotId: activeSlotId,
+          ext: image.ext,
+          contentType: image.contentType,
+          base64,
+        },
+      }),
+      60000,
+      'Upload'
     );
 
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('review-screenshots')
-      .getPublicUrl(fileName);
+    if (error) throw error;
+    const publicUrl = (data as any)?.publicUrl as string | undefined;
+    if (!publicUrl) throw new Error('Upload failed');
 
     updateActiveSlot({ screenshot_url: publicUrl });
   };
@@ -412,26 +427,39 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     setIsUploading(true);
 
     try {
-      const userId = await getUserId();
+      // Normalize + compress uploaded images as well (users often upload huge PNGs).
+      let encoded: EncodedImage | null = null;
+      if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
+        const url = URL.createObjectURL(file);
+        try {
+          const img = new window.Image();
+          img.decoding = 'async';
+          img.src = url;
+          await withTimeout(
+            new Promise<void>((resolve, reject) => {
+              img.onload = () => resolve();
+              img.onerror = () => reject(new Error('Failed to load image'));
+            }),
+            15000,
+            'Image decode'
+          );
+          const canvas = createScaledCanvas(img.naturalWidth || img.width, img.naturalHeight || img.height, 1920);
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Failed to get canvas context');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          encoded = await withTimeout(encodeCanvas(canvas), 15000, 'Image encoding');
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
 
-      const fileExt = file.name.split('.').pop() || 'png';
-      const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${fileExt}`;
+      if (!encoded) {
+        // Fallback: upload original file through the same backend function.
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        encoded = { blob: file, contentType: file.type || 'image/png', ext };
+      }
 
-      const { error: uploadError } = await withTimeout(
-        supabase.storage
-          .from('review-screenshots')
-          .upload(fileName, file, { contentType: file.type || undefined, upsert: true }),
-        UPLOAD_TIMEOUT_MS,
-        "Upload"
-      );
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('review-screenshots')
-        .getPublicUrl(fileName);
-
-      updateActiveSlot({ screenshot_url: publicUrl });
+      await uploadScreenshot(encoded);
       toast.success("Screenshot uploaded!");
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -619,7 +647,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
               </>
             ) : (
               <div className="flex flex-col items-center justify-center text-muted-foreground p-8">
-                <Image className="w-16 h-16 mb-3 opacity-40" />
+                 <ImageIcon className="w-16 h-16 mb-3 opacity-40" />
                 <p className="text-sm font-medium">Capture or upload a screenshot</p>
                 <p className="text-xs opacity-60 mt-1">for {activeSlot?.label || 'this timeframe'}</p>
               </div>
