@@ -160,11 +160,11 @@ const createScaledCanvas = (sourceWidth: number, sourceHeight: number, maxSide =
 };
 
 const encodeCanvas = async (canvas: HTMLCanvasElement): Promise<EncodedImage> => {
-  // Prefer smaller formats to avoid long request-body uploads (base64 JSON) that can time out.
+  // Prefer smaller formats with optimized quality for faster uploads.
   // Note: Some browsers (notably Safari) don't support webp encoding, so keep jpeg as a strong fallback.
   const candidates: Array<{ type: string; ext: string; quality?: number }> = [
-    { type: 'image/webp', ext: 'webp', quality: 0.8 },
-    { type: 'image/jpeg', ext: 'jpg', quality: 0.8 },
+    { type: 'image/webp', ext: 'webp', quality: 0.75 },
+    { type: 'image/jpeg', ext: 'jpg', quality: 0.75 },
     { type: 'image/png', ext: 'png' },
   ];
 
@@ -184,7 +184,7 @@ const encodeCanvas = async (canvas: HTMLCanvasElement): Promise<EncodedImage> =>
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
   // Keep screenshots reasonably small so the browser can POST them quickly.
   // If the request body upload stalls, the backend function never receives the request, causing timeouts.
-  const MAX_UPLOAD_SIDE = 1440;
+  const MAX_UPLOAD_SIDE = 1200;
   // Initialize slots from slideData or create default with legacy data
   const [slots, setSlots] = useState<ScreenshotSlot[]>(() => {
     if (slideData.screenshot_slots && slideData.screenshot_slots.length > 0) {
@@ -206,6 +206,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [editingSlotLabel, setEditingSlotLabel] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const userIdCacheRef = useRef<string | null>(null);
 
   const activeSlot = slots.find(s => s.id === activeSlotId) || slots[0];
 
@@ -317,7 +318,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
           bitmap.close();
 
-          encoded = await withTimeout(encodeCanvas(canvas), 12000, "Image encoding");
+          encoded = await withTimeout(encodeCanvas(canvas), 8000, "Image encoding");
           blob = encoded.blob;
         } catch (icError) {
           console.log("ImageCapture failed, falling back to video method:", icError);
@@ -360,8 +361,8 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         );
 
         // Give the browser a moment to render a frame
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(undefined))));
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         if (video.videoWidth === 0 || video.videoHeight === 0) {
           throw new Error("Invalid video dimensions");
@@ -372,7 +373,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         if (!ctx) throw new Error("Failed to get canvas context");
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        encoded = await withTimeout(encodeCanvas(canvas), 12000, "Image encoding");
+        encoded = await withTimeout(encodeCanvas(canvas), 8000, "Image encoding");
         blob = encoded.blob;
       }
 
@@ -380,9 +381,16 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       toast.success("Screenshot captured!");
     } catch (error: any) {
       console.error("Screen capture error:", error);
-      if (error?.name !== 'AbortError' && error?.name !== 'NotAllowedError') {
-        toast.error(error?.message || "Failed to capture screen");
+      if (error?.name === 'AbortError') {
+        // User cancelled - don't show error
+        return;
       }
+      if (error?.name === 'NotAllowedError') {
+        toast.error("Screen capture permission denied. Please allow screen sharing when prompted.");
+        return;
+      }
+      // Show the error message (which now includes helpful diagnostics)
+      toast.error(error?.message || "Failed to capture and upload screenshot. Please check the console for details.");
     } finally {
       if (stream) stream.getTracks().forEach((t) => t.stop());
       if (videoEl) {
@@ -398,15 +406,18 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
   };
 
-  const UPLOAD_TIMEOUT_MS = 90000;
+  const UPLOAD_TIMEOUT_MS = 30000; // Reduced from 90s to 30s for faster feedback
 
   const uploadScreenshot = async (image: EncodedImage) => {
-    // Re-implement the “previously working” path: upload the Blob directly to file storage.
-    // This avoids large base64 JSON payloads that can stall the browser request body upload.
-    const startedAt = performance.now();
-    const userId = await getUserId();
+    // Get userId with caching for faster uploads
+    if (!userIdCacheRef.current) {
+      userIdCacheRef.current = await getUserId();
+    }
+    const userId = userIdCacheRef.current;
 
+    const startedAt = performance.now();
     const objectPath = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${image.ext}`;
+    
     console.log('[TradeReviewSlide] upload start', {
       bytes: image.blob.size,
       type: image.contentType,
@@ -414,57 +425,70 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       objectPath,
     });
 
-    const attemptDirectUpload = async (): Promise<string> => {
+    // Direct upload - fastest path
+    try {
       const { error: uploadError } = await supabase.storage
         .from('review-screenshots')
         .upload(objectPath, image.blob, { contentType: image.contentType, upsert: true });
-      if (uploadError) throw uploadError;
+      
+      if (uploadError) {
+        // Check if it's a bucket error
+        if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+          throw new Error("Storage bucket 'review-screenshots' not found. Please ensure the database migration has been run.");
+        }
+        if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
+          throw new Error("Permission denied. Please check your storage bucket policies.");
+        }
+        throw uploadError;
+      }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('review-screenshots').getPublicUrl(objectPath);
+      const { data: { publicUrl } } = supabase.storage
+        .from('review-screenshots')
+        .getPublicUrl(objectPath);
+      
       if (!publicUrl) throw new Error('Upload failed');
-      return publicUrl;
-    };
 
-    // Primary: direct upload (what worked well before)
-    try {
-      const publicUrl = await withTimeout(attemptDirectUpload(), UPLOAD_TIMEOUT_MS, 'Upload');
+      // Update immediately for instant feedback
       updateActiveSlot({ screenshot_url: publicUrl });
+      
       console.log('[TradeReviewSlide] upload success', {
         via: 'direct',
         ms: Math.round(performance.now() - startedAt),
       });
-      return;
-    } catch (directErr) {
-      // Fallback: backend function upload (kept as a safety net)
-      console.warn('[TradeReviewSlide] direct upload failed, falling back', directErr);
+    } catch (directErr: any) {
+      // Fallback: backend function upload (only if direct upload fails)
+      console.warn('[TradeReviewSlide] direct upload failed, falling back to function', directErr);
+      
+      try {
+        const base64 = await withTimeout(blobToBase64(image.blob), 10000, 'Image encoding');
+        const { data, error } = await withTimeout(
+          supabase.functions.invoke('upload-review-screenshot', {
+            body: {
+              tradeId: trade.id,
+              slotId: activeSlotId,
+              ext: image.ext,
+              contentType: image.contentType,
+              base64,
+            },
+          }),
+          UPLOAD_TIMEOUT_MS,
+          'Upload'
+        );
+
+        if (error) throw error;
+        const publicUrl = (data as any)?.publicUrl as string | undefined;
+        if (!publicUrl) throw new Error('Upload failed');
+
+        updateActiveSlot({ screenshot_url: publicUrl });
+        console.log('[TradeReviewSlide] upload success', {
+          via: 'function',
+          ms: Math.round(performance.now() - startedAt),
+        });
+      } catch (fallbackErr: any) {
+        console.error('[TradeReviewSlide] both upload methods failed', fallbackErr);
+        throw fallbackErr;
+      }
     }
-
-    const base64 = await withTimeout(blobToBase64(image.blob), 15000, 'Image encoding');
-    const { data, error } = await withTimeout(
-      supabase.functions.invoke('upload-review-screenshot', {
-        body: {
-          tradeId: trade.id,
-          slotId: activeSlotId,
-          ext: image.ext,
-          contentType: image.contentType,
-          base64,
-        },
-      }),
-      UPLOAD_TIMEOUT_MS,
-      'Upload'
-    );
-
-    if (error) throw error;
-    const publicUrl = (data as any)?.publicUrl as string | undefined;
-    if (!publicUrl) throw new Error('Upload failed');
-
-    updateActiveSlot({ screenshot_url: publicUrl });
-    console.log('[TradeReviewSlide] upload success', {
-      via: 'function',
-      ms: Math.round(performance.now() - startedAt),
-    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -498,7 +522,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error('Failed to get canvas context');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          encoded = await withTimeout(encodeCanvas(canvas), 15000, 'Image encoding');
+          encoded = await withTimeout(encodeCanvas(canvas), 8000, 'Image encoding');
         } finally {
           URL.revokeObjectURL(url);
         }
@@ -514,7 +538,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       toast.success("Screenshot uploaded!");
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error(error?.message || "Failed to upload screenshot");
+      toast.error(error?.message || "Failed to upload screenshot. Please check the console for details.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

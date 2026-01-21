@@ -42,8 +42,13 @@ CREATE POLICY "Users can create their own slides" ON public.trade_review_slides 
 CREATE POLICY "Users can update their own slides" ON public.trade_review_slides FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own slides" ON public.trade_review_slides FOR DELETE USING (auth.uid() = user_id);
 
--- Create storage bucket for review screenshots
-INSERT INTO storage.buckets (id, name, public) VALUES ('review-screenshots', 'review-screenshots', true);
+-- Create storage bucket for review screenshots (only if it doesn't exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'review-screenshots') THEN
+    INSERT INTO storage.buckets (id, name, public) VALUES ('review-screenshots', 'review-screenshots', true);
+  END IF;
+END $$;
 
 -- Storage policies
 CREATE POLICY "Users can upload review screenshots" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'review-screenshots' AND auth.uid()::text = (storage.foldername(name))[1]);
