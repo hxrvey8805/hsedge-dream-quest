@@ -401,7 +401,46 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const UPLOAD_TIMEOUT_MS = 90000;
 
   const uploadScreenshot = async (image: EncodedImage) => {
-    // Upload via backend function to avoid client-side storage hangs/timeouts.
+    // Re-implement the “previously working” path: upload the Blob directly to file storage.
+    // This avoids large base64 JSON payloads that can stall the browser request body upload.
+    const startedAt = performance.now();
+    const userId = await getUserId();
+
+    const objectPath = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${image.ext}`;
+    console.log('[TradeReviewSlide] upload start', {
+      bytes: image.blob.size,
+      type: image.contentType,
+      ext: image.ext,
+      objectPath,
+    });
+
+    const attemptDirectUpload = async (): Promise<string> => {
+      const { error: uploadError } = await supabase.storage
+        .from('review-screenshots')
+        .upload(objectPath, image.blob, { contentType: image.contentType, upsert: true });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('review-screenshots').getPublicUrl(objectPath);
+      if (!publicUrl) throw new Error('Upload failed');
+      return publicUrl;
+    };
+
+    // Primary: direct upload (what worked well before)
+    try {
+      const publicUrl = await withTimeout(attemptDirectUpload(), UPLOAD_TIMEOUT_MS, 'Upload');
+      updateActiveSlot({ screenshot_url: publicUrl });
+      console.log('[TradeReviewSlide] upload success', {
+        via: 'direct',
+        ms: Math.round(performance.now() - startedAt),
+      });
+      return;
+    } catch (directErr) {
+      // Fallback: backend function upload (kept as a safety net)
+      console.warn('[TradeReviewSlide] direct upload failed, falling back', directErr);
+    }
+
     const base64 = await withTimeout(blobToBase64(image.blob), 15000, 'Image encoding');
     const { data, error } = await withTimeout(
       supabase.functions.invoke('upload-review-screenshot', {
@@ -413,7 +452,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           base64,
         },
       }),
-      60000,
+      UPLOAD_TIMEOUT_MS,
       'Upload'
     );
 
@@ -422,6 +461,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     if (!publicUrl) throw new Error('Upload failed');
 
     updateActiveSlot({ screenshot_url: publicUrl });
+    console.log('[TradeReviewSlide] upload success', {
+      via: 'function',
+      ms: Math.round(performance.now() - startedAt),
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
