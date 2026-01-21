@@ -103,6 +103,40 @@ const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/png', quality?: n
   });
 };
 
+type EncodedImage = { blob: Blob; contentType: string; ext: string };
+
+const createScaledCanvas = (sourceWidth: number, sourceHeight: number, maxSide = 1920) => {
+  const maxSourceSide = Math.max(sourceWidth, sourceHeight);
+  const scale = maxSourceSide > maxSide ? maxSide / maxSourceSide : 1;
+  const width = Math.max(1, Math.round(sourceWidth * scale));
+  const height = Math.max(1, Math.round(sourceHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+};
+
+const encodeCanvas = async (canvas: HTMLCanvasElement): Promise<EncodedImage> => {
+  // Prefer smaller formats to avoid slow uploads on high-res captures.
+  const candidates: Array<{ type: string; ext: string; quality?: number }> = [
+    { type: 'image/webp', ext: 'webp', quality: 0.85 },
+    { type: 'image/jpeg', ext: 'jpg', quality: 0.85 },
+    { type: 'image/png', ext: 'png' },
+  ];
+
+  let lastError: unknown;
+  for (const c of candidates) {
+    try {
+      const blob = await canvasToBlob(canvas, c.type, c.quality);
+      return { blob, contentType: c.type, ext: c.ext };
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Failed to encode image');
+};
+
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
   // Initialize slots from slideData or create default with legacy data
   const [slots, setSlots] = useState<ScreenshotSlot[]>(() => {
@@ -221,6 +255,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       if (!track) throw new Error("No video track available");
 
       let blob: Blob | null = null;
+      let encoded: EncodedImage | null = null;
 
       // Try ImageCapture API first (more reliable when available)
       if ('ImageCapture' in window) {
@@ -228,22 +263,21 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           const imageCapture = new (window as any).ImageCapture(track);
           const bitmap = await withTimeout(imageCapture.grabFrame(), 8000, "Frame capture") as ImageBitmap;
 
-          const canvas = document.createElement('canvas');
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
+          const canvas = createScaledCanvas(bitmap.width, bitmap.height, 1920);
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error("Failed to get canvas context");
 
-          ctx.drawImage(bitmap, 0, 0);
+          ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
           bitmap.close();
 
-          blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
+          encoded = await withTimeout(encodeCanvas(canvas), 12000, "Image encoding");
+          blob = encoded.blob;
         } catch (icError) {
           console.log("ImageCapture failed, falling back to video method:", icError);
         }
       }
 
-      if (!blob) {
+      if (!blob || !encoded) {
         // Fallback: video element method
         const video = document.createElement('video');
         videoEl = video;
@@ -286,17 +320,16 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           throw new Error("Invalid video dimensions");
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        const canvas = createScaledCanvas(video.videoWidth, video.videoHeight, 1920);
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error("Failed to get canvas context");
 
-        ctx.drawImage(video, 0, 0);
-        blob = await withTimeout(canvasToBlob(canvas), 8000, "Image encoding");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        encoded = await withTimeout(encodeCanvas(canvas), 12000, "Image encoding");
+        blob = encoded.blob;
       }
 
-      await uploadScreenshot(blob);
+      await uploadScreenshot(encoded ?? { blob, contentType: 'image/png', ext: 'png' });
       toast.success("Screenshot captured!");
     } catch (error: any) {
       console.error("Screen capture error:", error);
@@ -318,17 +351,19 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
   };
 
-  const uploadScreenshot = async (blob: Blob) => {
+  const UPLOAD_TIMEOUT_MS = 90000;
+
+  const uploadScreenshot = async (image: EncodedImage) => {
     const userId = await getUserId();
 
-    const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.png`;
-    const file = new File([blob], `capture-${trade.id}.png`, { type: 'image/png' });
+    const fileName = `${userId}/${trade.id}-${activeSlotId}-${Date.now()}.${image.ext}`;
+    const file = new File([image.blob], `capture-${trade.id}.${image.ext}`, { type: image.contentType });
 
     const { error: uploadError } = await withTimeout(
       supabase.storage
         .from('review-screenshots')
-        .upload(fileName, file, { contentType: 'image/png', upsert: true }),
-      20000,
+        .upload(fileName, file, { contentType: image.contentType, upsert: true }),
+      UPLOAD_TIMEOUT_MS,
       "Upload"
     );
 
@@ -357,7 +392,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         supabase.storage
           .from('review-screenshots')
           .upload(fileName, file, { contentType: file.type || undefined, upsert: true }),
-        20000,
+        UPLOAD_TIMEOUT_MS,
         "Upload"
       );
 
