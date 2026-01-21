@@ -160,10 +160,11 @@ const createScaledCanvas = (sourceWidth: number, sourceHeight: number, maxSide =
 };
 
 const encodeCanvas = async (canvas: HTMLCanvasElement): Promise<EncodedImage> => {
-  // Prefer smaller formats to avoid slow uploads on high-res captures.
+  // Prefer smaller formats to avoid long request-body uploads (base64 JSON) that can time out.
+  // Note: Some browsers (notably Safari) don't support webp encoding, so keep jpeg as a strong fallback.
   const candidates: Array<{ type: string; ext: string; quality?: number }> = [
-    { type: 'image/webp', ext: 'webp', quality: 0.85 },
-    { type: 'image/jpeg', ext: 'jpg', quality: 0.85 },
+    { type: 'image/webp', ext: 'webp', quality: 0.8 },
+    { type: 'image/jpeg', ext: 'jpg', quality: 0.8 },
     { type: 'image/png', ext: 'png' },
   ];
 
@@ -181,6 +182,9 @@ const encodeCanvas = async (canvas: HTMLCanvasElement): Promise<EncodedImage> =>
 };
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
+  // Keep screenshots reasonably small so the browser can POST them quickly.
+  // If the request body upload stalls, the backend function never receives the request, causing timeouts.
+  const MAX_UPLOAD_SIDE = 1440;
   // Initialize slots from slideData or create default with legacy data
   const [slots, setSlots] = useState<ScreenshotSlot[]>(() => {
     if (slideData.screenshot_slots && slideData.screenshot_slots.length > 0) {
@@ -306,7 +310,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           const imageCapture = new (window as any).ImageCapture(track);
           const bitmap = await withTimeout(imageCapture.grabFrame(), 8000, "Frame capture") as ImageBitmap;
 
-          const canvas = createScaledCanvas(bitmap.width, bitmap.height, 1920);
+          const canvas = createScaledCanvas(bitmap.width, bitmap.height, MAX_UPLOAD_SIDE);
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error("Failed to get canvas context");
 
@@ -363,7 +367,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
           throw new Error("Invalid video dimensions");
         }
 
-        const canvas = createScaledCanvas(video.videoWidth, video.videoHeight, 1920);
+        const canvas = createScaledCanvas(video.videoWidth, video.videoHeight, MAX_UPLOAD_SIDE);
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error("Failed to get canvas context");
 
@@ -443,7 +447,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
             15000,
             'Image decode'
           );
-          const canvas = createScaledCanvas(img.naturalWidth || img.width, img.naturalHeight || img.height, 1920);
+          const canvas = createScaledCanvas(
+            img.naturalWidth || img.width,
+            img.naturalHeight || img.height,
+            MAX_UPLOAD_SIDE
+          );
           const ctx = canvas.getContext('2d');
           if (!ctx) throw new Error('Failed to get canvas context');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
