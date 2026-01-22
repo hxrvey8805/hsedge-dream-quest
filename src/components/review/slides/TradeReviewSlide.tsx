@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, Image as ImageIcon, MonitorUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { captureDisplayToJpegBlob, compressImageFileToJpegBlob } from "@/lib/reviewScreenshotImage";
 
 interface Trade {
   id: string;
@@ -51,26 +52,6 @@ interface TradeReviewSlideProps {
 // Simpler, more reliable upload with no complex fallbacks
 const MAX_UPLOAD_SIDE = 1200;
 
-const createScaledCanvas = (sourceWidth: number, sourceHeight: number, maxSide = MAX_UPLOAD_SIDE) => {
-  const maxSourceSide = Math.max(sourceWidth, sourceHeight);
-  const scale = maxSourceSide > maxSide ? maxSide / maxSourceSide : 1;
-  const width = Math.max(1, Math.round(sourceWidth * scale));
-  const height = Math.max(1, Math.round(sourceHeight * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  return canvas;
-};
-
-const dataUrlToBlob = (dataUrl: string): Blob => {
-  const [meta, data] = dataUrl.split(",");
-  const contentType = meta?.match(/data:(.*);base64/)?.[1] || "application/octet-stream";
-  const binaryString = atob(data);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-  return new Blob([bytes], { type: contentType });
-};
-
 const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
   let timeoutId: number | undefined;
   const timeoutPromise = new Promise<T>((_, reject) => {
@@ -98,29 +79,6 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-// canvas.toBlob can hang in some browser/device combos (seen as stuck on "Compressing...").
-// This adds a deterministic fallback via toDataURL.
-const canvasToBlob = async (
-  canvas: HTMLCanvasElement,
-  type: "image/jpeg" | "image/png" | "image/webp" = "image/jpeg",
-  quality = 0.8
-): Promise<Blob> => {
-  const viaToBlob = new Promise<Blob>((resolve, reject) => {
-    if (!canvas.toBlob) return reject(new Error("toBlob not supported"));
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Failed to create blob"))),
-      type,
-      quality
-    );
-  });
-
-  try {
-    return await withTimeout(viaToBlob, 2500, "Image compression");
-  } catch {
-    const dataUrl = canvas.toDataURL(type, quality);
-    return dataUrlToBlob(dataUrl);
-  }
-};
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -240,24 +198,19 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
       // Compress if it's an image
       if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
-        const url = URL.createObjectURL(file);
         try {
-          const img = new Image();
-          img.src = url;
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => resolve();
-            img.onerror = () => reject(new Error('Failed to load image'));
+          setUploadProgress('Compressing...');
+          blob = await compressImageFileToJpegBlob(file, {
+            maxSide: MAX_UPLOAD_SIDE,
+            quality: 0.82,
+            timeoutMs: 8000,
           });
-
-          const canvas = createScaledCanvas(img.naturalWidth, img.naturalHeight);
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            blob = await canvasToBlob(canvas, 'image/jpeg', 0.8);
-            ext = 'jpg';
-          }
-        } finally {
-          URL.revokeObjectURL(url);
+          ext = 'jpg';
+        } catch (err) {
+          // If compression fails/hangs on a specific device/browser, still allow uploads.
+          console.warn('Image compression failed; uploading original file', err);
+          blob = file;
+          ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
         }
       }
 
@@ -275,64 +228,16 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   };
 
   const handleScreenCapture = async () => {
-    if (!navigator.mediaDevices?.getDisplayMedia) {
-      toast.error('Screen capture not supported. Please use file upload.');
-      return;
-    }
-
     setIsCapturing(true);
-    setUploadProgress('Starting capture...');
-    let stream: MediaStream | null = null;
 
     try {
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 } } as any,
-        audio: false,
+      const blob = await captureDisplayToJpegBlob({
+        maxSide: MAX_UPLOAD_SIDE,
+        quality: 0.82,
+        timeoutMs: 8000,
+        progress: (m) => setUploadProgress(m),
       });
 
-      const track = stream.getVideoTracks()[0];
-      if (!track) throw new Error('No video track');
-
-      setUploadProgress('Capturing frame...');
-
-      // Use video element to capture a frame
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.muted = true;
-      video.playsInline = true;
-
-      // Wait for metadata so dimensions are reliable
-      await new Promise<void>((resolve, reject) => {
-        const timeout = window.setTimeout(() => reject(new Error("Capture setup timed out")), 3000);
-        video.onloadedmetadata = () => {
-          window.clearTimeout(timeout);
-          resolve();
-        };
-        video.onerror = () => {
-          window.clearTimeout(timeout);
-          reject(new Error("Failed to initialize capture"));
-        };
-      });
-
-      await video.play();
-
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        throw new Error("Invalid video dimensions");
-      }
-
-      const canvas = createScaledCanvas(video.videoWidth, video.videoHeight);
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas context error');
-      
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Stop stream immediately after capture
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
-
-      setUploadProgress('Compressing...');
-      const blob = await canvasToBlob(canvas, 'image/jpeg', 0.8);
-      
       const publicUrl = await uploadToStorage(blob, 'jpg');
       onUpdate({ screenshot_url: publicUrl });
       toast.success('Screenshot captured!');
@@ -344,7 +249,6 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
         toast.error(error.message || 'Failed to capture screenshot');
       }
     } finally {
-      if (stream) stream.getTracks().forEach(t => t.stop());
       setIsCapturing(false);
       setUploadProgress('');
     }
