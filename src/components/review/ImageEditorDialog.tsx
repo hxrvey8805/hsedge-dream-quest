@@ -299,35 +299,15 @@ export const ImageEditorDialog = ({
           return;
         }
 
-        // Check if bucket exists
-        const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-        if (listError) {
-          console.error("Error listing buckets:", listError);
-        } else {
-          const bucketExists = buckets?.some(b => b.name === 'review-screenshots');
-          if (!bucketExists) {
-            throw new Error("Storage bucket 'review-screenshots' not found. Please ensure the database migration has been run.");
-          }
-        }
-
         const response = await fetch(croppedImageUrl);
         const blob = await response.blob();
 
         const fileName = `${user.id}/${tradeId}-cropped-${Date.now()}.png`;
         const { error: uploadError } = await supabase.storage
           .from('review-screenshots')
-          .upload(fileName, blob, { contentType: 'image/png', upsert: true });
+          .upload(fileName, blob);
 
-        if (uploadError) {
-          // Provide more helpful error messages
-          if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
-            throw new Error("Storage bucket 'review-screenshots' not found. Please ensure the database migration has been run.");
-          }
-          if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
-            throw new Error("Permission denied. Please check your storage bucket policies.");
-          }
-          throw uploadError;
-        }
+        if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
           .from('review-screenshots')
