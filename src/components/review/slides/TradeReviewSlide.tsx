@@ -62,14 +62,64 @@ const createScaledCanvas = (sourceWidth: number, sourceHeight: number, maxSide =
   return canvas;
 };
 
-const canvasToBlob = (canvas: HTMLCanvasElement, type = 'image/jpeg', quality = 0.8): Promise<Blob> => {
+const dataUrlToBlob = (dataUrl: string): Blob => {
+  const [meta, data] = dataUrl.split(",");
+  const contentType = meta?.match(/data:(.*);base64/)?.[1] || "application/octet-stream";
+  const binaryString = atob(data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+  return new Blob([bytes], { type: contentType });
+};
+
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+  let timeoutId: number | undefined;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") return reject(new Error("Failed to read file"));
+      const base64 = result.split(",")[1] ?? "";
+      if (!base64) return reject(new Error("Failed to encode image"));
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(blob);
+  });
+};
+
+// canvas.toBlob can hang in some browser/device combos (seen as stuck on "Compressing...").
+// This adds a deterministic fallback via toDataURL.
+const canvasToBlob = async (
+  canvas: HTMLCanvasElement,
+  type: "image/jpeg" | "image/png" | "image/webp" = "image/jpeg",
+  quality = 0.8
+): Promise<Blob> => {
+  const viaToBlob = new Promise<Blob>((resolve, reject) => {
+    if (!canvas.toBlob) return reject(new Error("toBlob not supported"));
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('Failed to create blob'))),
+      (blob) => (blob ? resolve(blob) : reject(new Error("Failed to create blob"))),
       type,
       quality
     );
   });
+
+  try {
+    return await withTimeout(viaToBlob, 2500, "Image compression");
+  } catch {
+    const dataUrl = canvas.toDataURL(type, quality);
+    return dataUrlToBlob(dataUrl);
+  }
 };
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
@@ -126,29 +176,55 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('You must be logged in');
 
-    const fileName = `${user.id}/${trade.id}-${Date.now()}.${ext}`;
-    
-    setUploadProgress('Uploading...');
-    
-    const { error: uploadError } = await supabase.storage
-      .from('review-screenshots')
-      .upload(fileName, blob, { 
-        contentType: `image/${ext}`,
-        upsert: true 
+    const slotId = "main";
+    const safeExt = (ext || "jpg").toLowerCase();
+    const fileName = `${user.id}/${trade.id}-${slotId}-${Date.now()}.${safeExt}`;
+
+    const contentType =
+      safeExt === "jpg" || safeExt === "jpeg"
+        ? "image/jpeg"
+        : safeExt === "png"
+          ? "image/png"
+          : safeExt === "webp"
+            ? "image/webp"
+            : `image/${safeExt}`;
+
+    setUploadProgress("Uploading...");
+
+    // 1) Try direct storage upload (fast path)
+    try {
+      const uploadPromise = supabase.storage
+        .from("review-screenshots")
+        .upload(fileName, blob, { contentType, upsert: true });
+
+      const { error: uploadError } = await withTimeout(uploadPromise, 20000, "Upload");
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("review-screenshots").getPublicUrl(fileName);
+      if (!data.publicUrl) throw new Error("Failed to get public URL");
+      return data.publicUrl;
+    } catch (err: any) {
+      console.warn("Direct upload failed; falling back to backend upload", err);
+
+      // 2) Fallback: backend upload (more reliable across browser/network quirks)
+      const base64 = await blobToBase64(blob);
+      const invokePromise = supabase.functions.invoke("upload-review-screenshot", {
+        body: {
+          tradeId: trade.id,
+          slotId,
+          ext: safeExt,
+          contentType,
+          base64,
+        },
       });
-    
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw new Error(uploadError.message || 'Upload failed');
+
+      const { data, error } = await withTimeout(invokePromise, 20000, "Backend upload");
+      if (error) throw error;
+      const publicUrl = (data as any)?.publicUrl as string | undefined;
+      if (!publicUrl) throw new Error("Backend upload did not return a URL");
+      return publicUrl;
     }
-    
-    const { data } = supabase.storage
-      .from('review-screenshots')
-      .getPublicUrl(fileName);
-    
-    if (!data.publicUrl) throw new Error('Failed to get public URL');
-    
-    return data.publicUrl;
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,13 +300,25 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
       video.srcObject = stream;
       video.muted = true;
       video.playsInline = true;
-      
+
+      // Wait for metadata so dimensions are reliable
+      await new Promise<void>((resolve, reject) => {
+        const timeout = window.setTimeout(() => reject(new Error("Capture setup timed out")), 3000);
+        video.onloadedmetadata = () => {
+          window.clearTimeout(timeout);
+          resolve();
+        };
+        video.onerror = () => {
+          window.clearTimeout(timeout);
+          reject(new Error("Failed to initialize capture"));
+        };
+      });
+
       await video.play();
-      
-      // Wait for video to have valid dimensions
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      if (video.videoWidth === 0) throw new Error('Invalid video dimensions');
+
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        throw new Error("Invalid video dimensions");
+      }
 
       const canvas = createScaledCanvas(video.videoWidth, video.videoHeight);
       const ctx = canvas.getContext('2d');
