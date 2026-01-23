@@ -694,9 +694,9 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           <div className="px-6 pb-6">
             <div className="space-y-3 max-h-[65vh] overflow-y-auto pt-4">
               {selectedDay && [...getDayStats(selectedDay).trades].sort((a, b) => {
-                // Sort by time_opened descending (latest first)
+                // Sort by time_opened ascending (earliest first)
                 if (a.time_opened && b.time_opened) {
-                  return b.time_opened.localeCompare(a.time_opened);
+                  return a.time_opened.localeCompare(b.time_opened);
                 }
                 if (a.time_opened && !b.time_opened) return -1;
                 if (!a.time_opened && b.time_opened) return 1;
@@ -1215,7 +1215,12 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           open={reviewDialogOpen}
           onOpenChange={setReviewDialogOpen}
           date={selectedDay}
-          trades={getDayStats(selectedDay).trades}
+          trades={[...getDayStats(selectedDay).trades].sort((a, b) => {
+            if (a.time_opened && b.time_opened) return a.time_opened.localeCompare(b.time_opened);
+            if (a.time_opened && !b.time_opened) return -1;
+            if (!a.time_opened && b.time_opened) return 1;
+            return 0;
+          })}
           totalPL={getDayStats(selectedDay).totalProfit}
         />
       )}
