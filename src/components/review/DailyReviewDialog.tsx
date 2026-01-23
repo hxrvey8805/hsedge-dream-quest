@@ -24,6 +24,8 @@ interface Trade {
   entry_price: number | null;
   exit_price: number | null;
   pips: number | null;
+  time_opened: string | null;
+  time_closed: string | null;
 }
 
 interface DailyReviewDialogProps {
