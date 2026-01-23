@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,10 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Info, CheckCircle2, AlertTriangle, X, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, FileText, Info, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { parseTradesFromCSV, ParsedTrade, calculateTradePnL, TRADES_CSV_EXAMPLE } from "@/lib/tradesCsvParser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useStrategies } from "@/hooks/useStrategies";
+
+const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 
 interface CSVTradeUploadProps {
   open: boolean;
@@ -26,8 +30,11 @@ export const CSVTradeUpload = ({
   accountType,
   onSuccess 
 }: CSVTradeUploadProps) => {
+  const { strategies } = useStrategies();
   const [csvText, setCsvText] = useState("");
   const [parsedTrades, setParsedTrades] = useState<ParsedTrade[]>([]);
+  const [tradeStrategies, setTradeStrategies] = useState<Record<number, string>>({});
+  const [tradeSessions, setTradeSessions] = useState<Record<number, string>>({});
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [step, setStep] = useState<'upload' | 'preview' | 'importing'>('upload');
@@ -37,6 +44,8 @@ export const CSVTradeUpload = ({
   const resetState = () => {
     setCsvText("");
     setParsedTrades([]);
+    setTradeStrategies({});
+    setTradeSessions({});
     setErrors([]);
     setWarnings([]);
     setStep('upload');
@@ -99,7 +108,7 @@ export const CSVTradeUpload = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const tradesToInsert = parsedTrades.map(trade => {
+      const tradesToInsert = parsedTrades.map((trade, index) => {
         const { pips, profit, outcome } = calculateTradePnL(trade);
         
         // Calculate R:R if stop loss exists
@@ -127,8 +136,8 @@ export const CSVTradeUpload = ({
           fees: trade.fees,
           time_opened: trade.time_opened,
           time_closed: trade.time_closed,
-          session: trade.session,
-          strategy_type: trade.strategy_type,
+          session: tradeSessions[index] || trade.session,
+          strategy_type: tradeStrategies[index] || trade.strategy_type,
           entry_timeframe: trade.entry_timeframe,
           notes: trade.notes,
           pips,
@@ -281,9 +290,8 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                     <TableHead>Date</TableHead>
                     <TableHead>Symbol</TableHead>
                     <TableHead>Direction</TableHead>
-                    <TableHead>Asset</TableHead>
-                    <TableHead className="text-right">Entry</TableHead>
-                    <TableHead className="text-right">Exit</TableHead>
+                    <TableHead>Strategy</TableHead>
+                    <TableHead>Session</TableHead>
                     <TableHead className="text-right">P&L</TableHead>
                     <TableHead>Outcome</TableHead>
                   </TableRow>
@@ -300,15 +308,48 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                             {trade.buy_sell}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{trade.asset_class}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {trade.entry_price?.toFixed(4) || '-'}
+                        <TableCell>
+                          <Select
+                            value={tradeStrategies[idx] || trade.strategy_type || "none"}
+                            onValueChange={(value) => 
+                              setTradeStrategies(prev => ({ ...prev, [idx]: value === "none" ? "" : value }))
+                            }
+                          >
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="none">None</SelectItem>
+                              {strategies.map((s) => (
+                                <SelectItem key={s.id} value={s.name}>
+                                  {s.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {trade.exit_price?.toFixed(4) || '-'}
+                        <TableCell>
+                          <Select
+                            value={tradeSessions[idx] || trade.session || "none"}
+                            onValueChange={(value) =>
+                              setTradeSessions(prev => ({ ...prev, [idx]: value === "none" ? "" : value }))
+                            }
+                          >
+                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="none">None</SelectItem>
+                              {SESSIONS.map((session) => (
+                                <SelectItem key={session} value={session}>
+                                  {session}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className={`text-right font-mono text-xs ${
-                          profit > 0 ? 'text-green-400' : profit < 0 ? 'text-red-400' : ''
+                          profit > 0 ? 'text-success' : profit < 0 ? 'text-destructive' : ''
                         }`}>
                           {profit !== 0 ? `$${profit.toFixed(2)}` : '-'}
                         </TableCell>
