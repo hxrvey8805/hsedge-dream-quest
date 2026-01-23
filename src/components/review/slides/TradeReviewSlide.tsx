@@ -18,6 +18,8 @@ interface Trade {
   profit: number | null;
   outcome: string;
   pips: number | null;
+  time_opened: string | null;
+  time_closed: string | null;
 }
 
 interface ScreenshotSlot {
@@ -475,6 +477,19 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                 {trade.buy_sell}
               </span>
             </h4>
+            
+            {/* Trade times */}
+            {(trade.time_opened || trade.time_closed) && (
+              <div className="text-sm text-muted-foreground">
+                {trade.time_opened && (
+                  <span>Opened: <span className="font-mono text-foreground">{trade.time_opened}</span></span>
+                )}
+                {trade.time_opened && trade.time_closed && <span className="mx-2">→</span>}
+                {trade.time_closed && (
+                  <span>Closed: <span className="font-mono text-foreground">{trade.time_closed}</span></span>
+                )}
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
