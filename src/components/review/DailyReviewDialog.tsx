@@ -48,6 +48,14 @@ interface TradeSlideData {
   screenshot_url: string | null;
   markers: Marker[];
   reflection: string;
+  screenshot_slots?: ScreenshotSlot[];
+}
+
+interface ScreenshotSlot {
+  id: string;
+  label: string;
+  screenshot_url: string | null;
+  markers: Marker[];
 }
 
 interface Marker {
@@ -92,6 +100,7 @@ export const DailyReviewDialog = ({
       screenshot_url: null,
       markers: [],
       reflection: "",
+      screenshot_slots: undefined,
     })));
   };
 
@@ -131,11 +140,16 @@ export const DailyReviewDialog = ({
           const parsedMarkers: Marker[] = Array.isArray(markersData) 
             ? (markersData as unknown as Marker[]) 
             : [];
+          const slotsData = existingSlide?.screenshot_slots;
+          const parsedSlots: ScreenshotSlot[] = Array.isArray(slotsData)
+            ? (slotsData as unknown as ScreenshotSlot[])
+            : [];
           return {
             trade_id: trade.id,
             screenshot_url: existingSlide?.screenshot_url || null,
             markers: parsedMarkers,
             reflection: existingSlide?.reflection || "",
+            screenshot_slots: parsedSlots.length > 0 ? parsedSlots : undefined,
           };
         }));
       }
@@ -185,6 +199,7 @@ export const DailyReviewDialog = ({
         screenshot_url: slide.screenshot_url,
         markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
         reflection: slide.reflection,
+        screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) as Json : null,
         slide_order: index,
       }));
 

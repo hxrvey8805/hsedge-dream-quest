@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Upload, ArrowUpCircle, Target, X, Image, MonitorUp, Maximize2, Plus, Trash2 } from "lucide-react";
+import { Upload, ArrowUpCircle, Target, X, Image, MonitorUp, Maximize2, Plus, Trash2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageEditorDialog, Marker } from "../ImageEditorDialog";
@@ -49,6 +49,7 @@ const MARKER_TYPES = [
   { type: 'entry' as const, label: 'Entry', icon: ArrowUpCircle, color: 'text-blue-500 bg-blue-500/20' },
   { type: 'stop_loss' as const, label: 'Stop Loss', icon: X, color: 'text-destructive bg-destructive/20' },
   { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'text-emerald-500 bg-emerald-500/20' },
+  { type: 'time' as const, label: 'Trade Time', icon: Clock, color: 'text-purple-500 bg-purple-500/20' },
 ];
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
@@ -75,6 +76,29 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeSlot = slots.find(s => s.id === activeSlotId) || slots[0];
+
+  // Ensure time marker exists at bottom when screenshot is present
+  useEffect(() => {
+    if (activeSlot?.screenshot_url && activeSlot.markers) {
+      const hasTimeMarker = activeSlot.markers.some(m => m.type === 'time');
+      if (!hasTimeMarker) {
+        // Calculate x position based on trade time (default to middle if no time)
+        const timeX = 50; // Default to center, can be adjusted based on trade.time_opened
+        const timeMarker: Marker = {
+          id: `time-${activeSlotId}-${Date.now()}`,
+          type: 'time',
+          x: timeX,
+          y: 95, // Bottom of image
+          useLineMode: true,
+          markerSize: 24
+        };
+        updateActiveSlot({
+          markers: [...activeSlot.markers, timeMarker]
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlot?.screenshot_url, activeSlotId]);
 
   const updateSlots = (newSlots: ScreenshotSlot[]) => {
     setSlots(newSlots);
@@ -239,36 +263,40 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
   };
 
-  const getMarkerColor = (type: 'entry' | 'stop_loss' | 'take_profit') => {
-    switch (type) {
-      case 'entry': return 'bg-blue-500 border-blue-300';
-      case 'stop_loss': return 'bg-destructive border-red-300';
-      case 'take_profit': return 'bg-emerald-500 border-emerald-300';
-    }
-  };
 
-  const getMarkerLineColor = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+  const getMarkerLineColor = (type: 'entry' | 'stop_loss' | 'take_profit' | 'time') => {
     switch (type) {
       case 'entry': return '#3b82f6';
       case 'stop_loss': return '#ef4444';
       case 'take_profit': return '#10b981';
+      case 'time': return '#a855f7';
     }
   };
 
-  const getMarkerLabel = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+  const getMarkerLabel = (type: 'entry' | 'stop_loss' | 'take_profit' | 'time') => {
     switch (type) {
       case 'entry': return 'Entry';
       case 'stop_loss': return 'Stop Loss';
       case 'take_profit': return 'Take Profit';
+      case 'time': return trade.time_opened ? `Trade: ${trade.time_opened}` : 'Trade Time';
     }
   };
 
-  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit', size: 'sm' | 'md' | 'lg' = 'sm') => {
+  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit' | 'time', size: 'sm' | 'md' | 'lg' = 'sm') => {
     const config = MARKER_TYPES.find(m => m.type === type);
     if (!config) return null;
     const Icon = config.icon;
     const sizeClass = size === 'sm' ? "w-3 h-3" : size === 'md' ? "w-4 h-4" : "w-6 h-6";
     return <Icon className={sizeClass} />;
+  };
+
+  const getMarkerColor = (type: 'entry' | 'stop_loss' | 'take_profit' | 'time') => {
+    switch (type) {
+      case 'entry': return 'bg-blue-500 border-blue-300';
+      case 'stop_loss': return 'bg-destructive border-red-300';
+      case 'take_profit': return 'bg-emerald-500 border-emerald-300';
+      case 'time': return 'bg-purple-500 border-purple-300';
+    }
   };
 
   return (
@@ -410,17 +438,19 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                               backgroundColor: lineColor
                             }}
                           />
-                          {/* Label */}
+                          {/* Label - positioned at x% */}
                           <div
-                            className="absolute left-2 px-1.5 py-0.5 rounded text-white text-xs font-medium"
+                            className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{ 
+                              left: `${marker.x}%`,
+                              transform: 'translateX(-50%)',
                               backgroundColor: lineColor,
                               fontSize: Math.max(9, markerSizeValue / 3)
                             }}
                           >
                             {getMarkerLabel(marker.type)}
                           </div>
-                          {/* X position indicator (entry time marker) */}
+                          {/* X position indicator (vertical tick at x position) */}
                           <div
                             className="absolute flex flex-col items-center"
                             style={{ 
@@ -552,14 +582,18 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                               backgroundColor: lineColor
                             }}
                           />
-                          {/* Label */}
+                          {/* Label - positioned at x% */}
                           <div
-                            className="absolute left-3 px-2 py-1 rounded text-white text-sm font-medium"
-                            style={{ backgroundColor: lineColor }}
+                            className="absolute px-2 py-1 rounded text-white text-sm font-medium"
+                            style={{ 
+                              left: `${marker.x}%`,
+                              transform: 'translateX(-50%)',
+                              backgroundColor: lineColor 
+                            }}
                           >
                             {getMarkerLabel(marker.type)}
                           </div>
-                          {/* X position indicator (entry time marker) */}
+                          {/* X position indicator (vertical tick at x position) */}
                           <div
                             className="absolute flex flex-col items-center"
                             style={{ 

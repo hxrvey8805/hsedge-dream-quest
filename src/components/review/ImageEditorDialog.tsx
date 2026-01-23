@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Marker {
   id: string;
-  type: 'entry' | 'stop_loss' | 'take_profit';
+  type: 'entry' | 'stop_loss' | 'take_profit' | 'time';
   x: number;
   y: number;
   useLineMode?: boolean;
@@ -42,6 +42,7 @@ const MARKER_TYPES = [
   { type: 'entry' as const, label: 'Entry', icon: ArrowUpCircle, color: 'bg-blue-500', borderColor: 'border-blue-300', lineColor: '#3b82f6' },
   { type: 'stop_loss' as const, label: 'Stop Loss', icon: X, color: 'bg-destructive', borderColor: 'border-red-300', lineColor: '#ef4444' },
   { type: 'take_profit' as const, label: 'Take Profit', icon: Target, color: 'bg-emerald-500', borderColor: 'border-emerald-300', lineColor: '#10b981' },
+  { type: 'time' as const, label: 'Trade Time', icon: ArrowUpCircle, color: 'bg-purple-500', borderColor: 'border-purple-300', lineColor: '#a855f7' },
 ];
 
 export const ImageEditorDialog = ({ 
@@ -129,13 +130,16 @@ export const ImageEditorDialog = ({
     }
   }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
 
-  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string) => {
+  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' = 'both') => {
     e.stopPropagation();
     e.preventDefault();
     setSelectedMarkerId(markerId);
     setSelectedMarkerType(null);
+    setDragMode(mode);
     setIsDraggingMarker(true);
   };
+
+  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical'>('both');
 
   const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
     if (!isDraggingMarker || !selectedMarkerId || !imageRef.current) return;
@@ -143,13 +147,22 @@ export const ImageEditorDialog = ({
     const coords = getImageRelativeCoords(e.clientX, e.clientY);
     if (!coords) return;
     
-    const x = Math.max(0, Math.min(100, coords.x));
-    const y = Math.max(0, Math.min(100, coords.y));
-
-    setMarkers(prev => prev.map(m => 
-      m.id === selectedMarkerId ? { ...m, x, y } : m
-    ));
-  }, [isDraggingMarker, selectedMarkerId, getImageRelativeCoords]);
+    setMarkers(prev => prev.map(m => {
+      if (m.id !== selectedMarkerId) return m;
+      const marker = m;
+      if (dragMode === 'horizontal') {
+        return { ...marker, x: Math.max(0, Math.min(100, coords.x)) };
+      } else if (dragMode === 'vertical') {
+        return { ...marker, y: Math.max(0, Math.min(100, coords.y)) };
+      } else {
+        return { 
+          ...marker, 
+          x: Math.max(0, Math.min(100, coords.x)),
+          y: Math.max(0, Math.min(100, coords.y))
+        };
+      }
+    }));
+  }, [isDraggingMarker, selectedMarkerId, dragMode, getImageRelativeCoords]);
 
   const handleMarkerMouseUp = () => {
     setIsDraggingMarker(false);
@@ -352,7 +365,7 @@ export const ImageEditorDialog = ({
     };
   };
 
-  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit', size: number) => {
+  const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit' | 'time', size: number) => {
     const config = MARKER_TYPES.find(m => m.type === type);
     if (!config) return null;
     const Icon = config.icon;
@@ -367,12 +380,12 @@ export const ImageEditorDialog = ({
     const isSelected = selectedMarkerId === marker.id;
     const baseSize = markerSize;
     
-    if (useLineMode) {
-      // Render as horizontal line
+    if (marker.useLineMode || marker.type === 'time' || (useLineMode && marker.type !== 'time')) {
+      // Render as horizontal line - line is draggable vertically, label is draggable horizontally
       return (
         <div
           key={marker.id}
-          className={`absolute flex items-center cursor-move ${isSelected ? 'z-20' : 'z-10'}`}
+          className={`absolute flex items-center ${isSelected ? 'z-20' : 'z-10'}`}
           style={{ 
             left: 0, 
             right: 0,
@@ -381,31 +394,36 @@ export const ImageEditorDialog = ({
             pointerEvents: 'none'
           }}
         >
-          {/* Line */}
+          {/* Line - draggable vertically */}
           <div 
-            className="w-full flex items-center"
+            className="w-full flex items-center cursor-ns-resize"
             style={{ height: baseSize / 2 }}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'vertical')}
+            title="Drag vertically to move line"
           >
             <div 
               className="w-full"
               style={{ 
                 height: Math.max(2, baseSize / 8),
                 backgroundColor: config.lineColor,
-                boxShadow: isSelected ? `0 0 8px ${config.lineColor}` : 'none'
+                boxShadow: isSelected ? `0 0 8px ${config.lineColor}` : 'none',
+                pointerEvents: 'auto'
               }}
             />
           </div>
-          {/* Label */}
+          {/* Label - draggable horizontally */}
           <div
-            className={`absolute left-4 px-2 py-1 rounded text-white text-xs font-medium cursor-move ${isSelected ? 'ring-2 ring-white' : ''}`}
+            className={`absolute px-2 py-1 rounded text-white text-xs font-medium cursor-ew-resize ${isSelected ? 'ring-2 ring-white' : ''}`}
             style={{ 
+              left: `${marker.x}%`,
+              transform: 'translateX(-50%)',
               backgroundColor: config.lineColor,
               fontSize: Math.max(10, baseSize / 2),
               pointerEvents: 'auto'
             }}
-            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
             onDoubleClick={(e) => removeMarker(marker.id, e)}
-            title="Drag to move, double-click to remove"
+            title="Drag horizontally to move label, double-click to remove"
           >
             {config.label}
           </div>
