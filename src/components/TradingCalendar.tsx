@@ -258,42 +258,61 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
       const tradeSize = parseFloat(editForm.size);
       const tradeFees = parseFloat(editForm.fees) || 0;
 
-      // Calculate R:R
-      let rrRatio = "N/A";
-      if (entry && exit && stop) {
-        const risk = Math.abs(entry - stop);
-        const reward = Math.abs(exit - entry);
-        if (risk > 0) {
-          rrRatio = `1:${(reward / risk).toFixed(2)}`;
-        }
-      }
+      // Check if financial fields have changed (only recalculate if they did)
+      const financialFieldsChanged = 
+        editForm.entry_price !== (editingTrade.entry_price?.toString() || "") ||
+        editForm.exit_price !== (editingTrade.exit_price?.toString() || "") ||
+        editForm.size !== (editingTrade.size?.toString() || "") ||
+        editForm.fees !== (editingTrade.fees?.toString() || "") ||
+        editForm.buy_sell !== (editingTrade.buy_sell || "") ||
+        editForm.asset_class !== (editingTrade.asset_class || "Forex");
 
-      // Calculate P&L
-      let pips = 0;
-      let profit = 0;
-      if (entry && exit && tradeSize) {
-        const assetClass = editForm.asset_class || "Forex";
-        switch(assetClass) {
-          case "Forex":
-            pips = (exit - entry) * 10000;
-            profit = pips * tradeSize * 10 - tradeFees;
-            break;
-          case "Stocks":
-            profit = (exit - entry) * tradeSize - tradeFees;
-            break;
-          case "Futures":
-            const ticks = exit - entry;
-            profit = ticks * tradeSize - tradeFees;
-            pips = ticks;
-            break;
-          case "Crypto":
-            profit = (exit - entry) * tradeSize - tradeFees;
-            pips = exit - entry;
-            break;
-        }
-      }
+      // Preserve original values by default
+      let rrRatio = editingTrade.risk_reward_ratio || "N/A";
+      let pips = editingTrade.pips || 0;
+      let profit = editingTrade.profit || 0;
+      let outcome = editingTrade.outcome;
 
-      const outcome = profit > 0 ? "Win" : profit < 0 ? "Loss" : "Break Even";
+      // Only recalculate if financial fields changed
+      if (financialFieldsChanged) {
+        // Calculate R:R
+        rrRatio = "N/A";
+        if (entry && exit && stop) {
+          const risk = Math.abs(entry - stop);
+          const reward = Math.abs(exit - entry);
+          if (risk > 0) {
+            rrRatio = `1:${(reward / risk).toFixed(2)}`;
+          }
+        }
+
+        // Calculate P&L
+        pips = 0;
+        profit = 0;
+        if (entry && exit && tradeSize) {
+          const assetClass = editForm.asset_class || "Forex";
+          const priceDiff = editForm.buy_sell === "Sell" ? (entry - exit) : (exit - entry);
+          
+          switch(assetClass) {
+            case "Forex":
+              pips = priceDiff * 10000;
+              profit = pips * tradeSize * 10 - tradeFees;
+              break;
+            case "Stocks":
+              profit = priceDiff * tradeSize - tradeFees;
+              break;
+            case "Futures":
+              profit = priceDiff * tradeSize - tradeFees;
+              pips = priceDiff;
+              break;
+            case "Crypto":
+              profit = priceDiff * tradeSize - tradeFees;
+              pips = priceDiff;
+              break;
+          }
+        }
+
+        outcome = profit > 0 ? "Win" : profit < 0 ? "Loss" : "Break Even";
+      }
 
       // Determine account type from selected account
       let accountType: string | null = null;
