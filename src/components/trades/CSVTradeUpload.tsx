@@ -6,13 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Upload, FileText, Info, CheckCircle2, AlertTriangle, X, Loader2 } from "lucide-react";
 import { parseTradesFromCSV, ParsedTrade, calculateTradePnL, TRADES_CSV_EXAMPLE } from "@/lib/tradesCsvParser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useStrategies } from "@/hooks/useStrategies";
 
 interface CSVTradeUploadProps {
   open: boolean;
@@ -35,10 +32,7 @@ export const CSVTradeUpload = ({
   const [warnings, setWarnings] = useState<string[]>([]);
   const [step, setStep] = useState<'upload' | 'preview' | 'importing'>('upload');
   const [importProgress, setImportProgress] = useState(0);
-  const [selectedStrategy, setSelectedStrategy] = useState<string>("none");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const { strategies } = useStrategies();
 
   const resetState = () => {
     setCsvText("");
@@ -47,9 +41,7 @@ export const CSVTradeUpload = ({
     setWarnings([]);
     setStep('upload');
     setImportProgress(0);
-    setSelectedStrategy("none");
   };
-
 
   const handleClose = () => {
     resetState();
@@ -136,7 +128,7 @@ export const CSVTradeUpload = ({
           time_opened: trade.time_opened,
           time_closed: trade.time_closed,
           session: trade.session,
-          strategy_type: selectedStrategy !== "none" ? selectedStrategy : trade.strategy_type,
+          strategy_type: trade.strategy_type,
           entry_timeframe: trade.entry_timeframe,
           notes: trade.notes,
           pips,
@@ -265,9 +257,9 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
         {step === 'preview' && (
           <div className="space-y-4">
             {warnings.length > 0 && (
-              <Alert className="border-yellow-500/30 bg-yellow-500/10">
+              <Alert className="bg-yellow-500/10 border-yellow-500/30">
                 <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                <AlertDescription className="text-yellow-500">
+                <AlertDescription className="text-yellow-400">
                   {warnings.length} warning(s) - trades will still import
                 </AlertDescription>
               </Alert>
@@ -281,24 +273,6 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                 </AlertDescription>
               </Alert>
             )}
-
-            {/* Strategy selector for all trades */}
-            <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
-              <Label className="text-sm font-medium whitespace-nowrap">Apply Strategy to all trades:</Label>
-              <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
-                <SelectTrigger className="w-[200px] bg-background">
-                  <SelectValue placeholder="Select strategy..." />
-                </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="none">None (use CSV value)</SelectItem>
-                  {strategies.map((strategy) => (
-                    <SelectItem key={strategy.id} value={strategy.name}>
-                      {strategy.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             <ScrollArea className="h-[400px] rounded-md border">
               <Table>

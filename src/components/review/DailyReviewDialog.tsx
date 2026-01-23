@@ -24,8 +24,6 @@ interface Trade {
   entry_price: number | null;
   exit_price: number | null;
   pips: number | null;
-  time_opened: string | null;
-  time_closed: string | null;
 }
 
 interface DailyReviewDialogProps {
@@ -61,17 +59,9 @@ export const DailyReviewDialog = ({
   open, 
   onOpenChange, 
   date, 
-  trades: unsortedTrades, 
+  trades, 
   totalPL 
 }: DailyReviewDialogProps) => {
-  // Sort trades from earliest to latest (ascending) for chronological review
-  const trades = [...unsortedTrades].sort((a, b) => {
-    if (a.time_opened && b.time_opened) {
-      return a.time_opened.localeCompare(b.time_opened);
-    }
-    return 0;
-  });
-  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [reviewData, setReviewData] = useState<ReviewData>({
     what_went_well: "",

@@ -4,7 +4,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOf
 import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus, LineChart, ClipboardList } from "lucide-react";
 import { useAccounts } from "@/hooks/useAccounts";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,7 +76,7 @@ const ASSET_CLASSES = [
   { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
 ];
 
-const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
@@ -609,7 +609,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
 
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden border-0 bg-gradient-to-b from-card to-background">
-          <DialogTitle className="sr-only">Day Details</DialogTitle>
+          {/* Header */}
           <div className="relative px-6 pt-6 pb-4 border-b border-border/50">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10" />
             <div className="relative">
