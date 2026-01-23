@@ -76,7 +76,7 @@ const ASSET_CLASSES = [
   { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
 ];
 
-const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {

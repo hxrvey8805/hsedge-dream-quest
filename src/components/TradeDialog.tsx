@@ -53,7 +53,7 @@ interface Strategy {
   name: string;
 }
 
-const SESSIONS = ["Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
