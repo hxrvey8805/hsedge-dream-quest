@@ -15,7 +15,8 @@ import { useStrategies } from "@/hooks/useStrategies";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { detectSession, TradingSession } from "@/lib/sessionDetection";
 
-const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const ALL_SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const DETECTABLE_SESSIONS: TradingSession[] = ["Premarket", "Asia", "London", "New York"];
 
 interface CSVTradeUploadProps {
   open: boolean;
@@ -38,9 +39,10 @@ export const CSVTradeUpload = ({
   const [parsedTrades, setParsedTrades] = useState<ParsedTrade[]>([]);
   const [tradeStrategies, setTradeStrategies] = useState<Record<number, string>>({});
   const [tradeSessions, setTradeSessions] = useState<Record<number, string>>({});
+  const [selectedSessions, setSelectedSessions] = useState<TradingSession[]>(DETECTABLE_SESSIONS);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [step, setStep] = useState<'upload' | 'preview' | 'importing'>('upload');
+  const [step, setStep] = useState<'upload' | 'session-select' | 'preview' | 'importing'>('upload');
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +51,7 @@ export const CSVTradeUpload = ({
     setParsedTrades([]);
     setTradeStrategies({});
     setTradeSessions({});
+    setSelectedSessions(DETECTABLE_SESSIONS);
     setErrors([]);
     setWarnings([]);
     setStep('upload');
@@ -76,22 +79,33 @@ export const CSVTradeUpload = ({
 
     if (result.data.length > 0) {
       setParsedTrades(result.data);
-      
-      // Auto-detect sessions for all trades based on time_opened
-      const autoDetectedSessions: Record<number, string> = {};
-      result.data.forEach((trade, index) => {
-        // Only auto-detect if trade doesn't already have a session
-        if (!trade.session && trade.time_opened) {
-          const detectedSession = detectSession(trade.time_opened, timezone);
-          if (detectedSession) {
-            autoDetectedSessions[index] = detectedSession;
-          }
-        }
-      });
-      setTradeSessions(autoDetectedSessions);
-      
-      setStep('preview');
+      // Go to session selection step
+      setStep('session-select');
     }
+  };
+
+  const handleSessionSelectionContinue = () => {
+    // Auto-detect sessions for all trades based on time_opened and selected sessions
+    const autoDetectedSessions: Record<number, string> = {};
+    parsedTrades.forEach((trade, index) => {
+      // Only auto-detect if trade doesn't already have a session
+      if (!trade.session && trade.time_opened) {
+        const detectedSession = detectSession(trade.time_opened, timezone, selectedSessions);
+        if (detectedSession) {
+          autoDetectedSessions[index] = detectedSession;
+        }
+      }
+    });
+    setTradeSessions(autoDetectedSessions);
+    setStep('preview');
+  };
+
+  const toggleSessionSelection = (session: TradingSession) => {
+    setSelectedSessions(prev => 
+      prev.includes(session)
+        ? prev.filter(s => s !== session)
+        : [...prev, session]
+    );
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,11 +210,13 @@ export const CSVTradeUpload = ({
         <DialogHeader>
           <DialogTitle>
             {step === 'upload' && 'Import Trades from CSV'}
+            {step === 'session-select' && 'Select Your Trading Sessions'}
             {step === 'preview' && `Preview ${parsedTrades.length} Trades`}
             {step === 'importing' && 'Importing Trades...'}
           </DialogTitle>
           <DialogDescription>
             {step === 'upload' && 'Upload a CSV file or paste trade data to bulk import trades.'}
+            {step === 'session-select' && 'Choose which sessions you trade so we can auto-assign them to your trades.'}
             {step === 'preview' && 'Review the parsed trades before importing.'}
             {step === 'importing' && 'Please wait while your trades are being imported.'}
           </DialogDescription>
@@ -280,6 +296,75 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
           </div>
         )}
 
+        {step === 'session-select' && (
+          <div className="space-y-6">
+            <Alert className="bg-muted/50 border-muted">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                Select the sessions you actively trade. We'll only auto-assign trades to these sessions based on their time.
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid grid-cols-2 gap-3">
+              {DETECTABLE_SESSIONS.map((session) => (
+                <button
+                  key={session}
+                  type="button"
+                  onClick={() => toggleSessionSelection(session)}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    selectedSessions.includes(session)
+                      ? 'border-primary bg-primary/10'
+                      : 'border-muted hover:border-muted-foreground/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      selectedSessions.includes(session)
+                        ? 'border-primary bg-primary'
+                        : 'border-muted-foreground/50'
+                    }`}>
+                      {selectedSessions.includes(session) && (
+                        <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{session}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {session === "Premarket" && "Before 09:30"}
+                        {session === "New York" && "09:30 - 16:00"}
+                        {session === "London" && "03:00 - 10:00"}
+                        {session === "Asia" && "23:00 - 06:00"}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {selectedSessions.length === 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Please select at least one session to continue.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setStep('upload')}>
+                Back
+              </Button>
+              <Button 
+                onClick={handleSessionSelectionContinue} 
+                disabled={selectedSessions.length === 0}
+                className="gap-2"
+              >
+                Continue to Preview
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
+
         {step === 'preview' && (
           <div className="space-y-4">
             {warnings.length > 0 && (
@@ -352,12 +437,12 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                               setTradeSessions(prev => ({ ...prev, [idx]: value === "none" ? "" : value }))
                             }
                           >
-                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                            <SelectTrigger className="h-8 w-[130px] text-xs">
                               <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent className="bg-popover z-50">
                               <SelectItem value="none">None</SelectItem>
-                              {SESSIONS.map((session) => (
+                              {ALL_SESSIONS.map((session) => (
                                 <SelectItem key={session} value={session}>
                                   {session}
                                 </SelectItem>
@@ -386,7 +471,7 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
             </ScrollArea>
 
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setStep('upload')}>
+              <Button variant="outline" onClick={() => setStep('session-select')}>
                 Back
               </Button>
               <Button onClick={handleImport} className="gap-2">
