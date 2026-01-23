@@ -25,6 +25,8 @@ export interface Marker {
   type: 'entry' | 'stop_loss' | 'take_profit';
   x: number;
   y: number;
+  useLineMode?: boolean;
+  markerSize?: number;
 }
 
 interface ImageEditorDialogProps {
@@ -120,6 +122,8 @@ export const ImageEditorDialog = ({
         type: selectedMarkerType,
         x,
         y,
+        useLineMode,
+        markerSize,
       });
       setMarkers(newMarkers);
     }

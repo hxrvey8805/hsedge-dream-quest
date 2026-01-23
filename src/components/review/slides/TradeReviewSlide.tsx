@@ -247,6 +247,22 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
   };
 
+  const getMarkerLineColor = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+    switch (type) {
+      case 'entry': return '#3b82f6';
+      case 'stop_loss': return '#ef4444';
+      case 'take_profit': return '#10b981';
+    }
+  };
+
+  const getMarkerLabel = (type: 'entry' | 'stop_loss' | 'take_profit') => {
+    switch (type) {
+      case 'entry': return 'Entry';
+      case 'stop_loss': return 'Stop Loss';
+      case 'take_profit': return 'Take Profit';
+    }
+  };
+
   const getMarkerIcon = (type: 'entry' | 'stop_loss' | 'take_profit', size: 'sm' | 'md' | 'lg' = 'sm') => {
     const config = MARKER_TYPES.find(m => m.type === type);
     if (!config) return null;
@@ -369,19 +385,94 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                   />
 
                   {/* Markers positioned relative to the image wrapper (same size as image) */}
-                  {activeSlot.markers.map((marker) => (
-                    <div
-                      key={marker.id}
-                      className={`absolute w-7 h-7 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-lg pointer-events-none`}
-                      style={{ 
-                        left: `${marker.x}%`, 
-                        top: `${marker.y}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    >
-                      {getMarkerIcon(marker.type, 'sm')}
-                    </div>
-                  ))}
+                  {activeSlot.markers.map((marker) => {
+                    const lineColor = getMarkerLineColor(marker.type);
+                    const markerSizeValue = marker.markerSize || 24;
+                    
+                    if (marker.useLineMode) {
+                      // Render as horizontal line with x position indicator
+                      return (
+                        <div
+                          key={marker.id}
+                          className="absolute flex items-center pointer-events-none"
+                          style={{ 
+                            left: 0, 
+                            right: 0,
+                            top: `${marker.y}%`,
+                            transform: 'translateY(-50%)'
+                          }}
+                        >
+                          {/* Full width line */}
+                          <div 
+                            className="w-full"
+                            style={{ 
+                              height: Math.max(2, markerSizeValue / 8),
+                              backgroundColor: lineColor
+                            }}
+                          />
+                          {/* Label */}
+                          <div
+                            className="absolute left-2 px-1.5 py-0.5 rounded text-white text-xs font-medium"
+                            style={{ 
+                              backgroundColor: lineColor,
+                              fontSize: Math.max(9, markerSizeValue / 3)
+                            }}
+                          >
+                            {getMarkerLabel(marker.type)}
+                          </div>
+                          {/* X position indicator (entry time marker) */}
+                          <div
+                            className="absolute flex flex-col items-center"
+                            style={{ 
+                              left: `${marker.x}%`,
+                              transform: 'translateX(-50%)'
+                            }}
+                          >
+                            {/* Vertical tick mark */}
+                            <div
+                              style={{
+                                width: 3,
+                                height: markerSizeValue * 0.6,
+                                backgroundColor: lineColor,
+                                borderRadius: 2
+                              }}
+                            />
+                            {/* Small dot at intersection */}
+                            <div
+                              className="absolute"
+                              style={{
+                                width: markerSizeValue * 0.4,
+                                height: markerSizeValue * 0.4,
+                                backgroundColor: lineColor,
+                                borderRadius: '50%',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                border: '2px solid white',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Icon mode (default)
+                    return (
+                      <div
+                        key={marker.id}
+                        className={`absolute rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-lg pointer-events-none`}
+                        style={{ 
+                          left: `${marker.x}%`, 
+                          top: `${marker.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: markerSizeValue,
+                          height: markerSizeValue
+                        }}
+                      >
+                        {getMarkerIcon(marker.type, 'sm')}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Edit overlay */}
@@ -436,19 +527,91 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     className="block w-auto h-auto max-w-full max-h-[80vh]"
                     style={{ objectFit: 'contain' }}
                   />
-                  {activeSlot?.markers.map((marker) => (
-                    <div
-                      key={marker.id}
-                      className={`absolute w-10 h-10 rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-xl`}
-                      style={{ 
-                        left: `${marker.x}%`, 
-                        top: `${marker.y}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    >
-                      {getMarkerIcon(marker.type, 'lg')}
-                    </div>
-                  ))}
+                  {activeSlot?.markers.map((marker) => {
+                    const lineColor = getMarkerLineColor(marker.type);
+                    const markerSizeValue = (marker.markerSize || 24) * 1.5; // Larger for full view
+                    
+                    if (marker.useLineMode) {
+                      // Render as horizontal line with x position indicator
+                      return (
+                        <div
+                          key={marker.id}
+                          className="absolute flex items-center pointer-events-none"
+                          style={{ 
+                            left: 0, 
+                            right: 0,
+                            top: `${marker.y}%`,
+                            transform: 'translateY(-50%)'
+                          }}
+                        >
+                          {/* Full width line */}
+                          <div 
+                            className="w-full"
+                            style={{ 
+                              height: Math.max(2, markerSizeValue / 8),
+                              backgroundColor: lineColor
+                            }}
+                          />
+                          {/* Label */}
+                          <div
+                            className="absolute left-3 px-2 py-1 rounded text-white text-sm font-medium"
+                            style={{ backgroundColor: lineColor }}
+                          >
+                            {getMarkerLabel(marker.type)}
+                          </div>
+                          {/* X position indicator (entry time marker) */}
+                          <div
+                            className="absolute flex flex-col items-center"
+                            style={{ 
+                              left: `${marker.x}%`,
+                              transform: 'translateX(-50%)'
+                            }}
+                          >
+                            {/* Vertical tick mark */}
+                            <div
+                              style={{
+                                width: 4,
+                                height: markerSizeValue * 0.7,
+                                backgroundColor: lineColor,
+                                borderRadius: 2
+                              }}
+                            />
+                            {/* Dot at intersection */}
+                            <div
+                              className="absolute"
+                              style={{
+                                width: markerSizeValue * 0.5,
+                                height: markerSizeValue * 0.5,
+                                backgroundColor: lineColor,
+                                borderRadius: '50%',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                border: '3px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    // Icon mode (default)
+                    return (
+                      <div
+                        key={marker.id}
+                        className={`absolute rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-xl`}
+                        style={{ 
+                          left: `${marker.x}%`, 
+                          top: `${marker.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: markerSizeValue,
+                          height: markerSizeValue
+                        }}
+                      >
+                        {getMarkerIcon(marker.type, 'lg')}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </DialogContent>
