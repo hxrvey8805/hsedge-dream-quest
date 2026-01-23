@@ -63,7 +63,8 @@ function isTimeInSession(timeMinutes: number, session: SessionTimeRange): boolea
  */
 export function detectSession(
   tradeTime: string | null | undefined,
-  userTimezone: string = "America/New_York"
+  userTimezone: string = "America/New_York",
+  allowedSessions?: TradingSession[]
 ): TradingSession | null {
   if (!tradeTime) return null;
 
@@ -80,14 +81,19 @@ export function detectSession(
   const adjustedTime = convertToNYCTime(hour, minute, userTimezone);
   const timeMinutes = timeToMinutes(adjustedTime.hour, adjustedTime.minute);
 
+  // Filter session ranges by allowed sessions if provided
+  const sessionsToCheck = allowedSessions 
+    ? SESSION_RANGES.filter(s => allowedSessions.includes(s.name))
+    : SESSION_RANGES;
+
   // Find all matching sessions
-  const matchingSessions = SESSION_RANGES.filter(session => 
+  const matchingSessions = sessionsToCheck.filter(session => 
     isTimeInSession(timeMinutes, session)
   );
 
   if (matchingSessions.length === 0) {
-    // Outside all defined sessions - check if it's premarket (before NYSE open)
-    if (timeMinutes < timeToMinutes(9, 30)) {
+    // Outside all defined sessions - check if premarket is allowed and time is before NYSE open
+    if ((!allowedSessions || allowedSessions.includes("Premarket")) && timeMinutes < timeToMinutes(9, 30)) {
       return "Premarket";
     }
     return null;
