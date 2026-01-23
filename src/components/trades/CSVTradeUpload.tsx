@@ -12,6 +12,8 @@ import { parseTradesFromCSV, ParsedTrade, calculateTradePnL, TRADES_CSV_EXAMPLE 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useStrategies } from "@/hooks/useStrategies";
+import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { detectSession, TradingSession } from "@/lib/sessionDetection";
 
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 
@@ -31,6 +33,7 @@ export const CSVTradeUpload = ({
   onSuccess 
 }: CSVTradeUploadProps) => {
   const { strategies } = useStrategies();
+  const { timezone } = useUserTimezone();
   const [csvText, setCsvText] = useState("");
   const [parsedTrades, setParsedTrades] = useState<ParsedTrade[]>([]);
   const [tradeStrategies, setTradeStrategies] = useState<Record<number, string>>({});
@@ -73,6 +76,20 @@ export const CSVTradeUpload = ({
 
     if (result.data.length > 0) {
       setParsedTrades(result.data);
+      
+      // Auto-detect sessions for all trades based on time_opened
+      const autoDetectedSessions: Record<number, string> = {};
+      result.data.forEach((trade, index) => {
+        // Only auto-detect if trade doesn't already have a session
+        if (!trade.session && trade.time_opened) {
+          const detectedSession = detectSession(trade.time_opened, timezone);
+          if (detectedSession) {
+            autoDetectedSessions[index] = detectedSession;
+          }
+        }
+      });
+      setTradeSessions(autoDetectedSessions);
+      
       setStep('preview');
     }
   };

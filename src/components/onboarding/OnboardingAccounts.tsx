@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Wallet, TrendingUp, Target, ArrowRight, Sparkles } from "lucide-react";
+import { Plus, Trash2, Wallet, TrendingUp, Target, ArrowRight, Sparkles, Globe } from "lucide-react";
+import { TIMEZONE_OPTIONS, detectBrowserTimezone } from "@/lib/sessionDetection";
 
 interface OnboardingAccountsProps {
   onComplete: () => void;
@@ -34,6 +35,15 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
   const [activeType, setActiveType] = useState<AccountType | null>(null);
   const [currentForm, setCurrentForm] = useState<Partial<AccountForm>>({});
   const [saving, setSaving] = useState(false);
+  const [timezone, setTimezone] = useState<string>("");
+
+  // Auto-detect browser timezone on mount
+  useEffect(() => {
+    const detected = detectBrowserTimezone();
+    // Find matching option or default to America/New_York
+    const matchingOption = TIMEZONE_OPTIONS.find(opt => opt.value === detected);
+    setTimezone(matchingOption ? detected : "America/New_York");
+  }, []);
 
   const accountTypes = [
     { 
@@ -90,6 +100,14 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
     setSaving(true);
 
     try {
+      // Save timezone to user profile
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({ timezone })
+        .eq("user_id", userId);
+      
+      if (profileError) throw profileError;
+
       // Save personal accounts
       const personalAccounts = accounts.filter(a => a.type === "personal");
       if (personalAccounts.length > 0) {
@@ -160,6 +178,38 @@ export const OnboardingAccounts = ({ onComplete, userId }: OnboardingAccountsPro
           </p>
         </motion.div>
       </div>
+
+      {/* Timezone Selection */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-8"
+      >
+        <Card className="p-6 premium-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Your Timezone</h3>
+              <p className="text-sm text-muted-foreground">Used for auto-detecting trading sessions</p>
+            </div>
+          </div>
+          <Select value={timezone} onValueChange={setTimezone}>
+            <SelectTrigger className="premium-input max-w-md">
+              <SelectValue placeholder="Select your timezone" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <SelectItem key={tz.value} value={tz.value}>
+                  {tz.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+      </motion.div>
 
       {/* Account Type Selection */}
       <div className="grid md:grid-cols-3 gap-4 mb-8">

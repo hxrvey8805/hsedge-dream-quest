@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { detectSession } from "@/lib/sessionDetection";
 
 interface TradeDialogProps {
   selectedDate?: Date | null;
@@ -58,6 +60,7 @@ const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
   const { accounts } = useAccounts();
+  const { timezone } = useUserTimezone();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [assetClass, setAssetClass] = useState<string>("Forex");
@@ -175,6 +178,16 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setTradeDate(getLocalDateString(selectedDate));
     }
   }, [selectedDate]);
+
+  // Auto-detect session when time opened is entered (only if session not already set)
+  useEffect(() => {
+    if (timeOpened && !session) {
+      const detectedSession = detectSession(timeOpened, timezone);
+      if (detectedSession) {
+        setSession(detectedSession);
+      }
+    }
+  }, [timeOpened, timezone]); // Don't include session to avoid overriding manual selection
 
   const calculateRR = () => {
     const entry = parseFloat(entryPrice);
@@ -850,7 +863,14 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                     <Input 
                       type="time"
                       value={timeOpened}
-                      onChange={(e) => setTimeOpened(e.target.value)}
+                      onChange={(e) => {
+                        setTimeOpened(e.target.value);
+                        // Auto-detect session on time change if no session is manually set
+                        if (!session) {
+                          const detected = detectSession(e.target.value, timezone);
+                          if (detected) setSession(detected);
+                        }
+                      }}
                       className="bg-secondary/50 border-border/50"
                     />
                   </div>

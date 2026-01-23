@@ -787,6 +787,7 @@ export type Database = {
           longest_streak: number
           onboarding_completed: boolean
           primary_dream_id: string | null
+          timezone: string | null
           total_achievements_unlocked: number
           updated_at: string
           user_id: string
@@ -800,6 +801,7 @@ export type Database = {
           longest_streak?: number
           onboarding_completed?: boolean
           primary_dream_id?: string | null
+          timezone?: string | null
           total_achievements_unlocked?: number
           updated_at?: string
           user_id: string
@@ -813,6 +815,7 @@ export type Database = {
           longest_streak?: number
           onboarding_completed?: boolean
           primary_dream_id?: string | null
+          timezone?: string | null
           total_achievements_unlocked?: number
           updated_at?: string
           user_id?: string
