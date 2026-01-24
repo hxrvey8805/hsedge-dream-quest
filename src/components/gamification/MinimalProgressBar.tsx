@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import tlIcon from "@/assets/tl-icon.png";
+import { TPLogo } from "@/components/TPLogo";
 
 interface DreamData {
   monthlyProfit: number;
@@ -130,7 +130,7 @@ export const MinimalProgressBar = () => {
       <div className="w-full space-y-2">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <img src={tlIcon} alt="TL" className="w-5 h-5 object-contain" />
+            <TPLogo size={20} variant="icon" />
             <span className="text-muted-foreground">Dream Achievement</span>
           </div>
           <span className="text-xs text-muted-foreground">Set up your vision to track progress</span>

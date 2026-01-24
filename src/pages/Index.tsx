@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
-import logo from "@/assets/tl-logo.png";
+import { TPLogo } from "@/components/TPLogo";
 import { useMemo, useState, useEffect, useRef } from "react";
 const Index = () => {
   const navigate = useNavigate();
@@ -62,20 +62,86 @@ const Index = () => {
       y: dy * strength * 0.5
     };
   };
-  return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Mountain peaks background */}
+  return (
+    <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+      {/* Dreamlike mountain peaks background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none" style={{
-        opacity: 0.15
-      }}>
-          {/* Back layer mountains */}
-          <path d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z" fill="rgba(59, 130, 246, 0.3)" />
+        <svg
+          className="absolute bottom-0 left-0 w-full h-full"
+          viewBox="0 0 1200 600"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            {/* Glow filters for surreal effect */}
+            <filter id="mountainGlow1" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0 0 1 0 0  0 0.5 1 0 0  0 1 1 0 0  0 0 0 0.4 0" />
+            </filter>
+            <filter id="mountainGlow2" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0.2 0.4 1 0 0  0.3 0.6 1 0 0  0.4 0.8 1 0 0  0 0 0 0.3 0" />
+            </filter>
+            <filter id="mountainGlow3" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+              <feColorMatrix in="blur" type="matrix" values="0.3 0.5 1 0 0  0.4 0.7 1 0 0  0.5 0.9 1 0 0  0 0 0 0.35 0" />
+            </filter>
+            {/* Gradient for ethereal peaks */}
+            <linearGradient id="peakGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(96, 165, 250, 0.5)" stopOpacity="0.6" />
+              <stop offset="50%" stopColor="rgba(59, 130, 246, 0.4)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="rgba(34, 211, 238, 0.2)" stopOpacity="0.2" />
+            </linearGradient>
+            <linearGradient id="peakGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(34, 211, 238, 0.5)" stopOpacity="0.5" />
+              <stop offset="50%" stopColor="rgba(59, 130, 246, 0.3)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="rgba(96, 165, 250, 0.15)" stopOpacity="0.15" />
+            </linearGradient>
+            <linearGradient id="peakGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(147, 197, 253, 0.4)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="rgba(96, 165, 250, 0.15)" stopOpacity="0.15" />
+            </linearGradient>
+            {/* Snow glow */}
+            <radialGradient id="snowGlow" cx="50%" cy="50%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.8)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
+            </radialGradient>
+          </defs>
+          
+          {/* Back layer mountains - most distant, most blurred */}
+          <path
+            d="M0,600 L0,420 Q100,380 250,400 T500,380 T750,400 T1000,390 T1200,400 L1200,600 Z"
+            fill="url(#peakGradient1)"
+            filter="url(#mountainGlow2)"
+            opacity="0.4"
+          />
           {/* Middle layer mountains */}
-          <path d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z" fill="rgba(34, 211, 238, 0.25)" />
+          <path
+            d="M0,600 L0,460 Q150,420 350,440 T700,420 T1050,450 T1200,440 L1200,600 Z"
+            fill="url(#peakGradient2)"
+            filter="url(#mountainGlow1)"
+            opacity="0.5"
+          />
           {/* Front layer mountains */}
-          <path d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z" fill="rgba(96, 165, 250, 0.2)" />
-          {/* Snow peaks */}
-          <path d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z" fill="rgba(255, 255, 255, 0.1)" />
+          <path
+            d="M0,600 L0,520 Q80,480 220,500 T480,480 T720,500 T980,490 T1200,510 L1200,600 Z"
+            fill="url(#peakGradient3)"
+            filter="url(#mountainGlow3)"
+            opacity="0.6"
+          />
+          
+          {/* Ethereal snow peaks with glow */}
+          <g opacity="0.7">
+            <circle cx="250" cy="380" r="25" fill="url(#snowGlow)" />
+            <circle cx="650" cy="360" r="30" fill="url(#snowGlow)" />
+            <circle cx="950" cy="390" r="28" fill="url(#snowGlow)" />
+            <circle cx="450" cy="400" r="20" fill="url(#snowGlow)" />
+            <circle cx="850" cy="420" r="22" fill="url(#snowGlow)" />
+          </g>
+          
+          {/* Floating mist/clouds for surreal effect */}
+          <ellipse cx="200" cy="500" rx="120" ry="40" fill="rgba(59, 130, 246, 0.15)" filter="url(#mountainGlow1)" opacity="0.6" />
+          <ellipse cx="600" cy="480" rx="150" ry="50" fill="rgba(34, 211, 238, 0.12)" filter="url(#mountainGlow2)" opacity="0.5" />
+          <ellipse cx="1000" cy="490" rx="130" ry="45" fill="rgba(96, 165, 250, 0.15)" filter="url(#mountainGlow1)" opacity="0.6" />
         </svg>
       </div>
       {/* Radial gradient overlay background */}
@@ -117,7 +183,7 @@ const Index = () => {
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
         <div className="container mx-auto px-4 py-1 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="TradePeaks" className="h-10 w-10" />
+            <TPLogo size={40} variant="icon" />
             <span className="text-xl font-bold"></span>
           </div>
           <div className="flex gap-4 items-center">

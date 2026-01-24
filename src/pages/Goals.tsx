@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Target, Plus, X, ChevronDown, ChevronRight, Flame, TrendingUp, DollarSign, Trophy, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/hs-logo.png";
+import { TPLogo } from "@/components/TPLogo";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Goal {
@@ -176,7 +176,7 @@ const Goals = () => {
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
+            <TPLogo size={40} variant="icon" />
           </div>
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
