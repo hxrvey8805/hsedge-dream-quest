@@ -53,27 +53,35 @@ const MARKER_TYPES = [
 ];
 
 export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlideProps) => {
-  // Initialize slots from slideData or create default with legacy data
-  const [slots, setSlots] = useState<ScreenshotSlot[]>(() => {
-    if (slideData.screenshot_slots && slideData.screenshot_slots.length > 0) {
-      return slideData.screenshot_slots;
+  // Helper to get initial slots from slideData
+  const getInitialSlots = (data: TradeSlideData): ScreenshotSlot[] => {
+    if (data.screenshot_slots && data.screenshot_slots.length > 0) {
+      return data.screenshot_slots;
     }
     // Migrate legacy single screenshot to first slot
     return [{
-      id: 'slot-1',
+      id: `slot-${data.trade_id}-1`,
       label: 'Entry TF',
-      screenshot_url: slideData.screenshot_url,
-      markers: slideData.markers || []
+      screenshot_url: data.screenshot_url,
+      markers: data.markers || []
     }];
-  });
-  
-  const [activeSlotId, setActiveSlotId] = useState<string>(slots[0]?.id || 'slot-1');
+  };
+
+  const [slots, setSlots] = useState<ScreenshotSlot[]>(() => getInitialSlots(slideData));
+  const [activeSlotId, setActiveSlotId] = useState<string>(slots[0]?.id || `slot-${slideData.trade_id}-1`);
   const [isUploading, setIsUploading] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [editingSlotLabel, setEditingSlotLabel] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // CRITICAL: Reset slots when trade changes (navigating between slides)
+  useEffect(() => {
+    const newSlots = getInitialSlots(slideData);
+    setSlots(newSlots);
+    setActiveSlotId(newSlots[0]?.id || `slot-${slideData.trade_id}-1`);
+  }, [slideData.trade_id]);
 
   const activeSlot = slots.find(s => s.id === activeSlotId) || slots[0];
 
@@ -120,7 +128,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
 
   const addSlot = () => {
     const newSlot: ScreenshotSlot = {
-      id: `slot-${Date.now()}`,
+      id: `slot-${trade.id}-${Date.now()}`,
       label: DEFAULT_TIMEFRAMES[slots.length] || `TF ${slots.length + 1}`,
       screenshot_url: null,
       markers: []
