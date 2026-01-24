@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Sparkles, Eye } from "lucide-react";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/hs-logo.png";
 import { DreamList } from "@/components/dream-builder/DreamList";
 import { DreamEditor } from "@/components/dream-builder/DreamEditor";
 type ViewMode = "list" | "create" | "edit";
@@ -53,7 +53,7 @@ const DreamBuilder = () => {
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <TPLogo size={40} variant="icon" />
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <div>
               
               

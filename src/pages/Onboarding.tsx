@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { OnboardingAccounts } from "@/components/onboarding/OnboardingAccounts";
 import { OnboardingVision } from "@/components/onboarding/OnboardingVision";
 import { OnboardingVisionBuilder } from "@/components/onboarding/OnboardingVisionBuilder";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/hs-logo.png";
 
 type OnboardingStep = "accounts" | "vision-intro" | "vision-builder";
 
@@ -103,7 +103,7 @@ const Onboarding = () => {
       {/* Header */}
       <header className="relative z-10 p-6">
         <div className="flex items-center gap-3">
-          <TPLogo size={48} variant="icon" className="animate-logo-float" />
+          <img src={logo} alt="HS-Edge" className="h-12 w-12 animate-logo-float" />
         </div>
       </header>
 

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/hs-logo.png";
 
 interface Trade {
   id: string;
@@ -167,7 +167,7 @@ const Statistics = () => {
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <TPLogo size={40} variant="icon" />
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
           </div>
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />

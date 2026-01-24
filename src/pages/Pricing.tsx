@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/hs-logo.png";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const Pricing = () => {
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <TPLogo size={40} variant="icon" />
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
           </div>
           <div className="flex gap-4">
             <Button variant="ghost" onClick={() => navigate("/")}>

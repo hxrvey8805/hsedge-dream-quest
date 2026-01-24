@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/hs-logo.png";
 import LucidAnimation from "@/components/LucidAnimation";
 
 const Auth = () => {

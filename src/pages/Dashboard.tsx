@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { TPLogo } from "@/components/TPLogo";
+import logo from "@/assets/tl-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
@@ -270,7 +270,7 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <TPLogo size={40} variant="icon" />
+            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
             <h1 className="text-xl font-bold">
           </h1>
           </div>
