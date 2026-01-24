@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import { TPLogo } from "@/components/TPLogo";
 import { useMemo, useState, useEffect, useRef } from "react";
+
 const Index = () => {
   const navigate = useNavigate();
   const [mousePos, setMousePos] = useState({
