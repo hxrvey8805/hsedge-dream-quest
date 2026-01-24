@@ -58,6 +58,36 @@ const Index = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+      {/* Mountain peaks background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg
+          className="absolute bottom-0 left-0 w-full h-full"
+          viewBox="0 0 1200 600"
+          preserveAspectRatio="none"
+          style={{ opacity: 0.15 }}
+        >
+          {/* Back layer mountains */}
+          <path
+            d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z"
+            fill="rgba(59, 130, 246, 0.3)"
+          />
+          {/* Middle layer mountains */}
+          <path
+            d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z"
+            fill="rgba(34, 211, 238, 0.25)"
+          />
+          {/* Front layer mountains */}
+          <path
+            d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z"
+            fill="rgba(96, 165, 250, 0.2)"
+          />
+          {/* Snow peaks */}
+          <path
+            d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z"
+            fill="rgba(255, 255, 255, 0.1)"
+          />
+        </svg>
+      </div>
       {/* Radial gradient overlay background */}
       <div 
         className="absolute inset-0 pointer-events-none z-0"
@@ -106,7 +136,7 @@ const Index = () => {
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
         <div className="container mx-auto px-4 py-1 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="TradeLucid" className="h-10 w-10" />
+            <img src={logo} alt="TradePeaks" className="h-10 w-10" />
             <span className="text-xl font-bold"></span>
           </div>
           <div className="flex gap-4 items-center">
@@ -136,14 +166,13 @@ const Index = () => {
                 letterSpacing: '0.08em',
                 fontWeight: 300,
                 filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
-              }}>TradeLucid</h1>
+              }}>TradePeaks</h1>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent animate-fade-in">
-              Your Gamified, Dream-Driven Path to Trading Excellence
+              One of them caught our eye
             </h2>
-            <p className="text-xl text-blue-100/80 mb-8 animate-fade-in">
-              Transform your trading journey with Lucid. Track every trade, build your dreams, and level up your
-              skills with our gamified trading journal.
+            <p className="text-xl text-blue-100/80 mb-8 animate-fade-in italic font-light">
+              he would neither join the feeding grounds nor return to the colony. shortly afterwards he was heading straight to the peaks. but why
             </p>
             <div className="flex gap-4 justify-center animate-fade-in">
               <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30" onClick={() => navigate("/auth")}>
@@ -162,9 +191,9 @@ const Index = () => {
               <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:shadow-lg group-hover:shadow-blue-500/20 transition-all">
                 <Trophy className="h-8 w-8 text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-foreground">Gamified Progress</h3>
+              <h3 className="text-xl font-bold mb-3 text-foreground">Climb Higher</h3>
               <p className="text-blue-100/70">
-                Earn achievements, level up, and track your trading milestones with our gamification system.
+                Each trade is a step up the mountain. Track your ascent and reach new peaks.
               </p>
             </div>
 
@@ -172,9 +201,9 @@ const Index = () => {
               <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 mb-4 group-hover:shadow-lg group-hover:shadow-cyan-500/20 transition-all">
                 <Target className="h-8 w-8 text-cyan-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-foreground">Dream Builder</h3>
+              <h3 className="text-xl font-bold mb-3 text-foreground">The Summit Awaits</h3>
               <p className="text-cyan-100/70">
-                Define your trading dreams, set milestones, and visualize your path to success.
+                Chart your course to the peaks. Define your destination and map the journey.
               </p>
             </div>
 
@@ -182,9 +211,9 @@ const Index = () => {
               <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-sky-500/20 to-indigo-500/20 mb-4 group-hover:shadow-lg group-hover:shadow-sky-500/20 transition-all">
                 <TrendingUp className="h-8 w-8 text-sky-400" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-foreground">Advanced Analytics</h3>
+              <h3 className="text-xl font-bold mb-3 text-foreground">Read the Terrain</h3>
               <p className="text-sky-100/70">
-                Deep insights into your trading patterns, win rates, and performance metrics.
+                Understand every ridge and valley of your trading journey. See the path clearly.
               </p>
             </div>
           </div>
@@ -195,9 +224,9 @@ const Index = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-cyan-500/10"></div>
             <div className="relative">
               <Zap className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4 text-foreground">Ready to Transform Your Trading?</h2>
-              <p className="text-xl text-blue-100/80 mb-8">
-                Join Lucid today and start your journey to becoming a consistently profitable trader.
+              <h2 className="text-3xl font-bold mb-4 text-foreground">Why the peaks?</h2>
+              <p className="text-xl text-blue-100/80 mb-8 italic font-light">
+                while others stay in the valleys, some traders are drawn to the mountains. find out what waits at the summit.
               </p>
               <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30" onClick={() => navigate("/auth")}>
                 Start Free Trial Today
@@ -209,7 +238,7 @@ const Index = () => {
 
       <footer className="border-t border-blue-500/30 bg-black/40 backdrop-blur-sm mt-20 relative z-10">
         <div className="container mx-auto px-4 py-8 text-center text-blue-200/60">
-          <p>© 2025 TradeLucid. All rights reserved.</p>
+          <p>© 2025 TradePeaks. All rights reserved.</p>
         </div>
       </footer>
     </div>

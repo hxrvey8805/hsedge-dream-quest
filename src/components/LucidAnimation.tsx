@@ -141,7 +141,7 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
 
           {/* Central content */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* TradeLucid text with glow - matching homepage style */}
+            {/* TradePeaks text with glow - matching homepage style */}
             <motion.div
               className="relative mb-8"
               initial={{ opacity: 0, scale: 0.5, y: 20 }}
@@ -198,7 +198,7 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
                   ease: "easeInOut",
                 }}
               >
-                TradeLucid
+                TradePeaks
               </motion.h1>
             </motion.div>
 
