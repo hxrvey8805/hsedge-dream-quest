@@ -426,11 +426,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     const markerSizeValue = marker.markerSize || 24;
                     
                     if (marker.useLineMode) {
-                      // Render as horizontal line with x position indicator
+                      // Render as horizontal line with vertical time indicator
                       return (
                         <div
                           key={marker.id}
-                          className="absolute flex items-center pointer-events-none"
+                          className="absolute pointer-events-none"
                           style={{ 
                             left: 0, 
                             right: 0,
@@ -438,7 +438,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             transform: 'translateY(-50%)'
                           }}
                         >
-                          {/* Full width line */}
+                          {/* Full width horizontal line */}
                           <div 
                             className="w-full"
                             style={{ 
@@ -446,49 +446,34 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                               backgroundColor: lineColor
                             }}
                           />
-                          {/* Label - positioned at x% */}
+                          
+                          {/* Vertical time indicator line at x position */}
                           <div
-                            className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
+                            className="absolute"
                             style={{ 
                               left: `${marker.x}%`,
                               transform: 'translateX(-50%)',
+                              top: '-150%',
+                              bottom: '-150%',
+                              width: Math.max(3, markerSizeValue / 6),
                               backgroundColor: lineColor,
-                              fontSize: Math.max(9, markerSizeValue / 3)
+                              boxShadow: `0 0 4px ${lineColor}`,
+                              borderRadius: 2
+                            }}
+                          />
+                          
+                          {/* Label on the horizontal line */}
+                          <div
+                            className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
+                            style={{ 
+                              left: 4,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              backgroundColor: lineColor,
+                              fontSize: Math.max(8, markerSizeValue / 3)
                             }}
                           >
                             {getMarkerLabel(marker.type)}
-                          </div>
-                          {/* X position indicator (vertical tick at x position) */}
-                          <div
-                            className="absolute flex flex-col items-center"
-                            style={{ 
-                              left: `${marker.x}%`,
-                              transform: 'translateX(-50%)'
-                            }}
-                          >
-                            {/* Vertical tick mark */}
-                            <div
-                              style={{
-                                width: 3,
-                                height: markerSizeValue * 0.6,
-                                backgroundColor: lineColor,
-                                borderRadius: 2
-                              }}
-                            />
-                            {/* Small dot at intersection */}
-                            <div
-                              className="absolute"
-                              style={{
-                                width: markerSizeValue * 0.4,
-                                height: markerSizeValue * 0.4,
-                                backgroundColor: lineColor,
-                                borderRadius: '50%',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                border: '2px solid white',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
-                              }}
-                            />
                           </div>
                         </div>
                       );
@@ -570,11 +555,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     const markerSizeValue = (marker.markerSize || 24) * 1.5; // Larger for full view
                     
                     if (marker.useLineMode) {
-                      // Render as horizontal line with x position indicator
+                      // Render as horizontal line with vertical time indicator
                       return (
                         <div
                           key={marker.id}
-                          className="absolute flex items-center pointer-events-none"
+                          className="absolute pointer-events-none"
                           style={{ 
                             left: 0, 
                             right: 0,
@@ -582,56 +567,41 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             transform: 'translateY(-50%)'
                           }}
                         >
-                          {/* Full width line */}
+                          {/* Full width horizontal line */}
                           <div 
                             className="w-full"
                             style={{ 
-                              height: Math.max(2, markerSizeValue / 8),
+                              height: Math.max(3, markerSizeValue / 8),
                               backgroundColor: lineColor
                             }}
                           />
-                          {/* Label - positioned at x% */}
+                          
+                          {/* Vertical time indicator line at x position */}
                           <div
-                            className="absolute px-2 py-1 rounded text-white text-sm font-medium"
+                            className="absolute"
                             style={{ 
                               left: `${marker.x}%`,
                               transform: 'translateX(-50%)',
-                              backgroundColor: lineColor 
+                              top: '-150%',
+                              bottom: '-150%',
+                              width: Math.max(4, markerSizeValue / 5),
+                              backgroundColor: lineColor,
+                              boxShadow: `0 0 6px ${lineColor}`,
+                              borderRadius: 2
+                            }}
+                          />
+                          
+                          {/* Label on the horizontal line */}
+                          <div
+                            className="absolute px-2 py-1 rounded text-white text-sm font-medium"
+                            style={{ 
+                              left: 8,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              backgroundColor: lineColor
                             }}
                           >
                             {getMarkerLabel(marker.type)}
-                          </div>
-                          {/* X position indicator (vertical tick at x position) */}
-                          <div
-                            className="absolute flex flex-col items-center"
-                            style={{ 
-                              left: `${marker.x}%`,
-                              transform: 'translateX(-50%)'
-                            }}
-                          >
-                            {/* Vertical tick mark */}
-                            <div
-                              style={{
-                                width: 4,
-                                height: markerSizeValue * 0.7,
-                                backgroundColor: lineColor,
-                                borderRadius: 2
-                              }}
-                            />
-                            {/* Dot at intersection */}
-                            <div
-                              className="absolute"
-                              style={{
-                                width: markerSizeValue * 0.5,
-                                height: markerSizeValue * 0.5,
-                                backgroundColor: lineColor,
-                                borderRadius: '50%',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                border: '3px solid white',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                              }}
-                            />
                           </div>
                         </div>
                       );

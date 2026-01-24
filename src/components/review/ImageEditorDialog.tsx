@@ -381,11 +381,11 @@ export const ImageEditorDialog = ({
     const baseSize = markerSize;
     
     if (marker.useLineMode || marker.type === 'time' || useLineMode) {
-      // Render as horizontal line - line is draggable vertically, label is draggable horizontally
+      // Render as horizontal line with vertical time indicator
       return (
         <div
           key={marker.id}
-          className={`absolute flex items-center ${isSelected ? 'z-20' : 'z-10'}`}
+          className={`absolute ${isSelected ? 'z-20' : 'z-10'}`}
           style={{ 
             left: 0, 
             right: 0,
@@ -394,7 +394,7 @@ export const ImageEditorDialog = ({
             pointerEvents: 'none'
           }}
         >
-          {/* Line - draggable vertically */}
+          {/* Horizontal line - draggable vertically */}
           <div 
             className="w-full flex items-center cursor-ns-resize"
             style={{ height: baseSize / 2 }}
@@ -411,19 +411,36 @@ export const ImageEditorDialog = ({
               }}
             />
           </div>
-          {/* Label - draggable horizontally */}
+          
+          {/* Vertical time indicator line - draggable horizontally along the purple line */}
           <div
-            className={`absolute px-2 py-1 rounded text-white text-xs font-medium cursor-ew-resize ${isSelected ? 'ring-2 ring-white' : ''}`}
+            className={`absolute cursor-ew-resize ${isSelected ? 'ring-2 ring-white/50' : ''}`}
             style={{ 
               left: `${marker.x}%`,
               transform: 'translateX(-50%)',
+              top: '-200%',
+              bottom: '-200%',
+              width: Math.max(4, baseSize / 4),
               backgroundColor: config.lineColor,
-              fontSize: Math.max(10, baseSize / 2),
+              boxShadow: `0 0 6px ${config.lineColor}`,
+              borderRadius: 2,
               pointerEvents: 'auto'
             }}
             onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
             onDoubleClick={(e) => removeMarker(marker.id, e)}
-            title="Drag horizontally to move label, double-click to remove"
+            title="Drag horizontally to set trade time, double-click to remove"
+          />
+          
+          {/* Label on the horizontal line */}
+          <div
+            className="absolute px-2 py-0.5 rounded text-white text-xs font-medium pointer-events-none"
+            style={{ 
+              left: 4,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: config.lineColor,
+              fontSize: Math.max(9, baseSize / 2.5),
+            }}
           >
             {config.label}
           </div>
