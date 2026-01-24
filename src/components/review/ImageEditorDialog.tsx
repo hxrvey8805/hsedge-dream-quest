@@ -58,7 +58,7 @@ export const ImageEditorDialog = ({
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
   const [cropEnd, setCropEnd] = useState<{ x: number; y: number } | null>(null);
-  const [selectedMarkerType, setSelectedMarkerType] = useState<'entry' | 'stop_loss' | 'take_profit' | null>(null);
+  const [selectedMarkerType, setSelectedMarkerType] = useState<'entry' | 'stop_loss' | 'take_profit' | 'time' | null>(null);
   const [zoom, setZoom] = useState(100);
   const [isSaving, setIsSaving] = useState(false);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
@@ -380,7 +380,7 @@ export const ImageEditorDialog = ({
     const isSelected = selectedMarkerId === marker.id;
     const baseSize = markerSize;
     
-    if (marker.useLineMode || marker.type === 'time' || (useLineMode && marker.type !== 'time')) {
+    if (marker.useLineMode || marker.type === 'time' || useLineMode) {
       // Render as horizontal line - line is draggable vertically, label is draggable horizontally
       return (
         <div

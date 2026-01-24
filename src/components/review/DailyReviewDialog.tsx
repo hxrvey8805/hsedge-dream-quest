@@ -60,9 +60,11 @@ interface ScreenshotSlot {
 
 interface Marker {
   id: string;
-  type: 'entry' | 'stop_loss' | 'take_profit';
+  type: 'entry' | 'stop_loss' | 'take_profit' | 'time';
   x: number;
   y: number;
+  useLineMode?: boolean;
+  markerSize?: number;
 }
 
 export const DailyReviewDialog = ({ 
@@ -140,7 +142,7 @@ export const DailyReviewDialog = ({
           const parsedMarkers: Marker[] = Array.isArray(markersData) 
             ? (markersData as unknown as Marker[]) 
             : [];
-          const slotsData = existingSlide?.screenshot_slots;
+          const slotsData = (existingSlide as any)?.screenshot_slots;
           const parsedSlots: ScreenshotSlot[] = Array.isArray(slotsData)
             ? (slotsData as unknown as ScreenshotSlot[])
             : [];
@@ -199,9 +201,9 @@ export const DailyReviewDialog = ({
         screenshot_url: slide.screenshot_url,
         markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
         reflection: slide.reflection,
-        screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) as Json : null,
+        screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) : null,
         slide_order: index,
-      }));
+      } as any));
 
       if (slidesToInsert.length > 0) {
         const { error: slidesError } = await supabase

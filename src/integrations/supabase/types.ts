@@ -540,6 +540,7 @@ export type Database = {
           id: string
           markers: Json | null
           reflection: string | null
+          screenshot_slots: Json | null
           screenshot_url: string | null
           slide_order: number
           trade_id: string | null
@@ -552,6 +553,7 @@ export type Database = {
           id?: string
           markers?: Json | null
           reflection?: string | null
+          screenshot_slots?: Json | null
           screenshot_url?: string | null
           slide_order?: number
           trade_id?: string | null
@@ -564,6 +566,7 @@ export type Database = {
           id?: string
           markers?: Json | null
           reflection?: string | null
+          screenshot_slots?: Json | null
           screenshot_url?: string | null
           slide_order?: number
           trade_id?: string | null
