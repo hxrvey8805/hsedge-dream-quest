@@ -128,6 +128,14 @@ export const DailyReviewDialog = ({
         missed_opportunities: review.missed_opportunities || "",
       });
 
+      // Load missed opportunity screenshots
+      const screenshots = (review as any).missed_opportunities_screenshots;
+      if (Array.isArray(screenshots) && screenshots.length > 0) {
+        setMissedScreenshots(screenshots);
+      } else {
+        setMissedScreenshots([]);
+      }
+
       // Load trade slides
       const { data: slides } = await supabase
         .from("trade_review_slides")
@@ -155,6 +163,15 @@ export const DailyReviewDialog = ({
           };
         }));
       }
+    } else {
+      // Reset state if no review exists
+      setReviewId(null);
+      setReviewData({
+        what_went_well: "",
+        lessons_learned: "",
+        missed_opportunities: "",
+      });
+      setMissedScreenshots([]);
     }
   };
 
@@ -181,6 +198,7 @@ export const DailyReviewDialog = ({
           what_went_well: reviewData.what_went_well,
           lessons_learned: reviewData.lessons_learned,
           missed_opportunities: reviewData.missed_opportunities,
+          missed_opportunities_screenshots: missedScreenshots.length > 0 ? missedScreenshots : null,
         }, { onConflict: 'user_id,review_date' })
         .select()
         .single();
