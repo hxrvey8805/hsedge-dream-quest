@@ -206,9 +206,7 @@ const Index = () => {
             <div className="relative">
               <Zap className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
               <h2 className="text-3xl font-bold mb-4 text-foreground">But why?</h2>
-              <p className="text-xl text-blue-100/80 mb-8 italic font-light">
-                while others stay in the valleys, some traders are drawn to the mountains. find out what waits at the summit.
-              </p>
+              <p className="text-xl text-blue-100/80 mb-8 italic font-light">While others stay in the valleys, some traders are drawn to the mountains. Find out what waits at the summit.</p>
               <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30" onClick={() => navigate("/auth")}>
                 Start Free Trial Today
               </Button>
