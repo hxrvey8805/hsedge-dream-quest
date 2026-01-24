@@ -3,16 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/tl-logo.png";
 import { useMemo, useState, useEffect, useRef } from "react";
-
 const Index = () => {
   const navigate = useNavigate();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [mousePos, setMousePos] = useState({
+    x: 0,
+    y: 0
+  });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Track mouse position
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+      setMousePos({
+        x: e.clientX,
+        y: e.clientY
+      });
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -20,7 +25,9 @@ const Index = () => {
 
   // Generate deep blue illuminated floating particles with base positions
   const lucidParticles = useMemo(() => {
-    return Array.from({ length: 40 }, (_, i) => ({
+    return Array.from({
+      length: 40
+    }, (_, i) => ({
       id: i,
       baseX: Math.random() * 100,
       baseY: Math.random() * 100,
@@ -30,69 +37,50 @@ const Index = () => {
       opacity: 0.5 + Math.random() * 0.5,
       driftX: Math.random() * 150 - 75,
       driftY: Math.random() * 100 + 50,
-      magnetStrength: 0.15 + Math.random() * 0.2, // How strongly attracted to mouse
+      magnetStrength: 0.15 + Math.random() * 0.2 // How strongly attracted to mouse
     }));
   }, []);
 
   // Calculate magnetic offset for each particle
   const getParticleStyle = (particle: typeof lucidParticles[0]) => {
-    if (!containerRef.current) return { x: 0, y: 0 };
-    
+    if (!containerRef.current) return {
+      x: 0,
+      y: 0
+    };
     const rect = containerRef.current.getBoundingClientRect();
-    const particleX = (particle.baseX / 100) * rect.width;
-    const particleY = (particle.baseY / 100) * rect.height;
-    
+    const particleX = particle.baseX / 100 * rect.width;
+    const particleY = particle.baseY / 100 * rect.height;
     const dx = mousePos.x - particleX;
     const dy = mousePos.y - particleY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Magnetic effect with falloff (stronger when closer, max range ~300px)
     const maxDistance = 350;
     const strength = Math.max(0, 1 - distance / maxDistance) * particle.magnetStrength;
-    
     return {
       x: dx * strength * 0.5,
-      y: dy * strength * 0.5,
+      y: dy * strength * 0.5
     };
   };
-
-  return (
-    <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+  return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
       {/* Mountain peaks background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg
-          className="absolute bottom-0 left-0 w-full h-full"
-          viewBox="0 0 1200 600"
-          preserveAspectRatio="none"
-          style={{ opacity: 0.15 }}
-        >
+        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none" style={{
+        opacity: 0.15
+      }}>
           {/* Back layer mountains */}
-          <path
-            d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z"
-            fill="rgba(59, 130, 246, 0.3)"
-          />
+          <path d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z" fill="rgba(59, 130, 246, 0.3)" />
           {/* Middle layer mountains */}
-          <path
-            d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z"
-            fill="rgba(34, 211, 238, 0.25)"
-          />
+          <path d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z" fill="rgba(34, 211, 238, 0.25)" />
           {/* Front layer mountains */}
-          <path
-            d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z"
-            fill="rgba(96, 165, 250, 0.2)"
-          />
+          <path d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z" fill="rgba(96, 165, 250, 0.2)" />
           {/* Snow peaks */}
-          <path
-            d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z"
-            fill="rgba(255, 255, 255, 0.1)"
-          />
+          <path d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z" fill="rgba(255, 255, 255, 0.1)" />
         </svg>
       </div>
       {/* Radial gradient overlay background */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background: `
+      <div className="absolute inset-0 pointer-events-none z-0" style={{
+      background: `
             radial-gradient(
               80rem 40rem at 50% -10%,
               rgba(16, 40, 90, 0.55),
@@ -104,33 +92,26 @@ const Index = () => {
               transparent 60%
             )
           `
-        }}
-      />
+    }} />
       {/* Floating particles container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {/* Deep blue illuminated floating particles with magnetic effect */}
-        {lucidParticles.map((particle) => {
-          const magnetOffset = getParticleStyle(particle);
-          return (
-            <div
-              key={particle.id}
-              className="lucid-particle"
-              style={{
-                left: `${particle.baseX}%`,
-                top: `${particle.baseY}%`,
-                animationDelay: `${particle.delay}s`,
-                animationDuration: `${particle.duration}s`,
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                opacity: particle.opacity,
-                '--drift-x': `${particle.driftX}px`,
-                '--drift-y': `${particle.driftY}px`,
-                transform: `translate(${magnetOffset.x}px, ${magnetOffset.y}px)`,
-                transition: 'transform 0.3s ease-out',
-              } as React.CSSProperties}
-            />
-          );
-        })}
+        {lucidParticles.map(particle => {
+        const magnetOffset = getParticleStyle(particle);
+        return <div key={particle.id} className="lucid-particle" style={{
+          left: `${particle.baseX}%`,
+          top: `${particle.baseY}%`,
+          animationDelay: `${particle.delay}s`,
+          animationDuration: `${particle.duration}s`,
+          width: `${particle.size}px`,
+          height: `${particle.size}px`,
+          opacity: particle.opacity,
+          '--drift-x': `${particle.driftX}px`,
+          '--drift-y': `${particle.driftY}px`,
+          transform: `translate(${magnetOffset.x}px, ${magnetOffset.y}px)`,
+          transition: 'transform 0.3s ease-out'
+        } as React.CSSProperties} />;
+      })}
       </div>
       
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
@@ -158,15 +139,15 @@ const Index = () => {
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 animate-fade-in">
               <h1 className="text-7xl md:text-8xl font-light italic" style={{
-                fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
-                background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: '0 0 60px rgba(59, 130, 246, 0.6), 0 0 120px rgba(34, 211, 238, 0.3)',
-                letterSpacing: '0.08em',
-                fontWeight: 300,
-                filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
-              }}>TradePeaks</h1>
+              fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 60px rgba(59, 130, 246, 0.6), 0 0 120px rgba(34, 211, 238, 0.3)',
+              letterSpacing: '0.08em',
+              fontWeight: 300,
+              filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
+            }}>TradePeaks</h1>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent animate-fade-in">
               One of them caught our eye
@@ -224,7 +205,7 @@ const Index = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-cyan-500/10"></div>
             <div className="relative">
               <Zap className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4 text-foreground">Why the peaks?</h2>
+              <h2 className="text-3xl font-bold mb-4 text-foreground">But why?</h2>
               <p className="text-xl text-blue-100/80 mb-8 italic font-light">
                 while others stay in the valleys, some traders are drawn to the mountains. find out what waits at the summit.
               </p>
@@ -241,7 +222,6 @@ const Index = () => {
           <p>© 2025 TradePeaks. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
 export default Index;
