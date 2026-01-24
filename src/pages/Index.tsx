@@ -149,9 +149,7 @@ const Index = () => {
               filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
             }}>TradePeaks</h1>
             </div>
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent animate-fade-in">
-              One of them caught our eye
-            </h2>
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent animate-fade-in">Dream-Driven Path to Trading Excellence</h2>
             <p className="text-xl text-blue-100/80 mb-8 animate-fade-in italic font-light">
               he would neither join the feeding grounds nor return to the colony. shortly afterwards he was heading straight to the peaks. but why
             </p>
