@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { OnboardingAccounts } from "@/components/onboarding/OnboardingAccounts";
 import { OnboardingVision } from "@/components/onboarding/OnboardingVision";
 import { OnboardingVisionBuilder } from "@/components/onboarding/OnboardingVisionBuilder";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 
 type OnboardingStep = "accounts" | "vision-intro" | "vision-builder";
 

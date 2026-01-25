@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AchievementsPanel } from "@/components/gamification/AchievementsPanel";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 
 const Achievements = () => {
   const navigate = useNavigate();

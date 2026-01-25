@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Sparkles, Eye } from "lucide-react";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 import { DreamList } from "@/components/dream-builder/DreamList";
 import { DreamEditor } from "@/components/dream-builder/DreamEditor";
 type ViewMode = "list" | "create" | "edit";

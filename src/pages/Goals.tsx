@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Target, Plus, X, ChevronDown, ChevronRight, Flame, TrendingUp, DollarSign, Trophy, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Goal {

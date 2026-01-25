@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 
 const Pricing = () => {
   const navigate = useNavigate();
