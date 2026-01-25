@@ -242,9 +242,40 @@ export const DailyReviewDialog = ({
   };
 
   const updateTradeSlide = (tradeId: string, updates: Partial<TradeSlideData>) => {
-    setTradeSlides(prev => prev.map(slide => 
-      slide.trade_id === tradeId ? { ...slide, ...updates } : slide
-    ));
+    // Find the symbol of the trade being updated
+    const currentTrade = trades.find(t => t.id === tradeId);
+    const symbol = currentTrade?.symbol || currentTrade?.pair;
+    
+    setTradeSlides(prev => prev.map(slide => {
+      if (slide.trade_id === tradeId) {
+        // This is the trade being directly updated
+        return { ...slide, ...updates };
+      }
+      
+      // If screenshot_slots are being updated, sync to other trades with the same symbol
+      if (updates.screenshot_slots && symbol) {
+        const slideTrade = trades.find(t => t.id === slide.trade_id);
+        const slideSymbol = slideTrade?.symbol || slideTrade?.pair;
+        
+        if (slideSymbol === symbol) {
+          // Sync screenshot_slots to trades with the same symbol
+          // Generate new slot IDs to avoid conflicts but keep the same data
+          const syncedSlots = updates.screenshot_slots.map(slot => ({
+            ...slot,
+            id: `slot-${slide.trade_id}-${slot.label}-${Date.now()}`
+          }));
+          
+          return { 
+            ...slide, 
+            screenshot_slots: syncedSlots,
+            screenshot_url: syncedSlots[0]?.screenshot_url || null,
+            markers: syncedSlots[0]?.markers || []
+          };
+        }
+      }
+      
+      return slide;
+    }));
   };
 
   const handlePrevious = () => {
