@@ -425,8 +425,9 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     const lineColor = getMarkerLineColor(marker.type);
                     const markerSizeValue = marker.markerSize || 24;
                     const isTimeMarker = marker.type === 'time';
+                    const shouldUseLineMode = marker.useLineMode !== undefined ? marker.useLineMode : (marker.type === 'time');
                     
-                    if (marker.useLineMode) {
+                    if (shouldUseLineMode) {
                       // Render as horizontal line - vertical indicator ONLY for time marker
                       return (
                         <div
@@ -557,8 +558,9 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                     const lineColor = getMarkerLineColor(marker.type);
                     const markerSizeValue = (marker.markerSize || 24) * 1.5; // Larger for full view
                     const isTimeMarker = marker.type === 'time';
+                    const shouldUseLineMode = marker.useLineMode !== undefined ? marker.useLineMode : (marker.type === 'time');
                     
-                    if (marker.useLineMode) {
+                    if (shouldUseLineMode) {
                       // Render as horizontal line - vertical indicator ONLY for time marker
                       return (
                         <div

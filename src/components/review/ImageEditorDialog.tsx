@@ -84,8 +84,41 @@ export const ImageEditorDialog = ({
       setSelectedMarkerType(null);
       setSelectedMarkerId(null);
       setIsDraggingMarker(false);
+      // Reset to defaults when dialog opens
+      setUseLineMode(false);
+      setMarkerSize(24);
     }
   }, [open, initialMarkers]);
+
+  // Sync switch state with selected marker when selection changes
+  useEffect(() => {
+    if (selectedMarkerId) {
+      const selectedMarker = markers.find(m => m.id === selectedMarkerId);
+      if (selectedMarker) {
+        if (selectedMarker.useLineMode !== undefined) {
+          setUseLineMode(selectedMarker.useLineMode);
+        }
+        if (selectedMarker.markerSize !== undefined) {
+          setMarkerSize(selectedMarker.markerSize);
+        }
+      }
+    }
+  }, [selectedMarkerId]); // Only depend on selectedMarkerId, not markers to avoid loops
+
+  // Update selected marker when switch/size changes
+  const prevUseLineMode = useRef(useLineMode);
+  const prevMarkerSize = useRef(markerSize);
+  useEffect(() => {
+    if (selectedMarkerId && (prevUseLineMode.current !== useLineMode || prevMarkerSize.current !== markerSize)) {
+      setMarkers(prev => prev.map(m => 
+        m.id === selectedMarkerId 
+          ? { ...m, useLineMode, markerSize }
+          : m
+      ));
+      prevUseLineMode.current = useLineMode;
+      prevMarkerSize.current = markerSize;
+    }
+  }, [useLineMode, markerSize, selectedMarkerId]);
 
   const displayUrl = croppedImageUrl || imageUrl;
 
@@ -378,10 +411,11 @@ export const ImageEditorDialog = ({
     if (!config) return null;
     
     const isSelected = selectedMarkerId === marker.id;
-    const baseSize = markerSize;
+    const baseSize = marker.markerSize || markerSize;
     const isTimeMarker = marker.type === 'time';
+    const shouldUseLineMode = marker.useLineMode !== undefined ? marker.useLineMode : (marker.type === 'time' || useLineMode);
     
-    if (marker.useLineMode || marker.type === 'time' || useLineMode) {
+    if (shouldUseLineMode) {
       // Render as horizontal line - vertical indicator ONLY for time marker
       return (
         <div
