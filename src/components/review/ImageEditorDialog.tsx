@@ -469,19 +469,19 @@ export const ImageEditorDialog = ({
             />
           )}
           
-          {/* Label on the horizontal line - slideable for non-time markers */}
+          {/* Label on the horizontal line - slideable for all markers */}
           <div
-            className={`absolute px-2 py-0.5 rounded text-white text-xs font-medium ${!isTimeMarker ? 'cursor-ew-resize' : 'pointer-events-none'}`}
+            className="absolute px-2 py-0.5 rounded text-white text-xs font-medium cursor-ew-resize"
             style={{ 
-              left: isTimeMarker ? 4 : `${marker.x}%`,
+              left: `${marker.x}%`,
               top: '50%',
-              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
+              transform: 'translate(-50%, -50%)',
               backgroundColor: config.lineColor,
               fontSize: Math.max(9, baseSize / 2.5),
-              pointerEvents: isTimeMarker ? 'none' : 'auto'
+              pointerEvents: 'auto'
             }}
-            onMouseDown={!isTimeMarker ? (e) => handleMarkerMouseDown(e, marker.id, 'horizontal') : undefined}
-            title={!isTimeMarker ? 'Drag to slide label along line' : undefined}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
+            title="Drag to slide label along line"
           >
             {config.label}
           </div>

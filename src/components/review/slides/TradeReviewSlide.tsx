@@ -466,13 +466,13 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for non-time, fixed left for time */}
+                          {/* Label - positioned at x% for all markers */}
                           <div
                             className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{ 
-                              left: isTimeMarker ? 4 : `${marker.x}%`,
+                              left: `${marker.x}%`,
                               top: '50%',
-                              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
+                              transform: 'translate(-50%, -50%)',
                               backgroundColor: lineColor,
                               fontSize: Math.max(8, markerSizeValue / 3)
                             }}
@@ -599,13 +599,13 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for non-time, fixed left for time */}
+                          {/* Label - positioned at x% for all markers */}
                           <div
                             className="absolute px-2 py-1 rounded text-white text-sm font-medium"
                             style={{ 
-                              left: isTimeMarker ? 8 : `${marker.x}%`,
+                              left: `${marker.x}%`,
                               top: '50%',
-                              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
+                              transform: 'translate(-50%, -50%)',
                               backgroundColor: lineColor
                             }}
                           >
