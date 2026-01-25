@@ -379,9 +379,10 @@ export const ImageEditorDialog = ({
     
     const isSelected = selectedMarkerId === marker.id;
     const baseSize = markerSize;
+    const isTimeMarker = marker.type === 'time';
     
     if (marker.useLineMode || marker.type === 'time' || useLineMode) {
-      // Render as horizontal line with vertical time indicator
+      // Render as horizontal line - vertical indicator ONLY for time marker
       return (
         <div
           key={marker.id}
@@ -399,7 +400,8 @@ export const ImageEditorDialog = ({
             className="w-full flex items-center cursor-ns-resize"
             style={{ height: baseSize / 2 }}
             onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'vertical')}
-            title="Drag vertically to move line"
+            onDoubleClick={(e) => removeMarker(marker.id, e)}
+            title="Drag vertically to move line, double-click to remove"
           >
             <div 
               className="w-full"
@@ -412,35 +414,40 @@ export const ImageEditorDialog = ({
             />
           </div>
           
-          {/* Vertical time indicator line - draggable horizontally along the purple line */}
-          <div
-            className={`absolute cursor-ew-resize ${isSelected ? 'ring-2 ring-white/50' : ''}`}
-            style={{ 
-              left: `${marker.x}%`,
-              transform: 'translateX(-50%)',
-              top: '-200%',
-              bottom: '-200%',
-              width: Math.max(4, baseSize / 4),
-              backgroundColor: config.lineColor,
-              boxShadow: `0 0 6px ${config.lineColor}`,
-              borderRadius: 2,
-              pointerEvents: 'auto'
-            }}
-            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
-            onDoubleClick={(e) => removeMarker(marker.id, e)}
-            title="Drag horizontally to set trade time, double-click to remove"
-          />
+          {/* Vertical time indicator - ONLY for time marker type */}
+          {isTimeMarker && (
+            <div
+              className={`absolute cursor-ew-resize ${isSelected ? 'ring-2 ring-white/50' : ''}`}
+              style={{ 
+                left: `${marker.x}%`,
+                transform: 'translateX(-50%)',
+                top: '-200%',
+                bottom: '-200%',
+                width: Math.max(4, baseSize / 4),
+                backgroundColor: config.lineColor,
+                boxShadow: `0 0 6px ${config.lineColor}`,
+                borderRadius: 2,
+                pointerEvents: 'auto'
+              }}
+              onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
+              onDoubleClick={(e) => removeMarker(marker.id, e)}
+              title="Drag horizontally to set trade time, double-click to remove"
+            />
+          )}
           
-          {/* Label on the horizontal line */}
+          {/* Label on the horizontal line - slideable for non-time markers */}
           <div
-            className="absolute px-2 py-0.5 rounded text-white text-xs font-medium pointer-events-none"
+            className={`absolute px-2 py-0.5 rounded text-white text-xs font-medium ${!isTimeMarker ? 'cursor-ew-resize' : 'pointer-events-none'}`}
             style={{ 
-              left: 4,
+              left: isTimeMarker ? 4 : `${marker.x}%`,
               top: '50%',
-              transform: 'translateY(-50%)',
+              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
               backgroundColor: config.lineColor,
               fontSize: Math.max(9, baseSize / 2.5),
+              pointerEvents: isTimeMarker ? 'none' : 'auto'
             }}
+            onMouseDown={!isTimeMarker ? (e) => handleMarkerMouseDown(e, marker.id, 'horizontal') : undefined}
+            title={!isTimeMarker ? 'Drag to slide label along line' : undefined}
           >
             {config.label}
           </div>

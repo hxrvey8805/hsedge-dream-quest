@@ -101,6 +101,7 @@ export type Database = {
           id: string
           lessons_learned: string | null
           missed_opportunities: string | null
+          missed_opportunities_screenshots: string[] | null
           review_date: string
           total_pl: number | null
           updated_at: string
@@ -112,6 +113,7 @@ export type Database = {
           id?: string
           lessons_learned?: string | null
           missed_opportunities?: string | null
+          missed_opportunities_screenshots?: string[] | null
           review_date: string
           total_pl?: number | null
           updated_at?: string
@@ -123,6 +125,7 @@ export type Database = {
           id?: string
           lessons_learned?: string | null
           missed_opportunities?: string | null
+          missed_opportunities_screenshots?: string[] | null
           review_date?: string
           total_pl?: number | null
           updated_at?: string
