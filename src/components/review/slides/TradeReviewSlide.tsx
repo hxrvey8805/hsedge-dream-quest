@@ -466,11 +466,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for all markers including time */}
+                          {/* Label - positioned at labelX% (or x% if labelX not set) for all markers including time */}
                           <div
                             className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{ 
-                              left: `${marker.x}%`,
+                              left: `${marker.labelX ?? marker.x}%`,
                               top: '50%',
                               transform: 'translate(-50%, -50%)',
                               backgroundColor: lineColor,
@@ -599,11 +599,11 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for all markers including time */}
+                          {/* Label - positioned at labelX% (or x% if labelX not set) for all markers including time */}
                           <div
                             className="absolute px-2 py-1 rounded text-white text-sm font-medium"
                             style={{ 
-                              left: `${marker.x}%`,
+                              left: `${marker.labelX ?? marker.x}%`,
                               top: '50%',
                               transform: 'translate(-50%, -50%)',
                               backgroundColor: lineColor

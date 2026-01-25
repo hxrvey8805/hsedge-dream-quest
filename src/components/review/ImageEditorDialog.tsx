@@ -27,6 +27,7 @@ export interface Marker {
   y: number;
   useLineMode?: boolean;
   markerSize?: number;
+  labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
 }
 
 interface ImageEditorDialogProps {
@@ -163,7 +164,7 @@ export const ImageEditorDialog = ({
     }
   }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
 
-  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' = 'both') => {
+  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' = 'both') => {
     e.stopPropagation();
     e.preventDefault();
     setSelectedMarkerId(markerId);
@@ -172,7 +173,7 @@ export const ImageEditorDialog = ({
     setIsDraggingMarker(true);
   };
 
-  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical'>('both');
+  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical' | 'label'>('both');
 
   const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
     if (!isDraggingMarker || !selectedMarkerId || !imageRef.current) return;
@@ -187,6 +188,8 @@ export const ImageEditorDialog = ({
         return { ...marker, x: Math.max(0, Math.min(100, coords.x)) };
       } else if (dragMode === 'vertical') {
         return { ...marker, y: Math.max(0, Math.min(100, coords.y)) };
+      } else if (dragMode === 'label') {
+        return { ...marker, labelX: Math.max(0, Math.min(100, coords.x)) };
       } else {
         return { 
           ...marker, 
@@ -473,14 +476,14 @@ export const ImageEditorDialog = ({
           <div
             className={`absolute px-2 py-0.5 rounded text-white text-xs font-medium cursor-ew-resize`}
             style={{ 
-              left: `${marker.x}%`,
+              left: `${(marker.labelX ?? marker.x)}%`,
               top: '50%',
               transform: 'translate(-50%, -50%)',
               backgroundColor: config.lineColor,
               fontSize: Math.max(9, baseSize / 2.5),
               pointerEvents: 'auto'
             }}
-            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'label')}
             title="Drag to slide label along line, double-click to remove"
           >
             {config.label}

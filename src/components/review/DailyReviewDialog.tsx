@@ -65,6 +65,7 @@ interface Marker {
   y: number;
   useLineMode?: boolean;
   markerSize?: number;
+  labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
 }
 
 export const DailyReviewDialog = ({ 
