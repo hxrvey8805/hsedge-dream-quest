@@ -466,7 +466,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for all markers */}
+                          {/* Label - positioned at x% for all markers including time */}
                           <div
                             className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{ 
@@ -599,7 +599,7 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             />
                           )}
                           
-                          {/* Label - positioned at x% for all markers */}
+                          {/* Label - positioned at x% for all markers including time */}
                           <div
                             className="absolute px-2 py-1 rounded text-white text-sm font-medium"
                             style={{ 

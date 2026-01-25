@@ -448,7 +448,7 @@ export const ImageEditorDialog = ({
             />
           </div>
           
-          {/* Vertical time indicator - ONLY for time marker type */}
+          {/* Vertical time indicator - ONLY for time marker type - draggable horizontally */}
           {isTimeMarker && (
             <div
               className={`absolute cursor-ew-resize ${isSelected ? 'ring-2 ring-white/50' : ''}`}
@@ -465,13 +465,13 @@ export const ImageEditorDialog = ({
               }}
               onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
               onDoubleClick={(e) => removeMarker(marker.id, e)}
-              title="Drag horizontally to set trade time, double-click to remove"
+              title="Drag horizontally to set trade time position, double-click to remove"
             />
           )}
           
-          {/* Label on the horizontal line - slideable for all markers */}
+          {/* Label on the horizontal line - slideable for all markers including time */}
           <div
-            className="absolute px-2 py-0.5 rounded text-white text-xs font-medium cursor-ew-resize"
+            className={`absolute px-2 py-0.5 rounded text-white text-xs font-medium cursor-ew-resize`}
             style={{ 
               left: `${marker.x}%`,
               top: '50%',
@@ -481,7 +481,7 @@ export const ImageEditorDialog = ({
               pointerEvents: 'auto'
             }}
             onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'horizontal')}
-            title="Drag to slide label along line"
+            title="Drag to slide label along line, double-click to remove"
           >
             {config.label}
           </div>
