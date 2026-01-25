@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
-import logo from "@/assets/tl-logo.png";
+import logo from "@/assets/tp-logo.png";
 import { useMemo, useState, useEffect, useRef } from "react";
 const Index = () => {
   const navigate = useNavigate();

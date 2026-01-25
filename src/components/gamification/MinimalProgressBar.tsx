@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import tlIcon from "@/assets/tl-icon.png";
+import tlIcon from "@/assets/tp-logo.png";
 
 interface DreamData {
   monthlyProfit: number;

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Pencil, Check, X, Target, DollarSign, Building2, Briefcase, Trash2, AlertTriangle, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertDialog,

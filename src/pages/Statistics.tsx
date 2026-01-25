@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import logo from "@/assets/hs-logo.png";
+import logo from "@/assets/tp-logo.png";
 
 interface Trade {
   id: string;
