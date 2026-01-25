@@ -424,9 +424,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                   {activeSlot.markers.map((marker) => {
                     const lineColor = getMarkerLineColor(marker.type);
                     const markerSizeValue = marker.markerSize || 24;
+                    const isTimeMarker = marker.type === 'time';
                     
                     if (marker.useLineMode) {
-                      // Render as horizontal line with vertical time indicator
+                      // Render as horizontal line - vertical indicator ONLY for time marker
                       return (
                         <div
                           key={marker.id}
@@ -447,28 +448,30 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             }}
                           />
                           
-                          {/* Vertical time indicator line at x position */}
-                          <div
-                            className="absolute"
-                            style={{ 
-                              left: `${marker.x}%`,
-                              transform: 'translateX(-50%)',
-                              top: '-150%',
-                              bottom: '-150%',
-                              width: Math.max(3, markerSizeValue / 6),
-                              backgroundColor: lineColor,
-                              boxShadow: `0 0 4px ${lineColor}`,
-                              borderRadius: 2
-                            }}
-                          />
+                          {/* Vertical time indicator - ONLY for time marker */}
+                          {isTimeMarker && (
+                            <div
+                              className="absolute"
+                              style={{ 
+                                left: `${marker.x}%`,
+                                transform: 'translateX(-50%)',
+                                top: '-150%',
+                                bottom: '-150%',
+                                width: Math.max(3, markerSizeValue / 6),
+                                backgroundColor: lineColor,
+                                boxShadow: `0 0 4px ${lineColor}`,
+                                borderRadius: 2
+                              }}
+                            />
+                          )}
                           
-                          {/* Label on the horizontal line */}
+                          {/* Label - positioned at x% for non-time, fixed left for time */}
                           <div
                             className="absolute px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{ 
-                              left: 4,
+                              left: isTimeMarker ? 4 : `${marker.x}%`,
                               top: '50%',
-                              transform: 'translateY(-50%)',
+                              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
                               backgroundColor: lineColor,
                               fontSize: Math.max(8, markerSizeValue / 3)
                             }}
@@ -553,9 +556,10 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                   {activeSlot?.markers.map((marker) => {
                     const lineColor = getMarkerLineColor(marker.type);
                     const markerSizeValue = (marker.markerSize || 24) * 1.5; // Larger for full view
+                    const isTimeMarker = marker.type === 'time';
                     
                     if (marker.useLineMode) {
-                      // Render as horizontal line with vertical time indicator
+                      // Render as horizontal line - vertical indicator ONLY for time marker
                       return (
                         <div
                           key={marker.id}
@@ -576,28 +580,30 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                             }}
                           />
                           
-                          {/* Vertical time indicator line at x position */}
-                          <div
-                            className="absolute"
-                            style={{ 
-                              left: `${marker.x}%`,
-                              transform: 'translateX(-50%)',
-                              top: '-150%',
-                              bottom: '-150%',
-                              width: Math.max(4, markerSizeValue / 5),
-                              backgroundColor: lineColor,
-                              boxShadow: `0 0 6px ${lineColor}`,
-                              borderRadius: 2
-                            }}
-                          />
+                          {/* Vertical time indicator - ONLY for time marker */}
+                          {isTimeMarker && (
+                            <div
+                              className="absolute"
+                              style={{ 
+                                left: `${marker.x}%`,
+                                transform: 'translateX(-50%)',
+                                top: '-150%',
+                                bottom: '-150%',
+                                width: Math.max(4, markerSizeValue / 5),
+                                backgroundColor: lineColor,
+                                boxShadow: `0 0 6px ${lineColor}`,
+                                borderRadius: 2
+                              }}
+                            />
+                          )}
                           
-                          {/* Label on the horizontal line */}
+                          {/* Label - positioned at x% for non-time, fixed left for time */}
                           <div
                             className="absolute px-2 py-1 rounded text-white text-sm font-medium"
                             style={{ 
-                              left: 8,
+                              left: isTimeMarker ? 8 : `${marker.x}%`,
                               top: '50%',
-                              transform: 'translateY(-50%)',
+                              transform: isTimeMarker ? 'translateY(-50%)' : 'translate(-50%, -50%)',
                               backgroundColor: lineColor
                             }}
                           >
