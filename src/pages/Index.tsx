@@ -63,20 +63,151 @@ const Index = () => {
     };
   };
   return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Mountain peaks background */}
+      {/* Twin Peaks inspired mountain background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none" style={{
-        opacity: 0.15
-      }}>
-          {/* Back layer mountains */}
-          <path d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z" fill="rgba(59, 130, 246, 0.3)" />
-          {/* Middle layer mountains */}
-          <path d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z" fill="rgba(34, 211, 238, 0.25)" />
-          {/* Front layer mountains */}
-          <path d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z" fill="rgba(96, 165, 250, 0.2)" />
-          {/* Snow peaks */}
-          <path d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z" fill="rgba(255, 255, 255, 0.1)" />
+        {/* Atmospheric glow behind mountains */}
+        <div 
+          className="absolute bottom-0 left-0 w-full h-[70%]"
+          style={{
+            background: `
+              radial-gradient(ellipse 120% 60% at 50% 100%, 
+                rgba(30, 58, 138, 0.4) 0%, 
+                rgba(15, 23, 42, 0.2) 50%, 
+                transparent 80%
+              )
+            `
+          }}
+        />
+        
+        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1920 800" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            {/* Gradient for distant misty mountains */}
+            <linearGradient id="mistGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(71, 85, 150, 0.3)" />
+              <stop offset="100%" stopColor="rgba(30, 41, 82, 0.5)" />
+            </linearGradient>
+            
+            {/* Gradient for mid-layer peaks */}
+            <linearGradient id="midPeakGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.25)" />
+              <stop offset="60%" stopColor="rgba(30, 64, 120, 0.4)" />
+              <stop offset="100%" stopColor="rgba(15, 30, 60, 0.6)" />
+            </linearGradient>
+            
+            {/* Gradient for foreground silhouettes */}
+            <linearGradient id="foregroundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(20, 40, 80, 0.7)" />
+              <stop offset="100%" stopColor="rgba(7, 12, 26, 0.95)" />
+            </linearGradient>
+            
+            {/* Mist overlay gradient */}
+            <linearGradient id="mistOverlay" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="rgba(100, 150, 200, 0.15)" />
+              <stop offset="40%" stopColor="rgba(80, 120, 180, 0.08)" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+
+            {/* Glow filter for peaks */}
+            <filter id="peakGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Layer 1: Distant misty mountain range - ethereal and faded */}
+          <path 
+            d="M-100,800 L-100,520 
+               L80,480 L180,380 L280,450 L350,320 L420,400 L500,350 L580,420
+               L680,280 L780,380 L850,300 L950,360 L1050,250 L1150,340 
+               L1250,280 L1350,350 L1450,260 L1550,320 L1650,380 L1750,300
+               L1850,360 L1950,400 L2020,350 L2020,800 Z" 
+            fill="url(#mistGradient)"
+            opacity="0.5"
+          />
+          
+          {/* Layer 2: Mid-range dramatic peaks - Twin Peaks iconic silhouette */}
+          <path 
+            d="M-100,800 L-100,580 
+               L50,550 L150,450 L220,500 L300,380 L380,450 L450,350 
+               L550,420 L650,300 L720,380 L800,280 L900,350 L1000,240 
+               L1100,320 L1180,260 L1280,340 L1380,220 L1500,300 
+               L1600,250 L1700,340 L1800,280 L1900,350 L2020,400 L2020,800 Z" 
+            fill="url(#midPeakGradient)"
+            filter="url(#peakGlow)"
+          />
+          
+          {/* Subtle peak highlights */}
+          <path 
+            d="M800,280 L850,260 L900,350 M1000,240 L1050,220 L1100,320 M1380,220 L1430,195 L1500,300" 
+            fill="none"
+            stroke="rgba(147, 197, 253, 0.2)"
+            strokeWidth="2"
+          />
+          
+          {/* Layer 3: Pine tree silhouettes on ridgeline */}
+          <g opacity="0.6">
+            {/* Left ridge trees */}
+            <path d="M200,500 l-15,0 l15,-35 l15,35 z M220,500 l-10,0 l10,-25 l10,25 z M185,500 l-8,0 l8,-20 l8,20 z" fill="rgba(15, 25, 45, 0.8)" />
+            <path d="M400,450 l-12,0 l12,-30 l12,30 z M420,450 l-10,0 l10,-25 l10,25 z M380,450 l-8,0 l8,-22 l8,22 z" fill="rgba(15, 25, 45, 0.8)" />
+            
+            {/* Center ridge trees */}
+            <path d="M700,380 l-10,0 l10,-28 l10,28 z M720,385 l-8,0 l8,-22 l8,22 z M680,382 l-6,0 l6,-18 l6,18 z" fill="rgba(15, 25, 45, 0.7)" />
+            <path d="M900,350 l-12,0 l12,-30 l12,30 z M920,355 l-8,0 l8,-22 l8,22 z" fill="rgba(15, 25, 45, 0.7)" />
+            
+            {/* Right ridge trees */}
+            <path d="M1280,340 l-10,0 l10,-26 l10,26 z M1300,345 l-8,0 l8,-20 l8,20 z M1260,342 l-6,0 l6,-16 l6,16 z" fill="rgba(15, 25, 45, 0.7)" />
+            <path d="M1600,320 l-12,0 l12,-32 l12,32 z M1620,325 l-10,0 l10,-26 l10,26 z M1580,322 l-8,0 l8,-20 l8,20 z" fill="rgba(15, 25, 45, 0.7)" />
+          </g>
+          
+          {/* Layer 4: Foreground dark silhouette ridge with trees */}
+          <path 
+            d="M-100,800 L-100,650 
+               L0,620 L100,580 L200,600 L280,540 L380,580 L480,520 
+               L580,560 L680,500 L780,540 L880,480 L980,520 L1080,460 
+               L1180,500 L1280,450 L1380,490 L1480,440 L1580,480 
+               L1680,430 L1780,470 L1880,440 L2020,500 L2020,800 Z" 
+            fill="url(#foregroundGradient)"
+          />
+          
+          {/* Foreground tree silhouettes */}
+          <g opacity="0.9">
+            <path d="M100,580 l-18,0 l18,-45 l18,45 z M130,580 l-12,0 l12,-32 l12,32 z M70,580 l-10,0 l10,-28 l10,28 z" fill="rgba(7, 12, 26, 0.95)" />
+            <path d="M500,520 l-15,0 l15,-40 l15,40 z M530,520 l-12,0 l12,-32 l12,32 z M470,520 l-10,0 l10,-26 l10,26 z" fill="rgba(7, 12, 26, 0.95)" />
+            <path d="M880,480 l-16,0 l16,-42 l16,42 z M910,480 l-12,0 l12,-32 l12,32 z M850,480 l-10,0 l10,-26 l10,26 z" fill="rgba(7, 12, 26, 0.95)" />
+            <path d="M1280,450 l-14,0 l14,-38 l14,38 z M1310,450 l-10,0 l10,-28 l10,28 z M1250,450 l-8,0 l8,-22 l8,22 z" fill="rgba(7, 12, 26, 0.95)" />
+            <path d="M1680,430 l-16,0 l16,-44 l16,44 z M1710,430 l-12,0 l12,-34 l12,34 z M1650,430 l-10,0 l10,-28 l10,28 z" fill="rgba(7, 12, 26, 0.95)" />
+          </g>
+          
+          {/* Mist layers floating between mountains */}
+          <ellipse cx="400" cy="550" rx="300" ry="30" fill="rgba(100, 140, 200, 0.08)" />
+          <ellipse cx="1000" cy="480" rx="400" ry="25" fill="rgba(120, 160, 220, 0.06)" />
+          <ellipse cx="1500" cy="520" rx="350" ry="28" fill="rgba(100, 140, 200, 0.07)" />
+          
+          {/* Top mist overlay */}
+          <rect x="0" y="200" width="1920" height="600" fill="url(#mistOverlay)" />
         </svg>
+        
+        {/* Atmospheric stars/particles in the sky above mountains */}
+        <div className="absolute top-[20%] left-0 w-full h-[30%] opacity-30">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={`star-${i}`}
+              className="absolute rounded-full bg-blue-200"
+              style={{
+                left: `${10 + Math.random() * 80}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${1 + Math.random() * 2}px`,
+                height: `${1 + Math.random() * 2}px`,
+                opacity: 0.3 + Math.random() * 0.5,
+                animation: `pulse-glow ${3 + Math.random() * 4}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
       </div>
       {/* Radial gradient overlay background */}
       <div className="absolute inset-0 pointer-events-none z-0" style={{
