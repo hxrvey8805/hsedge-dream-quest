@@ -63,17 +63,18 @@ const Index = () => {
     };
   };
   return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Mountain peaks background */}
+      {/* Mountain peaks background - motivational summit */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none" style={{ opacity: 0.15 }}>
-          {/* Back layer mountains */}
-          <path d="M0,600 L0,450 Q150,400 300,420 T600,400 T900,430 T1200,410 L1200,600 Z" fill="rgba(59, 130, 246, 0.3)" />
-          {/* Middle layer mountains */}
-          <path d="M0,600 L0,480 Q200,420 400,450 T800,430 T1200,450 L1200,600 Z" fill="rgba(34, 211, 238, 0.25)" />
-          {/* Front layer mountains */}
-          <path d="M0,600 L0,520 Q100,480 250,500 T500,480 T750,500 T1000,490 T1200,520 L1200,600 Z" fill="rgba(96, 165, 250, 0.2)" />
-          {/* Snow peaks */}
-          <path d="M200,420 L250,380 L300,420 Z M600,400 L650,360 L700,400 Z M900,430 L950,390 L1000,430 Z" fill="rgba(255, 255, 255, 0.1)" />
+        <svg className="absolute bottom-0 left-0 w-full h-[60%]" viewBox="0 0 1200 400" preserveAspectRatio="none">
+          {/* Distant peaks - subtle backdrop */}
+          <path d="M0,400 L0,280 L150,200 L300,260 L450,180 L600,240 L750,160 L900,220 L1050,140 L1200,200 L1200,400 Z" fill="rgba(59, 130, 246, 0.08)" />
+          {/* Mid peaks */}
+          <path d="M0,400 L0,320 L200,240 L350,300 L500,200 L650,280 L800,180 L950,260 L1100,200 L1200,260 L1200,400 Z" fill="rgba(59, 130, 246, 0.12)" />
+          {/* Hero peak - the summit */}
+          <path d="M400,400 L600,120 L800,400 Z" fill="rgba(96, 165, 250, 0.15)" />
+          <path d="M600,120 L620,160 L580,160 Z" fill="rgba(255, 255, 255, 0.12)" />
+          {/* Foreground ridge */}
+          <path d="M0,400 L0,350 L150,320 L300,350 L450,300 L600,340 L750,310 L900,350 L1050,320 L1200,360 L1200,400 Z" fill="rgba(30, 64, 175, 0.1)" />
         </svg>
       </div>
       {/* Radial gradient overlay background */}
