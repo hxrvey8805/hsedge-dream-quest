@@ -63,47 +63,18 @@ const Index = () => {
     };
   };
   return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Twin peaks behind title - faint silhouette */}
-      <div className="absolute top-0 left-0 w-full h-[50%] pointer-events-none z-0">
-        <svg className="absolute top-20 left-1/2 -translate-x-1/2 w-[80%] max-w-4xl h-full" viewBox="0 0 800 400" preserveAspectRatio="xMidYMin meet">
-          {/* Left peak */}
-          <path d="M50,400 L200,80 L350,400 Z" fill="rgba(30, 58, 138, 0.15)" />
-          <path d="M80,400 L200,120 L320,400 Z" fill="rgba(59, 130, 246, 0.08)" />
-          {/* Right peak */}
-          <path d="M450,400 L600,80 L750,400 Z" fill="rgba(30, 58, 138, 0.15)" />
-          <path d="M480,400 L600,120 L720,400 Z" fill="rgba(59, 130, 246, 0.08)" />
-          {/* Pine tree silhouettes */}
-          <path d="M120,400 L130,360 L115,360 L125,330 L110,330 L130,280 L150,330 L135,330 L145,360 L130,360 L140,400 Z" fill="rgba(15, 23, 42, 0.3)" />
-          <path d="M660,400 L670,365 L658,365 L668,340 L655,340 L670,300 L685,340 L672,340 L682,365 L670,365 L680,400 Z" fill="rgba(15, 23, 42, 0.3)" />
-          <path d="M690,400 L698,370 L688,370 L696,350 L686,350 L698,320 L710,350 L700,350 L708,370 L698,370 L706,400 Z" fill="rgba(15, 23, 42, 0.25)" />
-        </svg>
-      </div>
-
-      {/* Chevron/zigzag floor pattern at bottom */}
-      <div className="absolute bottom-0 left-0 w-full h-[35%] pointer-events-none z-0">
-        <svg className="absolute bottom-0 left-0 w-full h-full" viewBox="0 0 1200 300" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="chevronGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(30, 58, 138, 0.4)" />
-              <stop offset="100%" stopColor="rgba(7, 12, 26, 0.9)" />
-            </linearGradient>
-          </defs>
-          {/* Multiple chevron rows */}
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((row) => (
-            <g key={row} style={{ opacity: 0.15 + row * 0.08 }}>
-              {Array.from({ length: 12 }, (_, i) => (
-                <path
-                  key={i}
-                  d={`M${i * 100 - 50},${300 - row * 35} L${i * 100 + 50},${280 - row * 35} L${i * 100 + 150},${300 - row * 35}`}
-                  fill="none"
-                  stroke="rgba(59, 130, 246, 0.5)"
-                  strokeWidth="2"
-                />
-              ))}
-            </g>
-          ))}
-          {/* Gradient overlay */}
-          <rect x="0" y="0" width="1200" height="300" fill="url(#chevronGradient)" style={{ mixBlendMode: 'multiply' }} />
+      {/* Mountain peaks background - motivational summit */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg className="absolute bottom-0 left-0 w-full h-[60%]" viewBox="0 0 1200 400" preserveAspectRatio="none">
+          {/* Distant peaks - subtle backdrop */}
+          <path d="M0,400 L0,280 L150,200 L300,260 L450,180 L600,240 L750,160 L900,220 L1050,140 L1200,200 L1200,400 Z" fill="rgba(59, 130, 246, 0.08)" />
+          {/* Mid peaks */}
+          <path d="M0,400 L0,320 L200,240 L350,300 L500,200 L650,280 L800,180 L950,260 L1100,200 L1200,260 L1200,400 Z" fill="rgba(59, 130, 246, 0.12)" />
+          {/* Hero peak - the summit */}
+          <path d="M400,400 L600,120 L800,400 Z" fill="rgba(96, 165, 250, 0.15)" />
+          <path d="M600,120 L620,160 L580,160 Z" fill="rgba(255, 255, 255, 0.12)" />
+          {/* Foreground ridge */}
+          <path d="M0,400 L0,350 L150,320 L300,350 L450,300 L600,340 L750,310 L900,350 L1050,320 L1200,360 L1200,400 Z" fill="rgba(30, 64, 175, 0.1)" />
         </svg>
       </div>
       {/* Radial gradient overlay background */}
