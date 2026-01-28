@@ -85,8 +85,6 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tradeToDelete, setTradeToDelete] = useState<string | null>(null);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [moveAccountDialogOpen, setMoveAccountDialogOpen] = useState(false);
@@ -361,30 +359,21 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
     }
   };
 
-  const handleDeleteTrade = async () => {
-    if (!tradeToDelete) return;
-
+  const handleDeleteTrade = async (tradeId: string) => {
     try {
       const { error } = await supabase
         .from("trades")
         .delete()
-        .eq("id", tradeToDelete);
+        .eq("id", tradeId);
 
       if (error) throw error;
 
-      toast.success("Trade deleted successfully!");
-      setDeleteDialogOpen(false);
-      setTradeToDelete(null);
+      toast.success("Trade deleted");
       fetchTrades(); // Refresh the calendar
       onRefresh?.(); // Trigger stats refresh
     } catch (error: any) {
       toast.error(error.message || "Failed to delete trade");
     }
-  };
-
-  const confirmDelete = (tradeId: string) => {
-    setTradeToDelete(tradeId);
-    setDeleteDialogOpen(true);
   };
 
   const monthStart = startOfMonth(currentMonth);
@@ -1008,7 +997,7 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => confirmDelete(trade.id)}
+                            onClick={() => handleDeleteTrade(trade.id)}
                             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1120,26 +1109,6 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
           </div>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Trade</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this trade? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteTrade}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={moveAccountDialogOpen} onOpenChange={setMoveAccountDialogOpen}>
         <DialogContent className="max-w-md">
