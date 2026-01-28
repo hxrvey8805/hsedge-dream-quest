@@ -252,18 +252,51 @@ export const DailyReviewDialog = ({
         return { ...slide, ...updates };
       }
       
-      // If screenshot_slots are being updated, sync to other trades with the same symbol
+      // If screenshot_slots are being updated, sync ONLY the base image URLs to other trades with the same symbol
+      // Do NOT sync markers or cropping - each trade gets its own unique annotations
       if (updates.screenshot_slots && symbol) {
         const slideTrade = trades.find(t => t.id === slide.trade_id);
         const slideSymbol = slideTrade?.symbol || slideTrade?.pair;
         
         if (slideSymbol === symbol) {
-          // Sync screenshot_slots to trades with the same symbol
-          // Generate new slot IDs to avoid conflicts but keep the same data
-          const syncedSlots = updates.screenshot_slots.map(slot => ({
-            ...slot,
-            id: `slot-${slide.trade_id}-${slot.label}-${Date.now()}`
-          }));
+          // Get the current slots for this slide, or create default structure
+          const currentSlots = slide.screenshot_slots || [{
+            id: `slot-${slide.trade_id}-entry-${Date.now()}`,
+            label: 'Entry TF',
+            screenshot_url: slide.screenshot_url,
+            markers: slide.markers || []
+          }];
+          
+          // Sync only NEW timeframe slots (by label) with their base images
+          // Preserve existing markers/cropping for slots that already exist
+          const syncedSlots = updates.screenshot_slots.map(sourceSlot => {
+            // Find existing slot with same label in this trade's slots
+            const existingSlot = currentSlots.find(s => s.label === sourceSlot.label);
+            
+            if (existingSlot) {
+              // Slot exists - only update the base image URL if it's a NEW image
+              // Preserve the existing markers (allows each trade to have unique annotations)
+              // If the source image is null (deleted), don't propagate deletion - each trade controls its own
+              if (sourceSlot.screenshot_url && !existingSlot.screenshot_url) {
+                // New image added to source - sync it but with empty markers for this trade
+                return {
+                  ...existingSlot,
+                  screenshot_url: sourceSlot.screenshot_url,
+                  markers: [] // Fresh markers for this trade to annotate
+                };
+              }
+              // Keep existing slot unchanged (preserve its own markers/image)
+              return existingSlot;
+            } else {
+              // New timeframe slot - create it with the base image but empty markers
+              return {
+                id: `slot-${slide.trade_id}-${sourceSlot.label}-${Date.now()}`,
+                label: sourceSlot.label,
+                screenshot_url: sourceSlot.screenshot_url,
+                markers: [] // Each trade gets fresh markers to annotate
+              };
+            }
+          });
           
           return { 
             ...slide, 
