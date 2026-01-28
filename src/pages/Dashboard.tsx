@@ -79,29 +79,53 @@ const Dashboard = () => {
   const { accounts } = useAccounts();
   const navigate = useNavigate();
 
-  const handleClearAllTrades = async () => {
+  const handleClearLastImport = async () => {
     setIsClearing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let query = supabase.from("trades").delete().eq("user_id", user.id);
-      
-      // If an account is selected, only clear trades for that account
+      // Find the most recent import batch
+      let query = supabase
+        .from("trades")
+        .select("import_batch_id, created_at")
+        .eq("user_id", user.id)
+        .not("import_batch_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      // If an account is selected, filter by that account
       if (selectedAccount) {
         query = query.eq("account_id", selectedAccount);
       }
 
-      const { error } = await query;
-      if (error) throw error;
+      const { data: latestImport, error: fetchError } = await query.maybeSingle();
 
-      toast.success(selectedAccount ? "Trades cleared for selected account" : "All trades cleared successfully");
+      if (fetchError) throw fetchError;
+
+      if (!latestImport || !latestImport.import_batch_id) {
+        toast.error("No CSV imports found to clear");
+        setClearTradesOpen(false);
+        setIsClearing(false);
+        return;
+      }
+
+      // Delete all trades with this batch ID
+      const { error: deleteError } = await supabase
+        .from("trades")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("import_batch_id", latestImport.import_batch_id);
+
+      if (deleteError) throw deleteError;
+
+      toast.success("Last CSV import cleared successfully");
       setClearTradesOpen(false);
       setRefreshTrigger(prev => prev + 1);
       fetchStats();
     } catch (error: any) {
-      console.error("Error clearing trades:", error);
-      toast.error("Failed to clear trades");
+      console.error("Error clearing last import:", error);
+      toast.error("Failed to clear last import");
     } finally {
       setIsClearing(false);
     }
@@ -356,7 +380,7 @@ const Dashboard = () => {
                   className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Clear Trades
+                  Undo Last Import
                 </Button>
               </div>
               <div className="relative flex flex-col items-end gap-3 transition-all duration-300">
@@ -476,22 +500,19 @@ const Dashboard = () => {
       <AlertDialog open={clearTradesOpen} onOpenChange={setClearTradesOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear All Trades?</AlertDialogTitle>
+            <AlertDialogTitle>Undo Last CSV Import?</AlertDialogTitle>
             <AlertDialogDescription>
-              {selectedAccount 
-                ? "This will permanently delete all trades for the selected account. This action cannot be undone."
-                : "This will permanently delete ALL your trades. This action cannot be undone."
-              }
+              This will permanently delete all trades from your most recent CSV import. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isClearing}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleClearAllTrades}
+              onClick={handleClearLastImport}
               disabled={isClearing}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isClearing ? "Clearing..." : "Clear Trades"}
+              {isClearing ? "Clearing..." : "Undo Import"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

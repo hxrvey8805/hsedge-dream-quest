@@ -608,6 +608,7 @@ export type Database = {
           exit_price: number | null
           fees: number | null
           id: string
+          import_batch_id: string | null
           max_drawdown_pips: number | null
           notes: string | null
           original_take_profit_percent: number | null
@@ -644,6 +645,7 @@ export type Database = {
           exit_price?: number | null
           fees?: number | null
           id?: string
+          import_batch_id?: string | null
           max_drawdown_pips?: number | null
           notes?: string | null
           original_take_profit_percent?: number | null
@@ -680,6 +682,7 @@ export type Database = {
           exit_price?: number | null
           fees?: number | null
           id?: string
+          import_batch_id?: string | null
           max_drawdown_pips?: number | null
           notes?: string | null
           original_take_profit_percent?: number | null

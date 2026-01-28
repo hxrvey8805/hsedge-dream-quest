@@ -139,6 +139,9 @@ export const CSVTradeUpload = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Generate a unique batch ID for this import
+      const importBatchId = crypto.randomUUID();
+
       const tradesToInsert = parsedTrades.map((trade, index) => {
         const { pips, profit, outcome } = calculateTradePnL(trade);
         
@@ -177,6 +180,7 @@ export const CSVTradeUpload = ({
           risk_reward_ratio: rrRatio,
           account_id: selectedAccountId || null,
           account_type: accountType || null,
+          import_batch_id: importBatchId,
         };
       });
 
