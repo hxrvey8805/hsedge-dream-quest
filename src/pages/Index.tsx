@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-import { ArrowRight, Clock, LineChart, Mail, ShieldAlert, Target, Trophy, TrendingUp, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  LineChart,
+  Mail,
+  ShieldAlert,
+  Target,
+  Trophy,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 
 import logo from "@/assets/tp-logo.png";
 import bg1 from "@/assets/landing/background/background1.png";
@@ -60,7 +70,7 @@ export default function Index() {
         driftY: Math.random() * 120 + 40,
         magnetStrength: 0.12 + Math.random() * 0.18,
       })),
-    [],
+    []
   );
 
   const getParticleOffset = (p: Particle) => {
@@ -117,14 +127,14 @@ export default function Index() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#050A14] relative overflow-hidden">
-      {/* Background stack (3 slices) */}
+      {/* Background stack (3 slices) — layered, not flat */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div
-          className="absolute top-0 left-0 right-0 h-[55vh] bg-no-repeat bg-top bg-cover opacity-85"
+          className="absolute top-0 left-0 right-0 h-[55vh] bg-no-repeat bg-top bg-cover opacity-90"
           style={{ backgroundImage: `url(${bg1})` }}
         />
         <div
-          className="absolute top-[55vh] left-0 right-0 h-[55vh] bg-no-repeat bg-center bg-cover opacity-85"
+          className="absolute top-[55vh] left-0 right-0 h-[55vh] bg-no-repeat bg-center bg-cover opacity-90"
           style={{ backgroundImage: `url(${bg2})` }}
         />
         <div
@@ -132,16 +142,25 @@ export default function Index() {
           style={{ backgroundImage: `url(${bg3})` }}
         />
 
-        {/* Seam blend + moon glow */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050A14]/65 via-transparent to-[#050A14]/95" />
-        <div className="absolute inset-0 bg-[radial-gradient(80rem_40rem_at_50%_-10%,rgba(76,201,255,0.18),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(45rem_25rem_at_50%_110%,rgba(46,107,255,0.10),transparent_60%)]" />
+        {/* Seam blends + fog between slices */}
+        <div className="absolute top-[52vh] left-0 right-0 h-[8vh] bg-gradient-to-b from-transparent via-black/40 to-black/60" />
+        <div className="absolute top-[105vh] left-0 right-0 h-[10vh] bg-gradient-to-b from-transparent via-black/50 to-black/70" />
+        <div className="absolute bottom-0 left-0 right-0 h-[35vh] bg-gradient-to-t from-[#050A14] via-[#050A14]/80 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[25vh] opacity-40 blur-3xl bg-[radial-gradient(closest-side_at_50%_90%,rgba(76,201,255,0.25),transparent)]" />
 
-        {/* Fog */}
-        <div className="absolute bottom-0 left-0 right-0 h-[55vh] bg-gradient-to-t from-[#050A14]/95 via-[#050A14]/55 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-[40vh] opacity-30 blur-2xl bg-[radial-gradient(closest-side_at_50%_80%,rgba(76,201,255,0.20),transparent)]" />
+        {/* Strong vignette — dark edges, brighter center */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 45%, transparent 0%, transparent 45%, rgba(5,10,20,0.4) 70%, rgba(0,0,0,0.85) 100%)",
+          }}
+        />
+
+        {/* Top moon glow haze */}
+        <div className="absolute inset-0 bg-[radial-gradient(90rem_50rem_at_50%_-15%,rgba(96,165,250,0.22),rgba(59,130,246,0.08)_40%,transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(50rem_30rem_at_50%_120%,rgba(46,107,255,0.12),transparent_55%)]" />
       </div>
-
       {/* Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {lucidParticles.map((p) => {
@@ -159,9 +178,7 @@ export default function Index() {
                   width: `${p.size}px`,
                   height: `${p.size}px`,
                   opacity: p.opacity,
-                  // @ts-expect-error css vars
                   "--drift-x": `${p.driftX}px`,
-                  // @ts-expect-error css vars
                   "--drift-y": `${p.driftY}px`,
                   transform: `translate(${o.x}px, ${o.y}px)`,
                   transition: "transform 0.25s ease-out",
@@ -172,31 +189,31 @@ export default function Index() {
         })}
       </div>
 
-      {/* Header (preview-style: minimal + quiet) */}
-      <header className="sticky top-0 z-50 bg-black/20 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.35)]">
+      {/* Header — minimal preview: logo + name, Pricing, Join Waitlist; soft blur, no strong borders */}
+      <header className="sticky top-0 z-50 bg-black/30 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] border-b border-white/5">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="TradePeaks" className="h-8 w-8" />
-            <span className="text-[15px] font-semibold text-blue-100/90">TradePeaks</span>
+            <span className="text-[15px] font-semibold text-blue-100/95">TradePeaks</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate("/pricing")}
-              className="text-sm text-blue-100/70 hover:text-blue-100 transition"
+              className="text-sm text-blue-100/80 hover:text-blue-100 transition"
             >
               Pricing
             </button>
 
             <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600/20 text-blue-100 hover:bg-blue-600/30 border border-blue-400/20">
+                <Button className="bg-blue-600/25 text-blue-100 hover:bg-blue-600/35 border border-blue-400/25 shadow-lg shadow-blue-500/20">
                   Join Waitlist
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="max-w-[520px] bg-[#050A14] border border-blue-500/20 text-foreground">
+              <DialogContent className="max-w-[520px] bg-black/80 backdrop-blur-xl border border-blue-500/25 text-foreground">
                 <DialogHeader>
                   <DialogTitle className="text-xl">Join the TradePeaks waitlist</DialogTitle>
                 </DialogHeader>
@@ -217,7 +234,7 @@ export default function Index() {
                         value={waitlistEmail}
                         onChange={(e) => setWaitlistEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="bg-black/30 border-blue-500/20 text-blue-50 placeholder:text-blue-100/40"
+                        className="bg-black/40 border-blue-500/25 text-blue-50 placeholder:text-blue-100/40"
                       />
                       <Button
                         onClick={submitWaitlist}
@@ -245,35 +262,47 @@ export default function Index() {
 
       {/* Content */}
       <main className="relative z-10">
-        {/* HERO */}
-        <section className="container mx-auto px-4 pt-16 md:pt-24 pb-12">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-              <div className="md:col-span-7 text-center md:text-left">
+        {/* HERO — poster-sized, min 70vh, tight spacing, large title, framed container, glowing TP emblem */}
+        <section className="min-h-[70vh] flex items-center justify-center px-4 py-12 md:py-16">
+          <div className="w-full max-w-5xl mx-auto">
+            {/* Framed hero container: rounded, soft glow, backdrop blur — no text on raw background */}
+            <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_80px_rgba(59,130,246,0.15),inset_0_1px_0_rgba(255,255,255,0.06)] p-8 md:p-12">
+              <div className="absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-b from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+
+              <div className="relative flex flex-col items-center text-center">
+                {/* Large glowing TP emblem — center-weighted */}
+                <div className="flex items-center justify-center mb-6 md:mb-8">
+                  <img
+                    src={logo}
+                    alt="TradePeaks"
+                    className="h-24 w-24 md:h-32 md:w-32 drop-shadow-[0_0_50px_rgba(59,130,246,0.6)]"
+                  />
+                </div>
+
                 <h1
-                  className="text-6xl md:text-7xl font-light italic"
+                  className="text-7xl md:text-8xl font-light italic tracking-tight"
                   style={{
                     fontFamily: "'Playfair Display', 'Georgia', serif",
                     background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
-                    letterSpacing: "0.08em",
-                    filter: "drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))",
+                    letterSpacing: "0.06em",
+                    filter: "drop-shadow(0 0 50px rgba(59, 130, 246, 0.5))",
                   }}
                 >
                   TradePeaks
                 </h1>
 
-                <h2 className="mt-4 text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent">
+                <h2 className="mt-3 md:mt-4 text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent">
                   Track Your Trades. Find Your Edge. Climb Faster.
                 </h2>
 
-                <p className="mt-5 text-lg text-blue-100/80 max-w-xl mx-auto md:mx-0">
-                  A performance-first trading journal for momentum and scalp traders — tag setups, spot rule breaks, and
-                  see exactly where your results peak.
+                <p className="mt-4 text-base md:text-lg text-blue-100/85 max-w-xl mx-auto">
+                  A performance-first trading journal for momentum and scalp traders — tag setups,
+                  spot rule breaks, and see exactly where your results peak.
                 </p>
 
-                <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
@@ -287,18 +316,24 @@ export default function Index() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-blue-400/30 text-blue-200 hover:bg-blue-500/10 hover:border-blue-400/50"
+                    className="border-blue-400/35 text-blue-200 hover:bg-blue-500/15 hover:border-blue-400/50"
                     onClick={() => navigate("/pricing")}
                   >
                     Learn More
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
+        {/* Today's Score + feature row — opaque dark glass panels */}
+        <section className="container mx-auto px-4 pb-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
               <div className="md:col-span-5">
-                <Card className="relative overflow-hidden border border-blue-500/20 bg-black/35 backdrop-blur-xl shadow-[0_0_60px_rgba(59,130,246,0.18)]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-cyan-500/10" />
-                  <div className="relative p-6">
+                <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
+                  <div className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs uppercase tracking-widest text-blue-100/60">Today’s Score</p>
@@ -306,25 +341,25 @@ export default function Index() {
                           8.2 <span className="text-sm text-blue-100/60">/ 10</span>
                         </p>
                       </div>
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/40 to-cyan-400/30 border border-blue-500/25" />
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-3">
-                      <div className="rounded-xl border border-blue-500/15 bg-blue-950/30 p-3">
+                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3">
                         <div className="flex items-center gap-2 text-blue-100/70 text-xs">
                           <LineChart className="h-3.5 w-3.5" /> Best Setup
                         </div>
                         <div className="mt-1 text-sm font-medium text-blue-50">Pullback</div>
                       </div>
 
-                      <div className="rounded-xl border border-blue-500/15 bg-blue-950/30 p-3">
+                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3">
                         <div className="flex items-center gap-2 text-blue-100/70 text-xs">
                           <Clock className="h-3.5 w-3.5" /> Peak Window
                         </div>
                         <div className="mt-1 text-sm font-medium text-blue-50">14:32–14:51</div>
                       </div>
 
-                      <div className="rounded-xl border border-blue-500/15 bg-blue-950/30 p-3 col-span-2">
+                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3 col-span-2">
                         <div className="flex items-center gap-2 text-blue-100/70 text-xs">
                           <ShieldAlert className="h-3.5 w-3.5" /> Flag
                         </div>
@@ -345,80 +380,66 @@ export default function Index() {
                   </div>
                 </Card>
               </div>
+
+              <div className="md:col-span-7 grid md:grid-cols-3 gap-4">
+                {[
+                  { icon: <Trophy className="h-5 w-5 text-blue-200" />, title: "Climb Higher", desc: "Every trade is a step. Track progress and improve faster." },
+                  { icon: <Target className="h-5 w-5 text-cyan-200" />, title: "The Summit Awaits", desc: "Define your edge and map the journey to consistency." },
+                  { icon: <TrendingUp className="h-5 w-5 text-sky-200" />, title: "Read the Terrain", desc: "See where your results peak: time windows, setups, habits." },
+                ].map((c) => (
+                  <Card key={c.title} className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-5">
+                    <div className="h-10 w-10 rounded-full bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
+                      {c.icon}
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-blue-50">{c.title}</h3>
+                    <p className="mt-2 text-sm text-blue-100/75">{c.desc}</p>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Feature cards row */}
-        <section className="container mx-auto px-4 pb-14">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: <Trophy className="h-5 w-5 text-blue-200" />,
-                title: "Climb Higher",
-                desc: "Every trade is a step. Track progress and improve faster.",
-              },
-              {
-                icon: <Target className="h-5 w-5 text-cyan-200" />,
-                title: "The Summit Awaits",
-                desc: "Define your edge and map the journey to consistency.",
-              },
-              {
-                icon: <TrendingUp className="h-5 w-5 text-sky-200" />,
-                title: "Read the Terrain",
-                desc: "See where your results peak: time windows, setups, habits.",
-              },
-            ].map((c) => (
-              <Card key={c.title} className="border border-blue-500/15 bg-black/25 backdrop-blur-xl p-6">
-                <div className="h-10 w-10 rounded-full bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
-                  {c.icon}
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-blue-50">{c.title}</h3>
-                <p className="mt-2 text-sm text-blue-100/70">{c.desc}</p>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Why TradePeaks */}
-        <section className="container mx-auto px-4 py-14">
+        {/* Why TradePeaks — opaque dark glass */}
+        <section className="container mx-auto px-4 py-10">
           <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-8 items-center">
             <div className="md:col-span-5">
-              <h3 className="text-2xl font-semibold text-blue-50">Why TradePeaks</h3>
-              <p className="mt-3 text-blue-100/70">
-                Performance that’s actually tradable: setups, timing windows, rule breaks, and daily review. You don’t
-                just log trades — you find the patterns that move your P&L.
-              </p>
+              <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-6">
+                <h3 className="text-2xl font-semibold text-blue-50">Why TradePeaks</h3>
+                <p className="mt-3 text-blue-100/75">
+                  Performance that's actually tradable: setups, timing windows, rule breaks, and daily review.
+                  You don't just log trades — you find the patterns that move your P&L.
+                </p>
 
-              <div className="mt-6 space-y-3">
-                {[
-                  { icon: <LineChart className="h-4 w-4" />, text: "Setup-based stats (what actually works)" },
-                  { icon: <Clock className="h-4 w-4" />, text: "Peak windows (when you trade best)" },
-                  { icon: <ShieldAlert className="h-4 w-4" />, text: "Rule-break tracking + discipline flags" },
-                  { icon: <Zap className="h-4 w-4" />, text: "Daily review slides (process → improvement)" },
-                ].map((i) => (
-                  <div key={i.text} className="flex items-center gap-3 text-sm text-blue-100/75">
-                    <span className="text-cyan-200/80">{i.icon}</span>
-                    <span>{i.text}</span>
-                  </div>
-                ))}
-              </div>
+                <div className="mt-6 space-y-3">
+                  {[
+                    { icon: <LineChart className="h-4 w-4" />, text: "Setup-based stats (what actually works)" },
+                    { icon: <Clock className="h-4 w-4" />, text: "Peak windows (when you trade best)" },
+                    { icon: <ShieldAlert className="h-4 w-4" />, text: "Rule-break tracking + discipline flags" },
+                    { icon: <Zap className="h-4 w-4" />, text: "Daily review slides (process → improvement)" },
+                  ].map((i) => (
+                    <div key={i.text} className="flex items-center gap-3 text-sm text-blue-100/80">
+                      <span className="text-cyan-200/90">{i.icon}</span>
+                      <span>{i.text}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="mt-7">
-                <Button
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
-                  onClick={() => setWaitlistOpen(true)}
-                >
-                  Join Waitlist
-                </Button>
-              </div>
+                <div className="mt-7">
+                  <Button
+                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
+                    onClick={() => setWaitlistOpen(true)}
+                  >
+                    Join Waitlist
+                  </Button>
+                </div>
+              </Card>
             </div>
 
             <div className="md:col-span-7">
-              {/* Placeholder “dashboard preview” card */}
-              <Card className="border border-blue-500/15 bg-black/25 backdrop-blur-xl p-6">
+              <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-6">
                 <div className="text-xs uppercase tracking-widest text-blue-100/55">Dashboard Preview</div>
-                <div className="mt-3 h-[260px] rounded-xl border border-blue-500/10 bg-gradient-to-br from-blue-500/10 via-transparent to-cyan-500/10 flex items-center justify-center">
+                <div className="mt-3 h-[260px] rounded-xl border border-blue-500/20 bg-black/40 flex items-center justify-center">
                   <span className="text-sm text-blue-100/55">Drop in your dashboard screenshot here later</span>
                 </div>
               </Card>
@@ -426,11 +447,11 @@ export default function Index() {
           </div>
         </section>
 
-        {/* System steps */}
-        <section className="container mx-auto px-4 py-14">
+        {/* System steps — opaque cards */}
+        <section className="container mx-auto px-4 py-10">
           <div className="max-w-6xl mx-auto">
             <h3 className="text-center text-2xl font-semibold text-blue-50">The TradePeaks System</h3>
-            <p className="mt-2 text-center text-blue-100/70">Import → Tag → Improve. Every day.</p>
+            <p className="mt-2 text-center text-blue-100/75">Import → Tag → Improve. Every day.</p>
 
             <div className="mt-8 grid md:grid-cols-3 gap-6">
               {[
@@ -438,25 +459,25 @@ export default function Index() {
                 { n: "2", title: "Tag", desc: "Setup, session, timeframe, notes, rule breaks." },
                 { n: "3", title: "Improve", desc: "Review, spot patterns, build consistency." },
               ].map((s) => (
-                <Card key={s.n} className="border border-blue-500/15 bg-black/25 backdrop-blur-xl p-6">
-                  <div className="text-sm text-blue-100/60">Step {s.n}</div>
+                <Card key={s.n} className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-6">
+                  <div className="text-sm text-blue-100/65">Step {s.n}</div>
                   <div className="mt-2 text-lg font-semibold text-blue-50">{s.title}</div>
-                  <div className="mt-2 text-sm text-blue-100/70">{s.desc}</div>
+                  <div className="mt-2 text-sm text-blue-100/75">{s.desc}</div>
                 </Card>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA — opaque dark glass */}
         <section className="container mx-auto px-4 pb-20">
           <div className="max-w-3xl mx-auto text-center">
-            <Card className="border border-blue-500/20 bg-black/30 backdrop-blur-xl p-10">
+            <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-10 shadow-[0_0_50px_rgba(59,130,246,0.1)]">
               <Zap className="h-10 w-10 text-cyan-200 mx-auto" />
               <h3 className="mt-4 text-2xl font-semibold text-blue-50">But why?</h3>
-              <p className="mt-3 text-blue-100/70">
-                While others stay in the feeding grounds, some traders are drawn to the mountains. Get early access to
-                TradePeaks.
+              <p className="mt-3 text-blue-100/75">
+                While others stay in the feeding grounds, some traders are drawn to the mountains.
+                Get early access to TradePeaks.
               </p>
               <div className="mt-6">
                 <Button
@@ -470,7 +491,7 @@ export default function Index() {
           </div>
         </section>
 
-        <footer className="border-t border-blue-500/10 bg-black/15 backdrop-blur-sm">
+        <footer className="border-t border-blue-500/15 bg-black/25 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-10 text-center text-blue-200/50 text-sm">
             © {new Date().getFullYear()} TradePeaks. All rights reserved.
           </div>
