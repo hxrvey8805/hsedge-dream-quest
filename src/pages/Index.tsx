@@ -73,9 +73,8 @@ export default function Index() {
   };
   return <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header - fixed, transparent, centered */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#030712]/60">
+      <header className="fixed top-0 left-0 right-0 z-50">
         <div className="w-full px-[5%] py-4 flex items-center justify-center gap-8">
-          <img src={logo} alt="TradePeaks" className="h-6 w-6" />
           
           <nav className="flex items-center gap-6">
             <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Features</a>
