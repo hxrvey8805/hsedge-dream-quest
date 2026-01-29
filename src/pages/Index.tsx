@@ -57,7 +57,7 @@ export default function Index() {
   };
 
   return (
-    <div className="relative w-full bg-[#050A14]">
+    <div className="relative w-full bg-[#050A14] overflow-x-hidden">
       {/* Header - fixed, transparent, centered */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-center gap-8">
@@ -123,30 +123,48 @@ export default function Index() {
         </div>
       </header>
 
-      {/* Background images stacked vertically with content overlays */}
-      <div className="w-full flex flex-col items-center">
-        {/* Background 1 - Hero section */}
-        <div className="relative w-full">
-          <img src={bg1} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
-          
-          {/* Hero content overlay - positioned at bottom of bg1 */}
-          <div className="absolute inset-x-0 bottom-0 pb-[5%]">
+      {/* Background images as CSS backgrounds - zoomed out */}
+      <div className="w-full">
+        {/* Section 1 - Background 1 (TP logo, moon, mountains) - NO TEXT */}
+        <div 
+          className="relative w-full min-h-[50vw]"
+          style={{
+            backgroundImage: `url(${bg1})`,
+            backgroundSize: '100% auto',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+
+        {/* Section 2 - Background 2 - Hero text content */}
+        <div 
+          className="relative w-full min-h-[50vw]"
+          id="features"
+          style={{
+            backgroundImage: `url(${bg2})`,
+            backgroundSize: '100% auto',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Hero content - moved from section 1 */}
+          <div className="absolute inset-0 flex items-center">
             <div className="container mx-auto px-4">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                 {/* Left side - Text content */}
                 <div className="lg:col-span-7 text-center lg:text-left">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
                     Track Your Trades. Find Your Edge.
                     <br />
                     <span className="text-white">Climb Faster.</span>
                   </h1>
                   
-                  <p className="mt-4 text-sm md:text-base text-blue-100/70 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-3 text-sm text-blue-100/70 max-w-lg mx-auto lg:mx-0">
                     A trading journal built for momentum and scalp traders—imports your executions, 
                     grades your process, and shows you exactly where your performance peaks.
                   </p>
 
-                  <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                  <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                     <Button 
                       className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 px-6"
                       onClick={() => setWaitlistOpen(true)}
@@ -163,7 +181,7 @@ export default function Index() {
                   </div>
 
                   {/* Feature highlights */}
-                  <div className="mt-6 flex flex-wrap gap-4 justify-center lg:justify-start text-xs text-blue-100/50">
+                  <div className="mt-5 flex flex-wrap gap-3 justify-center lg:justify-start text-xs text-blue-100/50">
                     <span>Auto-imports executions</span>
                     <span>·</span>
                     <span>Setup tagging + playbooks</span>
@@ -219,25 +237,32 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Background 2 - Why TradePeaks section */}
-        <div className="relative w-full" id="features">
-          <img src={bg2} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
-          
-          {/* Why TradePeaks content overlay */}
-          <div className="absolute inset-0 flex flex-col justify-start pt-[8%]">
+        {/* Section 3 - Background 3 - Why TradePeaks content (moved from section 2) */}
+        <div 
+          className="relative w-full min-h-[50vw]"
+          id="analytics"
+          style={{
+            backgroundImage: `url(${bg3})`,
+            backgroundSize: '100% auto',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Why TradePeaks content - moved from section 2 */}
+          <div className="absolute inset-0 flex flex-col justify-center">
             <div className="container mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
+              <h2 className="text-xl md:text-2xl font-semibold text-white text-center mb-6">
                 Why TradePeaks
               </h2>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
                 {/* Left - Feature list */}
                 <div>
-                  <h3 className="text-lg md:text-xl font-semibold text-white mb-4">
+                  <h3 className="text-base md:text-lg font-semibold text-white mb-3">
                     Performance that's<br />actually tradable
                   </h3>
                   
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {[
                       "Expectancy by setup (R-based)",
                       "Win rate by time window",
@@ -253,7 +278,7 @@ export default function Index() {
                   </div>
                   
                   <Button 
-                    className="mt-6 bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 px-5"
+                    className="mt-5 bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 px-5"
                     onClick={() => navigate("/dashboard")}
                   >
                     See a Live Example
@@ -262,36 +287,8 @@ export default function Index() {
 
                 {/* Right - Dashboard preview placeholder */}
                 <div className="hidden lg:block">
-                  {/* Dashboard preview is part of bg2 image */}
+                  {/* Dashboard preview is part of bg3 image */}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Background 3 - System section */}
-        <div className="relative w-full" id="analytics">
-          <img src={bg3} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
-          
-          {/* The TradePeaks System content overlay */}
-          <div className="absolute inset-0 flex flex-col justify-start pt-[5%]">
-            <div className="container mx-auto px-4">
-              <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
-                The TradePeaks System
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                {[
-                  { num: "1.", title: "Import", desc: "Paste trades from your broker CSV, or enter them manually." },
-                  { num: "2.", title: "Tag", desc: "Setup tagging, emotional state, playbook alignment." },
-                  { num: "3.", title: "Improve", desc: "Personalized insights, performance tracking over time." }
-                ].map((step) => (
-                  <div key={step.num} className="text-center">
-                    <div className="text-3xl font-light text-blue-400 mb-2">{step.num}</div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
-                    <p className="text-xs text-blue-100/60">{step.desc}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
