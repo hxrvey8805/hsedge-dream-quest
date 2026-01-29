@@ -132,7 +132,7 @@ export default function Index() {
         </section>
 
         {/* Content section with floating particles background */}
-        <section id="features" className="relative w-full py-20 lg:py-28 bg-[#030712]">
+        <section id="features" className="relative w-full py-10 lg:py-14 bg-[#030712]">
           {/* Floating particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map(particle => <div key={particle.id} className="lucid-particle" style={{
