@@ -839,28 +839,6 @@ export type Database = {
           },
         ]
       }
-      waitlist_signups: {
-        Row: {
-          id: string
-          email: string
-          email_lower: string
-          source: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          source?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          source?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never

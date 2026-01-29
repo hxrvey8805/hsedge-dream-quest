@@ -191,9 +191,9 @@ export default function Index() {
         })}
       </div>
 
-      {/* Header — Features, Analysis, Why TradePeaks, Pricing, Join Waitlist; soft blur */}
-      <header className="sticky top-0 z-50 bg-black/30 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] border-b border-white/5">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      {/* Header — transparent, floating on background */}
+      <header className="sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="TradePeaks" className="h-8 w-8" />
             <span className="text-[15px] font-semibold text-white">TradePeaks</span>
@@ -225,7 +225,7 @@ export default function Index() {
 
                 <div className="space-y-4">
                   <p className="text-sm text-blue-100/70">
-                    We’re polishing onboarding. Drop your email and you’ll be first in when it opens.
+                    We're polishing onboarding. Drop your email and you'll be first in when it opens.
                   </p>
 
                   <div className="space-y-2">
@@ -267,83 +267,79 @@ export default function Index() {
 
       {/* Content */}
       <main className="relative z-10">
-        {/* HERO — poster-sized, framed: left = emblem + title + copy + CTAs, right = Today's Score */}
+        {/* HERO — text floating directly on background */}
         <section className="min-h-[70vh] flex items-center justify-center px-4 py-12 md:py-16">
           <div className="w-full max-w-6xl mx-auto">
-            <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_80px_rgba(59,130,246,0.15),inset_0_1px_0_rgba(255,255,255,0.06)] p-8 md:p-12">
-              <div className="absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-b from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
-
-              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-                <div className="lg:col-span-7">
-                  <div className="flex items-center justify-center lg:justify-start mb-6">
-                    <img
-                      src={logo}
-                      alt="TradePeaks"
-                      className="h-20 w-20 md:h-28 md:w-28 drop-shadow-[0_0_50px_rgba(59,130,246,0.6)]"
-                    />
-                  </div>
-                  <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white">
-                    Track Your Trades. Find Your Edge.
-                  </h1>
-                  <p className="mt-2 text-2xl md:text-3xl lg:text-4xl font-semibold text-white/90">
-                    Climb Faster.
-                  </p>
-                  <p className="mt-4 text-base md:text-lg text-white/85 max-w-xl">
-                    A leading journal built for momentum and peak traders — reports your emotions, guides your missions, and shows you exactly where your performance peaks.
-                  </p>
-                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                    <Button
-                      size="lg"
-                      className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
-                      onClick={() => setWaitlistOpen(true)}
-                    >
-                      Start Free
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="border-white/40 text-white hover:bg-white/10 hover:border-white/60"
-                      onClick={() => navigate("/dashboard")}
-                    >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Your Dashboard
-                    </Button>
-                  </div>
+            <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+              <div className="lg:col-span-7 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-center mb-6">
+                  <img
+                    src={logo}
+                    alt="TradePeaks"
+                    className="h-24 w-24 md:h-32 md:w-32 drop-shadow-[0_0_60px_rgba(59,130,246,0.7)]"
+                  />
                 </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white text-center">
+                  Track Your Trades. Find Your Edge.
+                </h1>
+                <p className="mt-2 text-xl md:text-2xl lg:text-3xl font-semibold text-white/90 text-center">
+                  Climb Faster.
+                </p>
+                <p className="mt-4 text-sm md:text-base text-white/75 max-w-xl mx-auto text-center">
+                  A leading journal built for momentum and peak traders — reports your emotions, guides your missions, and shows you exactly where your performance peaks.
+                </p>
+                <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
+                    onClick={() => setWaitlistOpen(true)}
+                  >
+                    Start Free
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/40 text-white hover:bg-white/10 hover:border-white/60"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Your Dashboard
+                  </Button>
+                </div>
+              </div>
 
-                <div className="lg:col-span-5">
-                  <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
-                    <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs uppercase tracking-widest text-blue-100/60">Today's Score</p>
-                          <p className="text-2xl font-semibold text-white">
-                            8.2 <span className="text-sm text-blue-100/60">/ 10</span>
-                          </p>
-                        </div>
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
+              <div className="lg:col-span-5">
+                <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-blue-100/60">Today's Score</p>
+                        <p className="text-2xl font-semibold text-white">
+                          8.2 <span className="text-sm text-blue-100/60">/ 10</span>
+                        </p>
                       </div>
-                      <div className="mt-5 space-y-3">
-                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
-                          <span className="text-sm text-blue-100/80">Wins / Losses</span>
-                          <span className="text-sm font-medium text-white">8.2/10</span>
-                        </div>
-                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
-                          <span className="text-sm text-blue-100/80">Mindset</span>
-                          <span className="text-sm font-medium text-white">Neutral</span>
-                        </div>
-                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
-                          <span className="text-sm text-blue-100/80">First 30 Minutes</span>
-                          <span className="text-sm font-medium text-white">On track</span>
-                        </div>
-                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
-                          <span className="text-sm text-blue-100/80">Risk/Reward Ratio Check</span>
-                          <span className="text-sm font-medium text-white">✓</span>
-                        </div>
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
+                    </div>
+                    <div className="mt-5 space-y-3">
+                      <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                        <span className="text-sm text-blue-100/80">Wins / Losses</span>
+                        <span className="text-sm font-medium text-white">8.2/10</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                        <span className="text-sm text-blue-100/80">Mindset</span>
+                        <span className="text-sm font-medium text-white">Neutral</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                        <span className="text-sm text-blue-100/80">First 30 Minutes</span>
+                        <span className="text-sm font-medium text-white">On track</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                        <span className="text-sm text-blue-100/80">Risk/Reward Ratio Check</span>
+                        <span className="text-sm font-medium text-white">✓</span>
                       </div>
                     </div>
-                  </Card>
-                </div>
+                  </div>
+                </Card>
               </div>
             </div>
           </div>
