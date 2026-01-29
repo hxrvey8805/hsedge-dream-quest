@@ -10,7 +10,9 @@ import { toast } from "sonner";
 
 import {
   ArrowRight,
+  BarChart3,
   Clock,
+  LayoutDashboard,
   LineChart,
   Mail,
   ShieldAlert,
@@ -189,19 +191,22 @@ export default function Index() {
         })}
       </div>
 
-      {/* Header — minimal preview: logo + name, Pricing, Join Waitlist; soft blur, no strong borders */}
+      {/* Header — Features, Analysis, Why TradePeaks, Pricing, Join Waitlist; soft blur */}
       <header className="sticky top-0 z-50 bg-black/30 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] border-b border-white/5">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="TradePeaks" className="h-8 w-8" />
-            <span className="text-[15px] font-semibold text-blue-100/95">TradePeaks</span>
+            <span className="text-[15px] font-semibold text-white">TradePeaks</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-6">
+            <a href="#features" className="text-sm text-blue-100/80 hover:text-white transition">Features</a>
+            <a href="#analysis" className="text-sm text-blue-100/80 hover:text-white transition">Analysis</a>
+            <a href="#why" className="text-sm text-blue-100/80 hover:text-white transition">Why TradePeaks</a>
             <button
               type="button"
               onClick={() => navigate("/pricing")}
-              className="text-sm text-blue-100/80 hover:text-blue-100 transition"
+              className="text-sm text-blue-100/80 hover:text-white transition"
             >
               Pricing
             </button>
@@ -256,132 +261,97 @@ export default function Index() {
                 </div>
               </DialogContent>
             </Dialog>
-          </div>
+          </nav>
         </div>
       </header>
 
       {/* Content */}
       <main className="relative z-10">
-        {/* HERO — poster-sized, min 70vh, tight spacing, large title, framed container, glowing TP emblem */}
+        {/* HERO — poster-sized, framed: left = emblem + title + copy + CTAs, right = Today's Score */}
         <section className="min-h-[70vh] flex items-center justify-center px-4 py-12 md:py-16">
-          <div className="w-full max-w-5xl mx-auto">
-            {/* Framed hero container: rounded, soft glow, backdrop blur — no text on raw background */}
+          <div className="w-full max-w-6xl mx-auto">
             <div className="relative rounded-2xl md:rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_80px_rgba(59,130,246,0.15),inset_0_1px_0_rgba(255,255,255,0.06)] p-8 md:p-12">
               <div className="absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-b from-blue-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
 
-              <div className="relative flex flex-col items-center text-center">
-                {/* Large glowing TP emblem — center-weighted */}
-                <div className="flex items-center justify-center mb-6 md:mb-8">
-                  <img
-                    src={logo}
-                    alt="TradePeaks"
-                    className="h-24 w-24 md:h-32 md:w-32 drop-shadow-[0_0_50px_rgba(59,130,246,0.6)]"
-                  />
+              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                <div className="lg:col-span-7">
+                  <div className="flex items-center justify-center lg:justify-start mb-6">
+                    <img
+                      src={logo}
+                      alt="TradePeaks"
+                      className="h-20 w-20 md:h-28 md:w-28 drop-shadow-[0_0_50px_rgba(59,130,246,0.6)]"
+                    />
+                  </div>
+                  <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white">
+                    Track Your Trades. Find Your Edge.
+                  </h1>
+                  <p className="mt-2 text-2xl md:text-3xl lg:text-4xl font-semibold text-white/90">
+                    Climb Faster.
+                  </p>
+                  <p className="mt-4 text-base md:text-lg text-white/85 max-w-xl">
+                    A leading journal built for momentum and peak traders — reports your emotions, guides your missions, and shows you exactly where your performance peaks.
+                  </p>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <Button
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
+                      onClick={() => setWaitlistOpen(true)}
+                    >
+                      Start Free
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white/40 text-white hover:bg-white/10 hover:border-white/60"
+                      onClick={() => navigate("/dashboard")}
+                    >
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Your Dashboard
+                    </Button>
+                  </div>
                 </div>
 
-                <h1
-                  className="text-7xl md:text-8xl font-light italic tracking-tight"
-                  style={{
-                    fontFamily: "'Playfair Display', 'Georgia', serif",
-                    background: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    letterSpacing: "0.06em",
-                    filter: "drop-shadow(0 0 50px rgba(59, 130, 246, 0.5))",
-                  }}
-                >
-                  TradePeaks
-                </h1>
-
-                <h2 className="mt-3 md:mt-4 text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent">
-                  Track Your Trades. Find Your Edge. Climb Faster.
-                </h2>
-
-                <p className="mt-4 text-base md:text-lg text-blue-100/85 max-w-xl mx-auto">
-                  A performance-first trading journal for momentum and scalp traders — tag setups,
-                  spot rule breaks, and see exactly where your results peak.
-                </p>
-
-                <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
-                    onClick={() => setWaitlistOpen(true)}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      Join Waitlist <ArrowRight className="h-4 w-4" />
-                    </span>
-                  </Button>
-
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-blue-400/35 text-blue-200 hover:bg-blue-500/15 hover:border-blue-400/50"
-                    onClick={() => navigate("/pricing")}
-                  >
-                    Learn More
-                  </Button>
+                <div className="lg:col-span-5">
+                  <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-blue-100/60">Today's Score</p>
+                          <p className="text-2xl font-semibold text-white">
+                            8.2 <span className="text-sm text-blue-100/60">/ 10</span>
+                          </p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
+                      </div>
+                      <div className="mt-5 space-y-3">
+                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                          <span className="text-sm text-blue-100/80">Wins / Losses</span>
+                          <span className="text-sm font-medium text-white">8.2/10</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                          <span className="text-sm text-blue-100/80">Mindset</span>
+                          <span className="text-sm font-medium text-white">Neutral</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                          <span className="text-sm text-blue-100/80">First 30 Minutes</span>
+                          <span className="text-sm font-medium text-white">On track</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl border border-blue-500/20 bg-black/40 px-3 py-2.5">
+                          <span className="text-sm text-blue-100/80">Risk/Reward Ratio Check</span>
+                          <span className="text-sm font-medium text-white">✓</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Today's Score + feature row — opaque dark glass panels */}
-        <section className="container mx-auto px-4 pb-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-              <div className="md:col-span-5">
-                <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-widest text-blue-100/60">Today’s Score</p>
-                        <p className="text-2xl font-semibold text-blue-50">
-                          8.2 <span className="text-sm text-blue-100/60">/ 10</span>
-                        </p>
-                      </div>
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
-                    </div>
-
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3">
-                        <div className="flex items-center gap-2 text-blue-100/70 text-xs">
-                          <LineChart className="h-3.5 w-3.5" /> Best Setup
-                        </div>
-                        <div className="mt-1 text-sm font-medium text-blue-50">Pullback</div>
-                      </div>
-
-                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3">
-                        <div className="flex items-center gap-2 text-blue-100/70 text-xs">
-                          <Clock className="h-3.5 w-3.5" /> Peak Window
-                        </div>
-                        <div className="mt-1 text-sm font-medium text-blue-50">14:32–14:51</div>
-                      </div>
-
-                      <div className="rounded-xl border border-blue-500/20 bg-black/40 p-3 col-span-2">
-                        <div className="flex items-center gap-2 text-blue-100/70 text-xs">
-                          <ShieldAlert className="h-3.5 w-3.5" /> Flag
-                        </div>
-                        <div className="mt-1 text-sm font-medium text-blue-50">Chased extension (1x)</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between">
-                      <p className="text-xs text-blue-100/55">Demo snapshot — live scoring opens with onboarding.</p>
-                      <button
-                        type="button"
-                        onClick={() => setWaitlistOpen(true)}
-                        className="text-xs text-cyan-200/80 hover:text-cyan-200 underline underline-offset-4"
-                      >
-                        Get early access
-                      </button>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              <div className="md:col-span-7 grid md:grid-cols-3 gap-4">
+        {/* Features */}
+        <section id="features" className="container mx-auto px-4 pb-10 scroll-mt-20">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
                 {[
                   { icon: <Trophy className="h-5 w-5 text-blue-200" />, title: "Climb Higher", desc: "Every trade is a step. Track progress and improve faster." },
                   { icon: <Target className="h-5 w-5 text-cyan-200" />, title: "The Summit Awaits", desc: "Define your edge and map the journey to consistency." },
@@ -395,42 +365,59 @@ export default function Index() {
                     <p className="mt-2 text-sm text-blue-100/75">{c.desc}</p>
                   </Card>
                 ))}
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* Why TradePeaks — opaque dark glass */}
-        <section className="container mx-auto px-4 py-10">
+        {/* Analysis — chart/analytics teaser */}
+        <section id="analysis" className="container mx-auto px-4 pb-10 scroll-mt-20">
+          <div className="max-w-6xl mx-auto">
+            <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <BarChart3 className="h-8 w-8 text-blue-400" />
+                <h3 className="text-xl font-semibold text-white">Analysis</h3>
+              </div>
+              <p className="text-blue-100/80 max-w-2xl">
+                Deep insights and analytics — see where your performance peaks with setup-based stats, peak windows, and real-time trade reports.
+              </p>
+            </Card>
+          </div>
+        </section>
+
+        {/* Why TradePeaks — opaque dark glass, centered heading */}
+        <section id="why" className="container mx-auto px-4 py-10 scroll-mt-20">
+          <h3 className="text-center text-2xl md:text-3xl font-semibold text-white mb-8">Why TradePeaks</h3>
           <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-8 items-center">
             <div className="md:col-span-5">
               <Card className="bg-black/55 backdrop-blur-xl border border-blue-500/25 p-6">
-                <h3 className="text-2xl font-semibold text-blue-50">Why TradePeaks</h3>
-                <p className="mt-3 text-blue-100/75">
-                  Performance that's actually tradable: setups, timing windows, rule breaks, and daily review.
-                  You don't just log trades — you find the patterns that move your P&L.
-                </p>
-
-                <div className="mt-6 space-y-3">
+                <h4 className="text-lg font-semibold text-white">Performance that's actually tradable</h4>
+                <div className="mt-5 space-y-3">
                   {[
-                    { icon: <LineChart className="h-4 w-4" />, text: "Setup-based stats (what actually works)" },
-                    { icon: <Clock className="h-4 w-4" />, text: "Peak windows (when you trade best)" },
-                    { icon: <ShieldAlert className="h-4 w-4" />, text: "Rule-break tracking + discipline flags" },
-                    { icon: <Zap className="h-4 w-4" />, text: "Daily review slides (process → improvement)" },
-                  ].map((i) => (
-                    <div key={i.text} className="flex items-center gap-3 text-sm text-blue-100/80">
-                      <span className="text-cyan-200/90">{i.icon}</span>
-                      <span>{i.text}</span>
+                    "Data-driven equity & HF-based insights",
+                    "My trade journal window",
+                    "Deep insights analytics",
+                    "Real-time, virtual + reality",
+                    "Push trade & full reports",
+                  ].map((text) => (
+                    <div key={text} className="flex items-center gap-3 text-sm text-blue-100/80">
+                      <span className="text-cyan-400">✓</span>
+                      <span>{text}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-7">
+                <div className="mt-7 flex flex-wrap gap-3">
                   <Button
-                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
+                    className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
                     onClick={() => setWaitlistOpen(true)}
                   >
                     Join Waitlist
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-white/40 text-white hover:bg-white/10 hover:border-white/60"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Start Your Trading Journey
                   </Button>
                 </div>
               </Card>
