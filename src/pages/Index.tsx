@@ -124,10 +124,10 @@ export default function Index() {
       </header>
 
       {/* Background images stacked vertically with content overlays */}
-      <div className="w-full">
+      <div className="w-full flex flex-col items-center">
         {/* Background 1 - Hero section */}
         <div className="relative w-full">
-          <img src={bg1} alt="" className="w-full h-auto" />
+          <img src={bg1} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
           
           {/* Hero content overlay - positioned at bottom of bg1 */}
           <div className="absolute inset-x-0 bottom-0 pb-[5%]">
@@ -221,7 +221,7 @@ export default function Index() {
 
         {/* Background 2 - Why TradePeaks section */}
         <div className="relative w-full" id="features">
-          <img src={bg2} alt="" className="w-full h-auto" />
+          <img src={bg2} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
           
           {/* Why TradePeaks content overlay */}
           <div className="absolute inset-0 flex flex-col justify-start pt-[8%]">
@@ -271,7 +271,7 @@ export default function Index() {
 
         {/* Background 3 - System section */}
         <div className="relative w-full" id="analytics">
-          <img src={bg3} alt="" className="w-full h-auto" />
+          <img src={bg3} alt="" className="w-full h-auto object-contain" style={{ maxWidth: '100%' }} />
           
           {/* The TradePeaks System content overlay */}
           <div className="absolute inset-0 flex flex-col justify-start pt-[5%]">
