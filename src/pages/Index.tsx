@@ -19,10 +19,6 @@ export default function Index() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
 
-  // Make the 3 sliced background images appear smaller (less "zoom") and aligned as one stack.
-  // This constrains the render width and keeps a consistent frame across header + sections.
-  const frameClass = "mx-auto w-full max-w-[360px] sm:max-w-[420px] md:max-w-[680px] lg:max-w-[900px]";
-
   const submitWaitlist = async () => {
     const email = waitlistEmail.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,21 +60,21 @@ export default function Index() {
     <div className="relative w-full bg-[#050A14] overflow-x-hidden">
       {/* Header - fixed, transparent, centered */}
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className={`${frameClass} px-4 py-4 flex items-center justify-center gap-8`}>
-          <img src={logo} alt="TradePeaks" className="h-6 w-6" />
+        <div className="w-full px-[5%] py-[1.5%] flex items-center justify-center gap-[3%]">
+          <img src={logo} alt="TradePeaks" className="h-[2vw] w-[2vw] min-h-[16px] min-w-[16px]" />
           
-          <nav className="flex items-center gap-6">
-            <a href="#features" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Features</a>
-            <a href="#analytics" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Analytics</a>
-            <a href="#playbooks" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Playbooks</a>
-            <button type="button" onClick={() => navigate("/pricing")} className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">
+          <nav className="flex items-center gap-[2vw]">
+            <a href="#features" className="text-[1.2vw] min-text-[10px] text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Features</a>
+            <a href="#analytics" className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Analytics</a>
+            <a href="#playbooks" className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Playbooks</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
               Pricing
             </button>
           </nav>
 
           <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 text-xs px-4 py-1 h-7 rounded-full">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 rounded-full" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)', padding: 'clamp(4px, 0.8vw, 8px) clamp(12px, 2vw, 20px)' }}>
                 Log in
               </Button>
             </DialogTrigger>
@@ -127,151 +123,125 @@ export default function Index() {
         </div>
       </header>
 
-      {/* Background images stacked as real <img> elements (no gaps, smaller frame) */}
+      {/* Background images stacked - text scales with images */}
       <main className="w-full">
         {/* Section 1 - Background 1 (TP logo, moon, mountains) */}
-        <section className="w-full flex justify-center">
-          <div className={`${frameClass} relative`}>
-            <img src={bg1} alt="" className="block w-full h-auto select-none" draggable={false} />
-          </div>
+        <section className="w-full relative">
+          <img src={bg1} alt="" className="block w-full h-auto select-none" draggable={false} />
         </section>
 
         {/* Section 2 - Background 2 + Hero content */}
-        <section id="features" className="w-full flex justify-center -mt-px">
-          <div className={`${frameClass} relative`}>
-            <img src={bg2} alt="" className="block w-full h-auto select-none" draggable={false} />
+        <section id="features" className="w-full relative -mt-px">
+          <img src={bg2} alt="" className="block w-full h-auto select-none" draggable={false} />
 
-            {/* Hero content */}
-            <div className="absolute inset-0 flex items-center">
-              <div className="px-4 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-                  <div className="lg:col-span-7 text-center lg:text-left">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
-                      Track Your Trades. Find Your Edge.
-                      <br />
-                      <span className="text-white">Climb Faster.</span>
-                    </h1>
+          {/* Hero content - scales with image */}
+          <div className="absolute inset-0 flex items-center px-[5%]">
+            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-[3%] items-center">
+              <div className="lg:col-span-7 text-center lg:text-left">
+                <h1 className="font-bold text-white leading-tight" style={{ fontSize: 'clamp(18px, 3.5vw, 48px)' }}>
+                  Track Your Trades. Find Your Edge.
+                  <br />
+                  <span className="text-white">Climb Faster.</span>
+                </h1>
 
-                    <p className="mt-3 text-sm text-blue-100/70 max-w-lg mx-auto lg:mx-0">
-                      A trading journal built for momentum and scalp traders—imports your executions,
-                      grades your process, and shows you exactly where your performance peaks.
-                    </p>
+                <p className="text-blue-100/70 max-w-[90%] lg:max-w-[80%] mx-auto lg:mx-0" style={{ fontSize: 'clamp(11px, 1.4vw, 18px)', marginTop: 'clamp(8px, 1.5vw, 20px)' }}>
+                  A trading journal built for momentum and scalp traders—imports your executions,
+                  grades your process, and shows you exactly where your performance peaks.
+                </p>
 
-                    <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                      <Button
-                        className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 px-6"
-                        onClick={() => setWaitlistOpen(true)}
-                      >
-                        Start Free
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-6"
-                        onClick={() => navigate("/dashboard")}
-                      >
-                        View Dashboard
-                      </Button>
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-3 justify-center lg:justify-start text-xs text-blue-100/50">
-                      <span>Auto-imports executions</span>
-                      <span>·</span>
-                      <span>Setup tagging + playbooks</span>
-                      <span>·</span>
-                      <span>Stats that actually matter</span>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-5 flex justify-center lg:justify-end">
-                    <Card className="w-full max-w-xs bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                      <div className="p-4">
-                        <p className="text-xs uppercase tracking-widest text-blue-100/50 mb-3">Today's Score</p>
-
-                        <div className="space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                              <span className="text-xs text-blue-100/70">Discipline</span>
-                            </div>
-                            <span className="text-xs font-medium text-white">8.2 / 10</span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                              <span className="text-xs text-blue-100/70">Best Setup</span>
-                            </div>
-                            <span className="text-xs font-medium text-white">Pullback</span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                              <span className="text-xs text-blue-100/70">Peak Window</span>
-                            </div>
-                            <span className="text-xs font-medium text-white">14:32 – 14:51</span>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                              <span className="text-xs text-blue-100/70">Mistake Flag</span>
-                            </div>
-                            <span className="text-xs font-medium text-white">Chased extension</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
+                <div className="flex flex-col sm:flex-row justify-center lg:justify-start" style={{ gap: 'clamp(8px, 1.2vw, 16px)', marginTop: 'clamp(12px, 2vw, 28px)' }}>
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
+                    onClick={() => setWaitlistOpen(true)}
+                    style={{ fontSize: 'clamp(11px, 1.3vw, 16px)', padding: 'clamp(6px, 1vw, 12px) clamp(16px, 2.5vw, 32px)' }}
+                  >
+                    Start Free
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+                    onClick={() => navigate("/dashboard")}
+                    style={{ fontSize: 'clamp(11px, 1.3vw, 16px)', padding: 'clamp(6px, 1vw, 12px) clamp(16px, 2.5vw, 32px)' }}
+                  >
+                    View Dashboard
+                  </Button>
                 </div>
+
+                <div className="flex flex-wrap justify-center lg:justify-start text-blue-100/50" style={{ gap: 'clamp(6px, 1vw, 14px)', marginTop: 'clamp(10px, 1.8vw, 24px)', fontSize: 'clamp(9px, 1.1vw, 14px)' }}>
+                  <span>Auto-imports executions</span>
+                  <span>·</span>
+                  <span>Setup tagging + playbooks</span>
+                  <span>·</span>
+                  <span>Stats that actually matter</span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                <Card className="bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]" style={{ width: 'clamp(200px, 22vw, 320px)', padding: 'clamp(12px, 1.5vw, 24px)' }}>
+                  <p className="uppercase tracking-widest text-blue-100/50" style={{ fontSize: 'clamp(8px, 0.9vw, 12px)', marginBottom: 'clamp(8px, 1.2vw, 16px)' }}>Today's Score</p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 0.8vw, 12px)' }}>
+                    {[
+                      { label: "Discipline", value: "8.2 / 10" },
+                      { label: "Best Setup", value: "Pullback" },
+                      { label: "Peak Window", value: "14:32 – 14:51" },
+                      { label: "Mistake Flag", value: "Chased extension" }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center" style={{ gap: 'clamp(4px, 0.5vw, 8px)' }}>
+                          <div className="rounded-full bg-cyan-400" style={{ width: 'clamp(4px, 0.5vw, 8px)', height: 'clamp(4px, 0.5vw, 8px)' }} />
+                          <span className="text-blue-100/70" style={{ fontSize: 'clamp(9px, 1vw, 13px)' }}>{item.label}</span>
+                        </div>
+                        <span className="font-medium text-white" style={{ fontSize: 'clamp(9px, 1vw, 13px)' }}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
               </div>
             </div>
           </div>
         </section>
 
         {/* Section 3 - Background 3 + Why content */}
-        <section id="analytics" className="w-full flex justify-center -mt-px">
-          <div className={`${frameClass} relative`}>
-            <img src={bg3} alt="" className="block w-full h-auto select-none" draggable={false} />
+        <section id="analytics" className="w-full relative -mt-px">
+          <img src={bg3} alt="" className="block w-full h-auto select-none" draggable={false} />
 
-            <div className="absolute inset-0 flex flex-col justify-center">
-              <div className="px-4 w-full">
-                <h2 className="text-xl md:text-2xl font-semibold text-white text-center mb-6">Why TradePeaks</h2>
+          <div className="absolute inset-0 flex flex-col justify-center px-[5%]">
+            <h2 className="font-semibold text-white text-center" style={{ fontSize: 'clamp(16px, 2.5vw, 36px)', marginBottom: 'clamp(16px, 2.5vw, 40px)' }}>
+              Why TradePeaks
+            </h2>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
-                  <div>
-                    <h3 className="text-base md:text-lg font-semibold text-white mb-3">
-                      Performance that's<br />actually tradable
-                    </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 items-center mx-auto" style={{ gap: 'clamp(16px, 3vw, 48px)', maxWidth: '85%' }}>
+              <div>
+                <h3 className="font-semibold text-white" style={{ fontSize: 'clamp(13px, 1.8vw, 24px)', marginBottom: 'clamp(8px, 1.2vw, 16px)' }}>
+                  Performance that's<br />actually tradable
+                </h3>
 
-                    <div className="space-y-2">
-                      {[
-                        "Expectancy by setup (R-based)",
-                        "Win rate by time window",
-                        "Best tickers + catalysts",
-                        "Heatmaps: time + setup + volatility",
-                        "Rule breaks & 'tilt' moments"
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-blue-100/80">
-                          <span className="text-cyan-400">✓</span>
-                          <span>{item}</span>
-                        </div>
-                      ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(4px, 0.6vw, 10px)' }}>
+                  {[
+                    "Expectancy by setup (R-based)",
+                    "Win rate by time window",
+                    "Best tickers + catalysts",
+                    "Heatmaps: time + setup + volatility",
+                    "Rule breaks & 'tilt' moments"
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center text-blue-100/80" style={{ gap: 'clamp(4px, 0.6vw, 10px)', fontSize: 'clamp(10px, 1.2vw, 16px)' }}>
+                      <span className="text-cyan-400">✓</span>
+                      <span>{item}</span>
                     </div>
-
-                    <Button
-                      className="mt-5 bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 px-5"
-                      onClick={() => navigate("/dashboard")}
-                    >
-                      See a Live Example
-                    </Button>
-                  </div>
-
-                  <div className="hidden lg:block">
-                    {/* Dashboard preview is part of bg3 image */}
-                  </div>
+                  ))}
                 </div>
+
+                <Button
+                  className="bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10"
+                  onClick={() => navigate("/dashboard")}
+                  style={{ fontSize: 'clamp(10px, 1.2vw, 14px)', padding: 'clamp(6px, 0.8vw, 10px) clamp(12px, 1.8vw, 24px)', marginTop: 'clamp(12px, 1.8vw, 24px)' }}
+                >
+                  See a Live Example
+                </Button>
               </div>
+
+              <div className="hidden lg:block" />
             </div>
           </div>
         </section>
@@ -279,7 +249,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-blue-500/15 bg-[#050A14]">
-        <div className="container mx-auto px-4 py-10 text-center text-blue-200/50 text-sm">
+        <div className="w-full text-center text-blue-200/50" style={{ padding: 'clamp(24px, 4vw, 48px)', fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
