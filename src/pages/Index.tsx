@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail, ArrowRight } from "lucide-react";
+import { Mail, Mountain, Target, LineChart } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,10 +145,7 @@ export default function Index() {
         </section>
 
         {/* Content section with floating particles background */}
-        <section id="features" className="relative w-full min-h-[80vh] bg-gradient-to-b from-[#030712] via-[#050a15] to-[#030712]">
-          {/* Ambient glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
-          
+        <section id="features" className="relative w-full py-20 lg:py-28 bg-[#030712]">
           {/* Floating particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map((particle) => (
@@ -171,224 +168,81 @@ export default function Index() {
           </div>
 
           {/* Hero content */}
-          <div className="relative z-10 flex items-center justify-center px-[5%] py-20 lg:py-28">
-            <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-              <motion.div 
-                className="lg:col-span-7 text-center lg:text-left"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+          <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              TradePeaks - our Dream-Driven Path to Trading Excellence
+            </h1>
+            
+            <p className="text-white/60 max-w-2xl text-base md:text-lg mb-10">
+              Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium"
+                onClick={() => setWaitlistOpen(true)}
               >
-                {/* Eyebrow */}
-                <motion.p 
-                  className="text-xs sm:text-sm uppercase tracking-[0.3em] text-blue-400/80 font-medium mb-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.6 }}
-                >
-                  Trading Journal for Scalpers
-                </motion.p>
-
-                {/* Main headline */}
-                <h1 className="font-bold leading-[1.1] tracking-tight">
-                  <span 
-                    className="block bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent"
-                    style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}
-                  >
-                    Track Your Trades.
-                  </span>
-                  <span 
-                    className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mt-1"
-                    style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}
-                  >
-                    Find Your Edge.
-                  </span>
-                  <span 
-                    className="block text-white/40 font-light mt-2"
-                    style={{ fontSize: 'clamp(20px, 3vw, 40px)' }}
-                  >
-                    Climb Faster.
-                  </span>
-                </h1>
-
-                {/* Description */}
-                <motion.p 
-                  className="text-white/50 max-w-xl mx-auto lg:mx-0 leading-relaxed mt-8"
-                  style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                >
-                  A trading journal built for momentum and scalp traders—imports your executions,
-                  grades your process, and shows you exactly where your performance peaks.
-                </motion.p>
-
-                {/* CTAs */}
-                <motion.div 
-                  className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mt-10"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                >
-                  <Button
-                    className="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white border-0 shadow-xl shadow-blue-500/25 rounded-full px-8 py-6 text-base font-semibold transition-all duration-300 hover:shadow-blue-500/40 hover:scale-[1.02]"
-                    onClick={() => setWaitlistOpen(true)}
-                  >
-                    Start Free
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-white/20 text-white hover:bg-white/5 hover:border-white/40 rounded-full px-8 py-6 text-base font-medium transition-all duration-300 backdrop-blur-sm"
-                    onClick={() => navigate("/dashboard")}
-                  >
-                    View Dashboard
-                  </Button>
-                </motion.div>
-
-                {/* Feature pills */}
-                <motion.div 
-                  className="flex flex-wrap justify-center lg:justify-start gap-3 mt-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                >
-                  {["Auto-imports executions", "Setup tagging", "Playbooks", "Real stats"].map((feature, i) => (
-                    <span 
-                      key={i}
-                      className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/5 text-white/50 border border-white/10 backdrop-blur-sm"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </motion.div>
-              </motion.div>
-
-              {/* Score Card */}
-              <motion.div 
-                className="lg:col-span-5 flex justify-center lg:justify-end"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+                Get Started
+              </Button>
+              <Button
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/5 px-8 py-6 text-base font-medium"
+                onClick={() => navigate("/dashboard")}
               >
-                <Card className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 w-full max-w-sm p-6 rounded-2xl">
-                  <div className="flex items-center justify-between mb-6">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium">Today's Score</p>
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  </div>
-
-                  <div className="space-y-4">
-                    {[
-                      { label: "Discipline", value: "8.2 / 10", accent: true },
-                      { label: "Best Setup", value: "Pullback" },
-                      { label: "Peak Window", value: "14:32 – 14:51" },
-                      { label: "Mistake Flag", value: "Chased extension", warn: true }
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-1.5 h-1.5 rounded-full ${item.warn ? 'bg-amber-400' : item.accent ? 'bg-cyan-400' : 'bg-white/30'}`} />
-                          <span className="text-sm text-white/50">{item.label}</span>
-                        </div>
-                        <span className={`text-sm font-medium ${item.warn ? 'text-amber-400/80' : item.accent ? 'text-white' : 'text-white/70'}`}>
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
+                Learn More
+              </Button>
             </div>
           </div>
         </section>
 
-        {/* Why TradePeaks section */}
-        <section id="analytics" className="relative w-full min-h-[60vh] bg-[#030712]">
-          {/* Ambient glow */}
-          <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
-          
-          {/* More floating particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {particles.slice(0, 25).map((particle) => (
-              <div
-                key={`why-${particle.id}`}
-                className="lucid-particle"
-                style={{
-                  left: `${(particle.x + 30) % 100}%`,
-                  top: `${particle.y}%`,
-                  width: `${particle.size}px`,
-                  height: `${particle.size}px`,
-                  opacity: particle.opacity * 0.8,
-                  animationDelay: `${particle.delay + 2}s`,
-                  animationDuration: `${particle.duration}s`,
-                  '--drift-x': `${particle.driftX}px`,
-                  '--drift-y': `${particle.driftY}px`,
-                } as React.CSSProperties}
-              />
-            ))}
-          </div>
+        {/* Feature Cards */}
+        <section className="relative w-full py-16 lg:py-24 bg-[#030712]">
+          <div className="relative z-10 px-[5%]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <Card className="bg-white/5 border-white/10 p-6">
+                <Mountain className="h-8 w-8 text-blue-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">Climb Higher</h3>
+                <p className="text-white/60 text-sm">
+                  Each trade is a step up the mountain. Track your ascent and reach new peaks.
+                </p>
+              </Card>
 
-          <div className="relative z-10 flex flex-col justify-center px-[5%] py-20 lg:py-28">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8 }}
-              className="text-center mb-16"
-            >
-              <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-blue-400/60 font-medium mb-4">Why Choose Us</p>
-              <h2 className="font-bold bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent" style={{ fontSize: 'clamp(28px, 4vw, 52px)' }}>
-                Why TradePeaks
-              </h2>
-            </motion.div>
+              <Card className="bg-white/5 border-white/10 p-6">
+                <Target className="h-8 w-8 text-blue-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">The Summit Awaits</h3>
+                <p className="text-white/60 text-sm">
+                  Chart your course to the peaks. Define your destination and map the journey.
+                </p>
+              </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 items-center mx-auto max-w-5xl gap-12 lg:gap-20">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8 }}
-              >
-                <h3 className="font-semibold text-white/90 leading-tight mb-8" style={{ fontSize: 'clamp(20px, 2.5vw, 32px)' }}>
-                  Performance that's
-                  <br />
-                  <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">actually tradable</span>
-                </h3>
-
-                <div className="space-y-4">
-                  {[
-                    "Expectancy by setup (R-based)",
-                    "Win rate by time window",
-                    "Best tickers + catalysts",
-                    "Heatmaps: time + setup + volatility",
-                    "Rule breaks & 'tilt' moments"
-                  ].map((item, i) => (
-                    <motion.div 
-                      key={i} 
-                      className="flex items-center gap-4"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1, duration: 0.5 }}
-                    >
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center border border-cyan-400/30">
-                        <span className="text-cyan-400 text-xs">✓</span>
-                      </div>
-                      <span className="text-white/60 text-base">{item}</span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <Button
-                  className="mt-10 bg-transparent border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/50 rounded-full px-6 py-5 text-sm font-medium transition-all duration-300"
-                  onClick={() => navigate("/dashboard")}
-                >
-                  See a Live Example
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </motion.div>
-
-              <div className="hidden lg:block" />
+              <Card className="bg-white/5 border-white/10 p-6">
+                <LineChart className="h-8 w-8 text-blue-400 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">Read the Terrain</h3>
+                <p className="text-white/60 text-sm">
+                  Understand every ridge and valley of your trading journey. See the path clearly.
+                </p>
+              </Card>
             </div>
+          </div>
+        </section>
+
+        {/* But Why Section */}
+        <section id="analytics" className="relative w-full py-16 lg:py-24 bg-[#030712]">
+          <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6">
+              But why?
+            </h2>
+            
+            <p className="text-white/60 max-w-xl text-base md:text-lg mb-10">
+              While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit.
+            </p>
+
+            <Button
+              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium"
+              onClick={() => setWaitlistOpen(true)}
+            >
+              Start Free Trial Today
+            </Button>
           </div>
         </section>
       </main>
