@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,40 +71,40 @@ export default function Index() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#050A14] overflow-x-hidden">
+    <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header - fixed, transparent, centered */}
-      <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="w-full px-[5%] py-[1.5%] flex items-center justify-center gap-[3%]">
-          <img src={logo} alt="TradePeaks" className="h-[2vw] w-[2vw] min-h-[16px] min-w-[16px]" />
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#030712]/60">
+        <div className="w-full px-[5%] py-4 flex items-center justify-center gap-8">
+          <img src={logo} alt="TradePeaks" className="h-6 w-6" />
           
-          <nav className="flex items-center gap-[2vw]">
-            <a href="#features" className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Features</a>
-            <a href="#analytics" className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Analytics</a>
-            <a href="#playbooks" className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>Playbooks</a>
-            <button type="button" onClick={() => navigate("/pricing")} className="text-blue-100/80 hover:text-white transition whitespace-nowrap" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
+          <nav className="flex items-center gap-6">
+            <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Features</a>
+            <a href="#analytics" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
+            <a href="#playbooks" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Playbooks</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">
               Pricing
             </button>
           </nav>
 
           <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 rounded-full" style={{ fontSize: 'clamp(10px, 1.2vw, 14px)', padding: 'clamp(4px, 0.8vw, 8px) clamp(12px, 2vw, 20px)' }}>
+              <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 hover:border-white/40">
                 Log in
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-[520px] bg-black/80 backdrop-blur-xl border border-blue-500/25 text-foreground">
+            <DialogContent className="max-w-[520px] bg-[#0a0f1a]/95 backdrop-blur-2xl border border-white/10 text-foreground shadow-2xl shadow-blue-500/10">
               <DialogHeader>
-                <DialogTitle className="text-xl">Join the TradePeaks waitlist</DialogTitle>
+                <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Join the TradePeaks waitlist</DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4">
-                <p className="text-sm text-blue-100/70">
+                <p className="text-sm text-white/50 leading-relaxed">
                   We're polishing onboarding. Drop your email and you'll be first in when it opens.
                 </p>
 
                 <div className="space-y-2">
-                  <Label htmlFor="waitlistEmail" className="text-blue-100/80">
+                  <Label htmlFor="waitlistEmail" className="text-white/60 text-sm">
                     Email
                   </Label>
 
@@ -113,12 +114,12 @@ export default function Index() {
                       value={waitlistEmail}
                       onChange={e => setWaitlistEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="bg-black/40 border-blue-500/25 text-blue-50 placeholder:text-blue-100/40"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 transition-colors"
                     />
                     <Button
                       onClick={submitWaitlist}
                       disabled={waitlistLoading}
-                      className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
+                      className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/25 transition-all duration-300"
                     >
                       {waitlistLoading ? "Joining…" : (
                         <span className="inline-flex items-center gap-2">
@@ -128,7 +129,7 @@ export default function Index() {
                     </Button>
                   </div>
 
-                  <p className="text-xs text-blue-100/50">No spam. One email when onboarding opens.</p>
+                  <p className="text-xs text-white/40">No spam. One email when onboarding opens.</p>
                 </div>
               </div>
             </DialogContent>
@@ -144,7 +145,10 @@ export default function Index() {
         </section>
 
         {/* Content section with floating particles background */}
-        <section id="features" className="relative w-full min-h-[80vh] bg-[#050A14]">
+        <section id="features" className="relative w-full min-h-[80vh] bg-gradient-to-b from-[#030712] via-[#050a15] to-[#030712]">
+          {/* Ambient glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+          
           {/* Floating particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map((particle) => (
@@ -166,76 +170,142 @@ export default function Index() {
             ))}
           </div>
 
-          {/* Hero content overlay */}
-          <div className="relative z-10 flex items-center px-[5%] py-[8%]">
-            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-[3%] items-center">
-              <div className="lg:col-span-7 text-center lg:text-left">
-                <h1 className="font-bold text-white leading-tight" style={{ fontSize: 'clamp(24px, 4vw, 56px)' }}>
-                  Track Your Trades. Find Your Edge.
-                  <br />
-                  <span className="text-white">Climb Faster.</span>
+          {/* Hero content */}
+          <div className="relative z-10 flex items-center justify-center px-[5%] py-20 lg:py-28">
+            <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+              <motion.div 
+                className="lg:col-span-7 text-center lg:text-left"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                {/* Eyebrow */}
+                <motion.p 
+                  className="text-xs sm:text-sm uppercase tracking-[0.3em] text-blue-400/80 font-medium mb-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
+                >
+                  Trading Journal for Scalpers
+                </motion.p>
+
+                {/* Main headline */}
+                <h1 className="font-bold leading-[1.1] tracking-tight">
+                  <span 
+                    className="block bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent"
+                    style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}
+                  >
+                    Track Your Trades.
+                  </span>
+                  <span 
+                    className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mt-1"
+                    style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}
+                  >
+                    Find Your Edge.
+                  </span>
+                  <span 
+                    className="block text-white/40 font-light mt-2"
+                    style={{ fontSize: 'clamp(20px, 3vw, 40px)' }}
+                  >
+                    Climb Faster.
+                  </span>
                 </h1>
 
-                <p className="text-blue-100/70 max-w-[90%] lg:max-w-[80%] mx-auto lg:mx-0" style={{ fontSize: 'clamp(12px, 1.5vw, 20px)', marginTop: 'clamp(12px, 2vw, 28px)' }}>
+                {/* Description */}
+                <motion.p 
+                  className="text-white/50 max-w-xl mx-auto lg:mx-0 leading-relaxed mt-8"
+                  style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
                   A trading journal built for momentum and scalp traders—imports your executions,
                   grades your process, and shows you exactly where your performance peaks.
-                </p>
+                </motion.p>
 
-                <div className="flex flex-col sm:flex-row justify-center lg:justify-start" style={{ gap: 'clamp(10px, 1.5vw, 20px)', marginTop: 'clamp(16px, 2.5vw, 36px)' }}>
+                {/* CTAs */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mt-10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.6 }}
+                >
                   <Button
-                    className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
+                    className="group bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white border-0 shadow-xl shadow-blue-500/25 rounded-full px-8 py-6 text-base font-semibold transition-all duration-300 hover:shadow-blue-500/40 hover:scale-[1.02]"
                     onClick={() => setWaitlistOpen(true)}
-                    style={{ fontSize: 'clamp(12px, 1.4vw, 18px)', padding: 'clamp(8px, 1.2vw, 16px) clamp(20px, 3vw, 40px)' }}
                   >
                     Start Free
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+                    className="border-white/20 text-white hover:bg-white/5 hover:border-white/40 rounded-full px-8 py-6 text-base font-medium transition-all duration-300 backdrop-blur-sm"
                     onClick={() => navigate("/dashboard")}
-                    style={{ fontSize: 'clamp(12px, 1.4vw, 18px)', padding: 'clamp(8px, 1.2vw, 16px) clamp(20px, 3vw, 40px)' }}
                   >
                     View Dashboard
                   </Button>
-                </div>
+                </motion.div>
 
-                <div className="flex flex-wrap justify-center lg:justify-start text-blue-100/50" style={{ gap: 'clamp(8px, 1.2vw, 16px)', marginTop: 'clamp(14px, 2vw, 28px)', fontSize: 'clamp(10px, 1.2vw, 16px)' }}>
-                  <span>Auto-imports executions</span>
-                  <span>·</span>
-                  <span>Setup tagging + playbooks</span>
-                  <span>·</span>
-                  <span>Stats that actually matter</span>
-                </div>
-              </div>
+                {/* Feature pills */}
+                <motion.div 
+                  className="flex flex-wrap justify-center lg:justify-start gap-3 mt-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7, duration: 0.6 }}
+                >
+                  {["Auto-imports executions", "Setup tagging", "Playbooks", "Real stats"].map((feature, i) => (
+                    <span 
+                      key={i}
+                      className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/5 text-white/50 border border-white/10 backdrop-blur-sm"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </motion.div>
+              </motion.div>
 
-              <div className="lg:col-span-5 flex justify-center lg:justify-end mt-8 lg:mt-0">
-                <Card className="bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]" style={{ width: 'clamp(240px, 24vw, 360px)', padding: 'clamp(16px, 2vw, 32px)' }}>
-                  <p className="uppercase tracking-widest text-blue-100/50" style={{ fontSize: 'clamp(9px, 1vw, 14px)', marginBottom: 'clamp(12px, 1.5vw, 20px)' }}>Today's Score</p>
+              {/* Score Card */}
+              <motion.div 
+                className="lg:col-span-5 flex justify-center lg:justify-end"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+              >
+                <Card className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 w-full max-w-sm p-6 rounded-2xl">
+                  <div className="flex items-center justify-between mb-6">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-medium">Today's Score</p>
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 1vw, 14px)' }}>
+                  <div className="space-y-4">
                     {[
-                      { label: "Discipline", value: "8.2 / 10" },
+                      { label: "Discipline", value: "8.2 / 10", accent: true },
                       { label: "Best Setup", value: "Pullback" },
                       { label: "Peak Window", value: "14:32 – 14:51" },
-                      { label: "Mistake Flag", value: "Chased extension" }
+                      { label: "Mistake Flag", value: "Chased extension", warn: true }
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center" style={{ gap: 'clamp(6px, 0.6vw, 10px)' }}>
-                          <div className="rounded-full bg-cyan-400" style={{ width: 'clamp(5px, 0.6vw, 10px)', height: 'clamp(5px, 0.6vw, 10px)' }} />
-                          <span className="text-blue-100/70" style={{ fontSize: 'clamp(10px, 1.1vw, 15px)' }}>{item.label}</span>
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-1.5 h-1.5 rounded-full ${item.warn ? 'bg-amber-400' : item.accent ? 'bg-cyan-400' : 'bg-white/30'}`} />
+                          <span className="text-sm text-white/50">{item.label}</span>
                         </div>
-                        <span className="font-medium text-white" style={{ fontSize: 'clamp(10px, 1.1vw, 15px)' }}>{item.value}</span>
+                        <span className={`text-sm font-medium ${item.warn ? 'text-amber-400/80' : item.accent ? 'text-white' : 'text-white/70'}`}>
+                          {item.value}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </Card>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* Why TradePeaks section */}
-        <section id="analytics" className="relative w-full min-h-[60vh] bg-[#050A14]">
+        <section id="analytics" className="relative w-full min-h-[60vh] bg-[#030712]">
+          {/* Ambient glow */}
+          <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+          
           {/* More floating particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.slice(0, 25).map((particle) => (
@@ -257,18 +327,34 @@ export default function Index() {
             ))}
           </div>
 
-          <div className="relative z-10 flex flex-col justify-center px-[5%] py-[6%]">
-            <h2 className="font-semibold text-white text-center" style={{ fontSize: 'clamp(20px, 3vw, 42px)', marginBottom: 'clamp(24px, 3vw, 48px)' }}>
-              Why TradePeaks
-            </h2>
+          <div className="relative z-10 flex flex-col justify-center px-[5%] py-20 lg:py-28">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-16"
+            >
+              <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-blue-400/60 font-medium mb-4">Why Choose Us</p>
+              <h2 className="font-bold bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent" style={{ fontSize: 'clamp(28px, 4vw, 52px)' }}>
+                Why TradePeaks
+              </h2>
+            </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 items-center mx-auto" style={{ gap: 'clamp(24px, 4vw, 64px)', maxWidth: '85%' }}>
-              <div>
-                <h3 className="font-semibold text-white" style={{ fontSize: 'clamp(16px, 2vw, 28px)', marginBottom: 'clamp(12px, 1.5vw, 20px)' }}>
-                  Performance that's<br />actually tradable
+            <div className="grid grid-cols-1 lg:grid-cols-2 items-center mx-auto max-w-5xl gap-12 lg:gap-20">
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
+                <h3 className="font-semibold text-white/90 leading-tight mb-8" style={{ fontSize: 'clamp(20px, 2.5vw, 32px)' }}>
+                  Performance that's
+                  <br />
+                  <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">actually tradable</span>
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 0.8vw, 12px)' }}>
+                <div className="space-y-4">
                   {[
                     "Expectancy by setup (R-based)",
                     "Win rate by time window",
@@ -276,21 +362,30 @@ export default function Index() {
                     "Heatmaps: time + setup + volatility",
                     "Rule breaks & 'tilt' moments"
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center text-blue-100/80" style={{ gap: 'clamp(6px, 0.8vw, 12px)', fontSize: 'clamp(12px, 1.3vw, 18px)' }}>
-                      <span className="text-cyan-400">✓</span>
-                      <span>{item}</span>
-                    </div>
+                    <motion.div 
+                      key={i} 
+                      className="flex items-center gap-4"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1, duration: 0.5 }}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center border border-cyan-400/30">
+                        <span className="text-cyan-400 text-xs">✓</span>
+                      </div>
+                      <span className="text-white/60 text-base">{item}</span>
+                    </motion.div>
                   ))}
                 </div>
 
                 <Button
-                  className="bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10"
+                  className="mt-10 bg-transparent border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400/50 rounded-full px-6 py-5 text-sm font-medium transition-all duration-300"
                   onClick={() => navigate("/dashboard")}
-                  style={{ fontSize: 'clamp(11px, 1.3vw, 16px)', padding: 'clamp(8px, 1vw, 14px) clamp(16px, 2vw, 28px)', marginTop: 'clamp(16px, 2vw, 32px)' }}
                 >
                   See a Live Example
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
+              </motion.div>
 
               <div className="hidden lg:block" />
             </div>
@@ -299,8 +394,8 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-blue-500/15 bg-[#050A14]">
-        <div className="w-full text-center text-blue-200/50" style={{ padding: 'clamp(24px, 4vw, 48px)', fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
+      <footer className="border-t border-white/5 bg-[#030712]">
+        <div className="w-full text-center text-white/30 py-8 text-sm">
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
