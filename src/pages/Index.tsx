@@ -2,8 +2,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
-import blueMoon from "@/assets/blue-moon.png";
-import mountainsNocturnal from "@/assets/mountains-nocturnal.png";
 import { useMemo, useState, useEffect, useRef } from "react";
 const Index = () => {
   const navigate = useNavigate();
@@ -65,36 +63,78 @@ const Index = () => {
     };
   };
   return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Immersive nocturnal mountains – two peaks, misty forest, blue drama */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
-        aria-hidden
-      >
-        <div
-          className="absolute bottom-0 left-0 right-0 min-h-[55vh] md:min-h-[65vh] bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${mountainsNocturnal})`,
-            backgroundPosition: "center bottom",
-          }}
-        />
-        {/* Blend top of mountains into page background */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to bottom, #070C1A 0%, #070C1A 15%, transparent 45%)",
-          }}
-        />
-        {/* Subtle blue tint overlay to match TradePeaks palette */}
-        <div
-          className="absolute bottom-0 left-0 right-0 min-h-[55vh] md:min-h-[65vh] pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(30, 64, 175, 0.12) 0%, transparent 50%)",
-          }}
-        />
+      {/* Mountains: two peaks, mist, forest – same palette as particles & gradients */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden>
+        <svg
+          className="absolute bottom-0 left-0 w-full h-[58%] md:h-[62%]"
+          viewBox="0 0 1200 520"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="peak-shade" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="rgba(30, 64, 175, 0.5)" />
+              <stop offset="60%" stopColor="rgba(59, 130, 246, 0.2)" />
+              <stop offset="100%" stopColor="rgba(96, 165, 250, 0.08)" />
+            </linearGradient>
+            <linearGradient id="peak-highlight" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.35)" />
+              <stop offset="50%" stopColor="rgba(96, 165, 250, 0.15)" />
+              <stop offset="100%" stopColor="rgba(147, 197, 253, 0.06)" />
+            </linearGradient>
+            <linearGradient id="mist-band" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(7, 12, 26, 0)" />
+              <stop offset="30%" stopColor="rgba(30, 64, 175, 0.15)" />
+              <stop offset="70%" stopColor="rgba(59, 130, 246, 0.08)" />
+              <stop offset="100%" stopColor="rgba(7, 12, 26, 0)" />
+            </linearGradient>
+            <linearGradient id="forest-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(15, 23, 42, 0.85)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.4)" />
+            </linearGradient>
+            <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {/* Distant peaks – soft backdrop */}
+          <path
+            d="M0,520 L0,320 L120,240 L280,300 L420,220 L600,260 L780,200 L920,280 L1080,220 L1200,260 L1200,520 Z"
+            fill="rgba(59, 130, 246, 0.06)"
+          />
+          <path
+            d="M0,520 L0,360 L200,280 L380,340 L560,240 L720,300 L880,220 L1000,280 L1200,240 L1200,520 Z"
+            fill="rgba(96, 165, 250, 0.07)"
+          />
+          {/* Mist band between peaks and forest */}
+          <rect x="0" y="320" width="1200" height="120" fill="url(#mist-band)" filter="url(#soft-glow)" />
+          {/* Twin central peaks */}
+          <path
+            d="M380,520 L380,380 L480,200 L560,280 L600,180 L640,260 L720,160 L820,280 L820,520 Z"
+            fill="url(#peak-shade)"
+          />
+          <path
+            d="M380,520 L380,380 L480,200 L560,280 L600,180 L640,260 L720,160 L820,280 L820,520 Z"
+            fill="url(#peak-highlight)"
+          />
+          {/* Snow/light on summits */}
+          <path d="M560,280 L600,180 L640,260 Z" fill="rgba(147, 197, 253, 0.12)" />
+          <path d="M600,180 L620,220 L580,220 Z" fill="rgba(224, 242, 254, 0.15)" />
+          <path d="M718,168 L740,220 L696,220 Z" fill="rgba(147, 197, 253, 0.1)" />
+          {/* Forest silhouette */}
+          <path
+            d="M0,520 L0,400 L40,440 L80,380 L140,450 L200,390 L260,430 L320,370 L380,420 L440,360 L500,410 L560,350 L620,400 L680,340 L740,390 L800,330 L860,380 L920,320 L980,370 L1040,310 L1100,360 L1160,300 L1200,340 L1200,520 Z"
+            fill="url(#forest-fill)"
+          />
+          <path
+            d="M0,520 L20,450 L70,500 L120,440 L180,490 L240,430 L300,470 L360,410 L420,460 L480,400 L540,450 L600,390 L660,440 L720,380 L780,430 L840,370 L900,420 L960,360 L1020,410 L1080,350 L1140,400 L1200,360 L1200,520 Z"
+            fill="rgba(15, 23, 42, 0.9)"
+          />
+        </svg>
       </div>
-      {/* Radial gradient overlay – soft top glow, gentle bottom blend over mountains */}
+      {/* Radial gradient overlay */}
       <div className="absolute inset-0 pointer-events-none z-0" style={{
       background: `
             radial-gradient(
@@ -153,33 +193,43 @@ const Index = () => {
       <main className="relative">
         <section className="container mx-auto px-4 pt-16 md:pt-24 pb-6 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            {/* Moon: half visible, top cut off; blue light reflected from TradePeaks text */}
+            {/* Moon: SVG, half visible; blue glow from TradePeaks palette */}
             <div
               className="animate-fade-in relative mx-auto mb-2 md:mb-4 overflow-hidden"
               style={{ height: "clamp(72px, 18vw, 120px)" }}
               aria-hidden
             >
-              <div
-                className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[clamp(144px, 36vw, 240px)] aspect-square rounded-full"
-                style={{
-                  boxShadow:
-                    "0 0 80px rgba(59, 130, 246, 0.5), 0 0 140px rgba(34, 211, 238, 0.25), inset 0 -20px 40px rgba(96, 165, 250, 0.2)",
-                  filter: "drop-shadow(0 0 30px rgba(59, 130, 246, 0.4))",
-                }}
+              <svg
+                className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[clamp(144px, 36vw, 240px)] h-[clamp(144px, 36vw, 240px)]"
+                viewBox="0 0 100 100"
+                fill="none"
               >
-                <img
-                  src={blueMoon}
-                  alt=""
-                  className="w-full h-full object-cover rounded-full"
-                />
-                <div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{
-                    background:
-                      "linear-gradient(to top, rgba(96, 165, 250, 0.35) 0%, rgba(59, 130, 246, 0.15) 35%, transparent 70%)",
-                  }}
-                />
-              </div>
+                <defs>
+                  <radialGradient id="moon-base" cx="35%" cy="35%" r="50%">
+                    <stop offset="0%" stopColor="#93c5fd" />
+                    <stop offset="40%" stopColor="#60a5fa" />
+                    <stop offset="75%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#1e40af" />
+                  </radialGradient>
+                  <linearGradient id="moon-reflect" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.5" />
+                    <stop offset="40%" stopColor="#3b82f6" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="transparent" />
+                  </linearGradient>
+                  <filter id="moon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <circle cx="50" cy="50" r="48" fill="url(#moon-base)" filter="url(#moon-glow)" />
+                <circle cx="50" cy="50" r="48" fill="url(#moon-reflect)" />
+                <circle cx="38" cy="42" r="6" fill="rgba(30, 64, 175, 0.25)" />
+                <circle cx="58" cy="55" r="4" fill="rgba(30, 64, 175, 0.2)" />
+                <circle cx="48" cy="62" r="5" fill="rgba(30, 64, 175, 0.22)" />
+              </svg>
             </div>
             <div className="mb-8 animate-fade-in">
               <h1 className="text-7xl md:text-8xl font-light italic" style={{
