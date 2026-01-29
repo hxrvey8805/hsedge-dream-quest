@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
+import blueMoon from "@/assets/blue-moon.png";
+import mountainsNocturnal from "@/assets/mountains-nocturnal.png";
 import { useMemo, useState, useEffect, useRef } from "react";
 const Index = () => {
   const navigate = useNavigate();
@@ -63,32 +65,47 @@ const Index = () => {
     };
   };
   return <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
-      {/* Mountain peaks background - motivational summit */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg className="absolute bottom-0 left-0 w-full h-[60%]" viewBox="0 0 1200 400" preserveAspectRatio="none">
-          {/* Distant peaks - subtle backdrop */}
-          <path d="M0,400 L0,280 L150,200 L300,260 L450,180 L600,240 L750,160 L900,220 L1050,140 L1200,200 L1200,400 Z" fill="rgba(59, 130, 246, 0.08)" />
-          {/* Mid peaks */}
-          <path d="M0,400 L0,320 L200,240 L350,300 L500,200 L650,280 L800,180 L950,260 L1100,200 L1200,260 L1200,400 Z" fill="rgba(59, 130, 246, 0.12)" />
-          {/* Hero peak - the summit */}
-          <path d="M400,400 L600,120 L800,400 Z" fill="rgba(96, 165, 250, 0.15)" />
-          <path d="M600,120 L620,160 L580,160 Z" fill="rgba(255, 255, 255, 0.12)" />
-          {/* Foreground ridge */}
-          <path d="M0,400 L0,350 L150,320 L300,350 L450,300 L600,340 L750,310 L900,350 L1050,320 L1200,360 L1200,400 Z" fill="rgba(30, 64, 175, 0.1)" />
-        </svg>
+      {/* Immersive nocturnal mountains – two peaks, misty forest, blue drama */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
+        aria-hidden
+      >
+        <div
+          className="absolute bottom-0 left-0 right-0 min-h-[55vh] md:min-h-[65vh] bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${mountainsNocturnal})`,
+            backgroundPosition: "center bottom",
+          }}
+        />
+        {/* Blend top of mountains into page background */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, #070C1A 0%, #070C1A 15%, transparent 45%)",
+          }}
+        />
+        {/* Subtle blue tint overlay to match TradePeaks palette */}
+        <div
+          className="absolute bottom-0 left-0 right-0 min-h-[55vh] md:min-h-[65vh] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(30, 64, 175, 0.12) 0%, transparent 50%)",
+          }}
+        />
       </div>
-      {/* Radial gradient overlay background */}
+      {/* Radial gradient overlay – soft top glow, gentle bottom blend over mountains */}
       <div className="absolute inset-0 pointer-events-none z-0" style={{
       background: `
             radial-gradient(
               80rem 40rem at 50% -10%,
-              rgba(16, 40, 90, 0.55),
+              rgba(16, 40, 90, 0.5),
               transparent 60%
             ),
             radial-gradient(
-              60rem 30rem at 50% 120%,
-              rgba(7, 12, 26, 0.8),
-              transparent 60%
+              80rem 35rem at 50% 110%,
+              rgba(7, 12, 26, 0.35),
+              transparent 55%
             )
           `
     }} />
@@ -136,6 +153,34 @@ const Index = () => {
       <main className="relative">
         <section className="container mx-auto px-4 pt-16 md:pt-24 pb-6 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
+            {/* Moon: half visible, top cut off; blue light reflected from TradePeaks text */}
+            <div
+              className="animate-fade-in relative mx-auto mb-2 md:mb-4 overflow-hidden"
+              style={{ height: "clamp(72px, 18vw, 120px)" }}
+              aria-hidden
+            >
+              <div
+                className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[clamp(144px, 36vw, 240px)] aspect-square rounded-full"
+                style={{
+                  boxShadow:
+                    "0 0 80px rgba(59, 130, 246, 0.5), 0 0 140px rgba(34, 211, 238, 0.25), inset 0 -20px 40px rgba(96, 165, 250, 0.2)",
+                  filter: "drop-shadow(0 0 30px rgba(59, 130, 246, 0.4))",
+                }}
+              >
+                <img
+                  src={blueMoon}
+                  alt=""
+                  className="w-full h-full object-cover rounded-full"
+                />
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(96, 165, 250, 0.35) 0%, rgba(59, 130, 246, 0.15) 35%, transparent 70%)",
+                  }}
+                />
+              </div>
+            </div>
             <div className="mb-8 animate-fade-in">
               <h1 className="text-7xl md:text-8xl font-light italic" style={{
               fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
