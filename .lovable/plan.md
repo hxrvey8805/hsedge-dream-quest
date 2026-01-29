@@ -1,80 +1,117 @@
 
-# Plan: Match Landing Page to Preview Exactly
+# Plan: Replace Landing Page Text with Classic Mountain Theme
 
-## Understanding
-The 3 background images (`background1.png`, `background2.png`, `background3.png`) ARE the preview split into 3 vertical sections. They already contain:
-- The large glowing "TP" logo
-- The moon and mountains
-- All visual styling
+## Overview
+Replace the current "Trading Journal for Scalpers" content below the hero banner with the classic TradePeaks mountain-themed messaging. This includes the main headline, description, feature cards, and CTA sections.
 
-The task is to:
-1. Stack these 3 images vertically as a continuous background
-2. Remove all the current text/content that duplicates what's in the images
-3. Overlay ONLY the interactive elements (nav links, buttons, waitlist dialog, card) in the correct positions
+## Content to Replace
 
-## Changes
+### Current Content (to remove)
+- "Trading Journal for Scalpers" eyebrow
+- "Track Your Trades. Find Your Edge. Climb Faster." headline
+- Scalp trader-focused description
+- "Today's Score" card with trading metrics
+- Feature pills (Auto-imports, Setup tagging, etc.)
+- "Why TradePeaks" section with analytics features
 
-### 1. Simplify Background Structure
-Replace the current complex background layering with a simple vertical stack of the 3 images:
-- `background1.png` - Hero section (TP logo, moon, mountains, headline text)
-- `background2.png` - Mid section 
-- `background3.png` - Bottom section
+### New Content (from old design)
 
-Use `background-size: 100% auto` (not `cover`) so images display at their natural aspect ratio without cropping/zooming.
+**Hero Section:**
+- Title: "TradePeaks - our Dream-Driven Path to Trading Excellence"
+- Description: "Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal."
+- Buttons: "Get Started" and "Learn More"
 
-### 2. Remove Duplicate Content
-Since the background images already contain the text, remove:
-- The `<h1>` headline ("Track Your Trades...")
-- The subheadline ("Climb Faster")
-- The body paragraph text
-- The header "TradePeaks" wordmark (keep only the small logo icon)
+**Feature Cards (3 cards):**
+1. **Climb Higher** - "Each trade is a step up the mountain. Track your ascent and reach new peaks."
+2. **The Summit Awaits** - "Chart your course to the peaks. Define your destination and map the journey."
+3. **Read the Terrain** - "Understand every ridge and valley of your trading journey. See the path clearly."
 
-### 3. Header Changes
-- Remove the "TradePeaks" text next to logo
-- Keep nav links: Features, Analysis, Why TradePeaks, Pricing
-- Keep "Join Waitlist" button
-- Make header fully transparent (no background)
-- Reduce spacing/font sizes to match preview
-
-### 4. Hero Section
-- Remove all text elements (they're in the background image)
-- Position only the two buttons ("Start Free" and "Your Dashboard") to overlay where they appear in the preview
-- Keep the "Today's Score" card but adjust its position/size to match preview
-
-### 5. Keep Interactive Elements
-The following remain as overlays:
-- Header navigation links (clickable)
-- "Start Free" and "Your Dashboard" buttons
-- "Today's Score" card
-- Waitlist dialog functionality
-- Particles (optional, can keep for interactivity)
-
-### 6. Remove Lower Sections
-Remove the Features, Analysis, Why TradePeaks, System steps, and Bottom CTA sections since they're now part of the background images. Keep only the footer.
+**Bottom Section:**
+- Heading: "But why?"
+- Description: "While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit."
+- CTA Button: "Start Free Trial Today"
 
 ---
 
-## Technical Implementation
+## Technical Changes
 
-**File: `src/pages/Index.tsx`**
+### File: `src/pages/Index.tsx`
+
+**Lines 147-393** - Replace the entire features and analytics sections with:
+
+1. **Simplified Hero Content Section**
+   - Remove motion wrappers and complex animations
+   - Simple centered text layout
+   - Clean white text styling (no gradients)
+   - Two buttons side-by-side: "Get Started" (primary blue) and "Learn More" (outline)
+
+2. **Feature Cards Grid**
+   - 3-column responsive grid (1 col mobile, 3 col desktop)
+   - Simple Card components with:
+     - Title in white
+     - Description in white/60
+     - Subtle glassmorphism background (bg-white/5)
+   - Icons: Mountain, Target/Flag, LineChart (from lucide-react)
+
+3. **"But Why" Section**
+   - Centered heading and description
+   - Single CTA button: "Start Free Trial Today"
+   - Keep floating particles background for visual interest
+
+4. **Styling Approach**
+   - Remove gradient text effects
+   - Use simple `text-white` and `text-white/60` colors
+   - Keep the particle animation background (it's the "blue floating dots" aesthetic)
+   - Simpler button styling without hover scale effects
+   - Standard Tailwind responsive font sizes
+
+---
+
+## Layout Structure
 
 ```text
-Background approach:
-- Create a single scrollable container
-- Stack bg1, bg2, bg3 as <img> elements (not CSS backgrounds) for precise sizing
-- Set images to width: 100%, height: auto
-- Overlay interactive elements with absolute/fixed positioning
+┌─────────────────────────────────────────────┐
+│              Hero Banner Image               │
+├─────────────────────────────────────────────┤
+│     [Floating Particles Background]          │
+│                                              │
+│   TradePeaks - Dream-Driven Path to         │
+│       Trading Excellence                     │
+│                                              │
+│   Transform your trading journey...          │
+│                                              │
+│   [Get Started]  [Learn More]               │
+│                                              │
+├─────────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐     │
+│  │  Climb   │ │  Summit  │ │  Read    │     │
+│  │  Higher  │ │  Awaits  │ │  Terrain │     │
+│  └──────────┘ └──────────┘ └──────────┘     │
+├─────────────────────────────────────────────┤
+│              But why?                        │
+│                                              │
+│   While others stay in the feeding...        │
+│                                              │
+│      [Start Free Trial Today]               │
+├─────────────────────────────────────────────┤
+│              © 2026 TradePeaks              │
+└─────────────────────────────────────────────┘
 ```
 
-**Header:**
-- Remove `<span>TradePeaks</span>`
-- Reduce nav gap from `gap-6` to `gap-4`
-- Smaller text: `text-xs` instead of `text-sm`
+---
 
-**Hero section:**
-- Remove h1, p tags
-- Keep only buttons + card as positioned overlays
+## Icons to Add
+Import additional icons from lucide-react:
+- `Mountain` - for "Climb Higher" card
+- `Target` or `Flag` - for "The Summit Awaits" card  
+- `LineChart` or `Eye` - for "Read the Terrain" card
 
-**Interactive overlay positioning:**
-- Buttons positioned ~60-65% down from top of first image
-- Card positioned to the right on desktop, below on mobile
+---
+
+## What Stays the Same
+- Header with logo, navigation, and login button
+- Hero banner image at the top
+- Floating particle animation system
+- Dark background color (#030712)
+- Footer with copyright
+- Waitlist dialog functionality
