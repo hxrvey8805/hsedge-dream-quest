@@ -11,7 +11,6 @@ import { Mail, Mountain, Target, LineChart } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
-
 export default function Index() {
   const navigate = useNavigate();
   const [waitlistOpen, setWaitlistOpen] = useState(false);
@@ -20,7 +19,9 @@ export default function Index() {
 
   // Generate floating particles
   const particles = useMemo(() => {
-    return Array.from({ length: 40 }, (_, i) => ({
+    return Array.from({
+      length: 40
+    }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -29,10 +30,9 @@ export default function Index() {
       duration: 15 + Math.random() * 20,
       opacity: 0.4 + Math.random() * 0.6,
       driftX: (Math.random() - 0.5) * 120,
-      driftY: Math.random() * 80 + 30,
+      driftY: Math.random() * 80 + 30
     }));
   }, []);
-
   const submitWaitlist = async () => {
     const email = waitlistEmail.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -42,7 +42,9 @@ export default function Index() {
     }
     try {
       setWaitlistLoading(true);
-      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({
+      const {
+        error
+      } = await (supabase.from("waitlist_signups" as any) as any).insert({
         email,
         source: "landing"
       });
@@ -69,9 +71,7 @@ export default function Index() {
       setWaitlistLoading(false);
     }
   };
-
-  return (
-    <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
+  return <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header - fixed, transparent, centered */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#030712]/60">
         <div className="w-full px-[5%] py-4 flex items-center justify-center gap-8">
@@ -109,23 +109,11 @@ export default function Index() {
                   </Label>
 
                   <div className="flex gap-2">
-                    <Input
-                      id="waitlistEmail"
-                      value={waitlistEmail}
-                      onChange={e => setWaitlistEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 transition-colors"
-                    />
-                    <Button
-                      onClick={submitWaitlist}
-                      disabled={waitlistLoading}
-                      className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/25 transition-all duration-300"
-                    >
-                      {waitlistLoading ? "Joining…" : (
-                        <span className="inline-flex items-center gap-2">
+                    <Input id="waitlistEmail" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} placeholder="you@example.com" className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 transition-colors" />
+                    <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/25 transition-all duration-300">
+                      {waitlistLoading ? "Joining…" : <span className="inline-flex items-center gap-2">
                           <Mail className="h-4 w-4" /> Join
-                        </span>
-                      )}
+                        </span>}
                     </Button>
                   </div>
 
@@ -148,47 +136,32 @@ export default function Index() {
         <section id="features" className="relative w-full py-20 lg:py-28 bg-[#030712]">
           {/* Floating particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {particles.map((particle) => (
-              <div
-                key={particle.id}
-                className="lucid-particle"
-                style={{
-                  left: `${particle.x}%`,
-                  top: `${particle.y}%`,
-                  width: `${particle.size}px`,
-                  height: `${particle.size}px`,
-                  opacity: particle.opacity,
-                  animationDelay: `${particle.delay}s`,
-                  animationDuration: `${particle.duration}s`,
-                  '--drift-x': `${particle.driftX}px`,
-                  '--drift-y': `${particle.driftY}px`,
-                } as React.CSSProperties}
-              />
-            ))}
+            {particles.map(particle => <div key={particle.id} className="lucid-particle" style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            opacity: particle.opacity,
+            animationDelay: `${particle.delay}s`,
+            animationDuration: `${particle.duration}s`,
+            '--drift-x': `${particle.driftX}px`,
+            '--drift-y': `${particle.driftY}px`
+          } as React.CSSProperties} />)}
           </div>
 
           {/* Hero content */}
           <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-              TradePeaks - our Dream-Driven Path to Trading Excellence
-            </h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">Dream-Driven Path to Trading Excellence</h1>
             
             <p className="text-white/60 max-w-2xl text-base md:text-lg mb-10">
               Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium"
-                onClick={() => setWaitlistOpen(true)}
-              >
+              <Button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium" onClick={() => setWaitlistOpen(true)}>
                 Get Started
               </Button>
-              <Button
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/5 px-8 py-6 text-base font-medium"
-                onClick={() => navigate("/dashboard")}
-              >
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/5 px-8 py-6 text-base font-medium" onClick={() => navigate("/dashboard")}>
                 Learn More
               </Button>
             </div>
@@ -237,10 +210,7 @@ export default function Index() {
               While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit.
             </p>
 
-            <Button
-              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium"
-              onClick={() => setWaitlistOpen(true)}
-            >
+            <Button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-6 text-base font-medium" onClick={() => setWaitlistOpen(true)}>
               Start Free Trial Today
             </Button>
           </div>
@@ -253,6 +223,5 @@ export default function Index() {
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
