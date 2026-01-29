@@ -130,39 +130,45 @@ export default function Index() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#050A14] relative overflow-hidden">
-      {/* Background stack (3 slices) — layered, not flat */}
+      {/* Background stack — sized to match preview */}
       <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Background 1: Moon and mountains - hero area */}
         <div
-          className="absolute top-0 left-0 right-0 h-[55vh] bg-no-repeat bg-top bg-cover opacity-90"
+          className="absolute top-0 left-0 right-0 h-[100vh] bg-no-repeat bg-top bg-cover"
           style={{ backgroundImage: `url(${bg1})` }}
         />
+        {/* Background 2: Forest/trees - mid section */}
         <div
-          className="absolute top-[55vh] left-0 right-0 h-[55vh] bg-no-repeat bg-center bg-cover opacity-90"
+          className="absolute top-[85vh] left-0 right-0 h-[80vh] bg-no-repeat bg-top bg-cover"
           style={{ backgroundImage: `url(${bg2})` }}
         />
+        {/* Background 3: Bottom section */}
         <div
-          className="absolute top-[110vh] left-0 right-0 h-[70vh] bg-no-repeat bg-bottom bg-cover opacity-95"
+          className="absolute top-[150vh] left-0 right-0 h-[80vh] bg-no-repeat bg-top bg-cover"
           style={{ backgroundImage: `url(${bg3})` }}
         />
 
-        {/* Seam blends + fog between slices */}
-        <div className="absolute top-[52vh] left-0 right-0 h-[8vh] bg-gradient-to-b from-transparent via-black/40 to-black/60" />
-        <div className="absolute top-[105vh] left-0 right-0 h-[10vh] bg-gradient-to-b from-transparent via-black/50 to-black/70" />
-        <div className="absolute bottom-0 left-0 right-0 h-[35vh] bg-gradient-to-t from-[#050A14] via-[#050A14]/80 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-[25vh] opacity-40 blur-3xl bg-[radial-gradient(closest-side_at_50%_90%,rgba(76,201,255,0.25),transparent)]" />
+        {/* Seamless blends between slices */}
+        <div className="absolute top-[80vh] left-0 right-0 h-[15vh] bg-gradient-to-b from-transparent via-[#050A14]/60 to-[#050A14]/80" />
+        <div className="absolute top-[145vh] left-0 right-0 h-[15vh] bg-gradient-to-b from-transparent via-[#050A14]/60 to-[#050A14]/80" />
+        
+        {/* Bottom fade to solid */}
+        <div className="absolute bottom-0 left-0 right-0 h-[40vh] bg-gradient-to-t from-[#050A14] via-[#050A14]/90 to-transparent" />
+        
+        {/* Subtle glow effects */}
+        <div className="absolute bottom-0 left-0 right-0 h-[30vh] opacity-30 blur-3xl bg-[radial-gradient(closest-side_at_50%_90%,rgba(76,201,255,0.2),transparent)]" />
 
-        {/* Strong vignette — dark edges, brighter center */}
+        {/* Vignette for depth */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 70% 60% at 50% 45%, transparent 0%, transparent 45%, rgba(5,10,20,0.4) 70%, rgba(0,0,0,0.85) 100%)",
+              "radial-gradient(ellipse 80% 70% at 50% 40%, transparent 0%, transparent 50%, rgba(5,10,20,0.3) 75%, rgba(0,0,0,0.7) 100%)",
           }}
         />
 
-        {/* Top moon glow haze */}
-        <div className="absolute inset-0 bg-[radial-gradient(90rem_50rem_at_50%_-15%,rgba(96,165,250,0.22),rgba(59,130,246,0.08)_40%,transparent_65%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(50rem_30rem_at_50%_120%,rgba(46,107,255,0.12),transparent_55%)]" />
+        {/* Moon glow enhancement */}
+        <div className="absolute inset-0 bg-[radial-gradient(60rem_40rem_at_50%_5%,rgba(96,165,250,0.15),transparent_50%)]" />
       </div>
       {/* Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
