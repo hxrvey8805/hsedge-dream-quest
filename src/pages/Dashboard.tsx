@@ -294,9 +294,8 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
-            <h1 className="text-xl font-bold">
-          </h1>
+            <img src={logo} alt="TradePeaks" className="h-10 w-10" />
+            <h1 className="text-xl font-bold">TradePeaks</h1>
           </div>
           <nav className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate(`/statistics${selectedAccount ? `?accountId=${selectedAccount}` : ''}`)}>
