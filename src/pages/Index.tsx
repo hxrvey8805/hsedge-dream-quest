@@ -2,153 +2,149 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Trophy, Zap } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
-import { useMemo, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+
 const Index = () => {
   const navigate = useNavigate();
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate sparse stars for Twin Peaks atmosphere
-  const stars = useMemo(() => {
-    return Array.from({
-      length: 25
-    }, (_, i) => ({
+  // Track mouse position for magnetic particles
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Generate deep blue illuminated floating particles with base positions
+  const lucidParticles = useMemo(() => {
+    return Array.from({ length: 40 }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 40, // Only in upper portion
-      size: Math.random() * 2 + 1,
-      delay: Math.random() * 5,
-      duration: 3 + Math.random() * 4
+      baseX: Math.random() * 100,
+      baseY: Math.random() * 100,
+      delay: Math.random() * 10,
+      duration: 20 + Math.random() * 25,
+      size: Math.random() * 6 + 3,
+      opacity: 0.5 + Math.random() * 0.5,
+      driftX: Math.random() * 150 - 75,
+      driftY: Math.random() * 100 + 50,
+      magnetStrength: 0.15 + Math.random() * 0.2
     }));
   }, []);
 
-  return <div ref={containerRef} className="min-h-screen bg-[#0a0f1a] relative overflow-hidden">
-      {/* Glowing Moon */}
-      <div className="absolute top-[8%] left-1/2 -translate-x-1/2 pointer-events-none z-0">
+  // Calculate magnetic offset for each particle
+  const getParticleStyle = (particle: typeof lucidParticles[0]) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const particleX = (particle.baseX / 100) * rect.width;
+    const particleY = (particle.baseY / 100) * rect.height;
+    const dx = mousePos.x - particleX;
+    const dy = mousePos.y - particleY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const maxDistance = 350;
+    const strength = Math.max(0, 1 - distance / maxDistance) * particle.magnetStrength;
+    
+    return {
+      x: dx * strength * 0.5,
+      y: dy * strength * 0.5
+    };
+  };
+
+  return (
+    <div ref={containerRef} className="min-h-screen bg-[#070C1A] relative overflow-hidden">
+      {/* Glowing Moon - positioned BEHIND mountains with lower z-index */}
+      <div className="absolute top-[12%] left-1/2 -translate-x-1/2 pointer-events-none" style={{ zIndex: 1 }}>
         {/* Outer glow rings */}
-        <div className="absolute inset-0 w-[280px] h-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-amber-100/20 via-amber-200/5 to-transparent blur-3xl" />
-        <div className="absolute inset-0 w-[200px] h-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-amber-50/30 via-orange-100/10 to-transparent blur-2xl" />
+        <div 
+          className="absolute w-[350px] h-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(255, 240, 200, 0.15) 0%, rgba(255, 220, 150, 0.05) 50%, transparent 70%)' }}
+        />
+        <div 
+          className="absolute w-[220px] h-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+          style={{ background: 'radial-gradient(circle, rgba(255, 250, 230, 0.25) 0%, rgba(255, 230, 180, 0.1) 50%, transparent 70%)' }}
+        />
         {/* Moon body */}
         <div 
-          className="moon w-[120px] h-[120px] rounded-full relative -translate-x-1/2 -translate-y-1/2"
+          className="moon w-[140px] h-[140px] rounded-full relative -translate-x-1/2 -translate-y-1/2"
           style={{
             background: 'radial-gradient(circle at 35% 35%, #fff9e6 0%, #f5e6c8 30%, #e8d4a8 60%, #d4b896 100%)',
-            boxShadow: '0 0 60px rgba(255, 245, 200, 0.5), 0 0 120px rgba(255, 220, 150, 0.3), inset -10px -10px 20px rgba(200, 170, 120, 0.3)'
+            boxShadow: '0 0 80px rgba(255, 245, 200, 0.6), 0 0 150px rgba(255, 220, 150, 0.4), inset -12px -12px 25px rgba(200, 170, 120, 0.3)'
           }}
         />
       </div>
 
-      {/* Twin Peaks Mountain Silhouettes */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg className="absolute bottom-0 left-0 w-full h-[70%]" viewBox="0 0 1200 500" preserveAspectRatio="none">
+      {/* Natural Mountain Silhouettes - positioned IN FRONT of moon */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 2 }}>
+        <svg className="absolute bottom-0 left-0 w-full h-[65%]" viewBox="0 0 1200 450" preserveAspectRatio="none">
           <defs>
-            {/* Gradient for distant mountains */}
             <linearGradient id="distantMountain" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(45, 55, 92, 0.4)" />
-              <stop offset="100%" stopColor="rgba(25, 32, 55, 0.6)" />
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.06)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.08)" />
             </linearGradient>
-            {/* Gradient for mid mountains */}
             <linearGradient id="midMountain" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(35, 48, 82, 0.7)" />
-              <stop offset="100%" stopColor="rgba(18, 25, 45, 0.85)" />
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.1)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.12)" />
             </linearGradient>
-            {/* Gradient for twin peaks - with warm highlight */}
-            <linearGradient id="twinPeaks" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(60, 75, 110, 0.8)" />
-              <stop offset="30%" stopColor="rgba(40, 55, 90, 0.85)" />
-              <stop offset="100%" stopColor="rgba(15, 22, 40, 0.95)" />
+            <linearGradient id="heroPeak" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(96, 165, 250, 0.14)" />
+              <stop offset="100%" stopColor="rgba(37, 99, 235, 0.16)" />
             </linearGradient>
-            {/* Foreground gradient */}
-            <linearGradient id="foreground" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(12, 18, 35, 0.95)" />
-              <stop offset="100%" stopColor="rgba(10, 15, 26, 1)" />
-            </linearGradient>
-            {/* Mist gradient */}
-            <linearGradient id="mistGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(80, 100, 140, 0)" />
-              <stop offset="50%" stopColor="rgba(80, 100, 140, 0.15)" />
-              <stop offset="100%" stopColor="rgba(80, 100, 140, 0)" />
+            <linearGradient id="foregroundRidge" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(30, 64, 175, 0.08)" />
+              <stop offset="100%" stopColor="rgba(15, 23, 42, 0.12)" />
             </linearGradient>
           </defs>
           
-          {/* Far distant range - very hazy */}
-          <path d="M0,500 L0,320 L100,280 L200,300 L350,250 L500,290 L650,240 L800,270 L950,230 L1100,260 L1200,240 L1200,500 Z" fill="url(#distantMountain)" />
+          {/* Distant range - soft, natural curves */}
+          <path d="M0,450 L0,300 Q75,260 150,280 Q225,240 300,270 Q400,220 500,250 Q600,200 700,230 Q800,190 900,220 Q1000,180 1100,210 L1200,190 L1200,450 Z" fill="url(#distantMountain)" />
           
-          {/* Mid-layer rolling hills with subtle peaks */}
-          <path d="M0,500 L0,350 L80,320 L180,340 L280,290 L400,330 L520,280 L680,310 L780,270 L880,300 L1000,260 L1120,290 L1200,270 L1200,500 Z" fill="url(#midMountain)" />
+          {/* Mid-layer - rolling natural hills */}
+          <path d="M0,450 L0,340 Q100,300 200,320 Q320,270 450,300 Q550,250 650,280 Q750,230 850,260 Q950,220 1050,250 Q1150,230 1200,240 L1200,450 Z" fill="url(#midMountain)" />
           
-          {/* Mist layer 1 */}
-          <rect x="-50" y="300" width="1300" height="60" fill="url(#mistGradient)" className="mist-layer" style={{ opacity: 0.5 }} />
+          {/* Hero peak - prominent natural mountain with gentle slopes */}
+          <path d="M300,450 Q400,380 480,280 Q530,200 600,140 Q670,200 720,280 Q800,380 900,450 Z" fill="url(#heroPeak)" />
+          {/* Snow cap on hero peak */}
+          <path d="M600,140 Q615,165 630,180 L600,175 L570,180 Q585,165 600,140 Z" fill="rgba(255, 255, 255, 0.1)" />
           
-          {/* THE TWIN PEAKS - signature silhouette */}
-          <path d="M350,500 L500,180 L550,220 L600,160 L650,220 L700,180 L850,500 Z" fill="url(#twinPeaks)" />
-          {/* Snow caps on twin peaks */}
-          <path d="M500,180 L515,210 L485,210 Z" fill="rgba(255, 255, 255, 0.12)" />
-          <path d="M700,180 L715,210 L685,210 Z" fill="rgba(255, 255, 255, 0.12)" />
-          {/* Moon glow reflection on peaks */}
-          <path d="M550,220 L600,160 L650,220 L600,200 Z" fill="rgba(255, 240, 200, 0.08)" />
-          
-          {/* Mist layer 2 - between peaks and foreground */}
-          <rect x="-50" y="380" width="1300" height="50" fill="url(#mistGradient)" className="mist-layer" style={{ opacity: 0.7, animationDelay: '-10s' }} />
-          
-          {/* Foreground ridge with pine tree silhouettes */}
-          <path d="M0,500 L0,420 L40,410 L80,420 L120,400 L160,415 L200,395 L250,410 L300,390 L350,405 L400,385 L450,400 L500,380 L550,395 L600,375 L650,390 L700,370 L750,385 L800,365 L850,380 L900,360 L950,375 L1000,355 L1050,370 L1100,350 L1150,365 L1200,345 L1200,500 Z" fill="url(#foreground)" />
-          
-          {/* Pine tree silhouettes on foreground ridge */}
-          {/* Left side trees */}
-          <path d="M50,420 L55,395 L60,420 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M70,418 L77,388 L84,418 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M130,405 L138,370 L146,405 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M150,408 L156,380 L162,408 Z" fill="rgba(8, 12, 22, 1)" />
-          {/* Center trees */}
-          <path d="M580,378 L590,340 L600,378 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M610,380 L618,350 L626,380 Z" fill="rgba(8, 12, 22, 1)" />
-          {/* Right side trees */}
-          <path d="M950,365 L960,325 L970,365 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M1020,360 L1030,320 L1040,360 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M1080,355 L1092,310 L1104,355 Z" fill="rgba(8, 12, 22, 1)" />
-          <path d="M1130,362 L1140,328 L1150,362 Z" fill="rgba(8, 12, 22, 1)" />
+          {/* Foreground ridge - natural undulating terrain */}
+          <path d="M0,450 L0,380 Q60,365 120,375 Q180,355 240,370 Q320,350 400,365 Q480,345 560,360 Q640,340 720,355 Q800,335 880,350 Q960,330 1040,345 Q1120,325 1200,340 L1200,450 Z" fill="url(#foregroundRidge)" />
         </svg>
       </div>
 
-      {/* Atmospheric gradient overlay */}
-      <div className="absolute inset-0 pointer-events-none z-0" style={{
-        background: `
-          radial-gradient(
-            ellipse 100% 60% at 50% 15%,
-            rgba(255, 220, 150, 0.08),
-            transparent 50%
-          ),
-          radial-gradient(
-            ellipse 80% 40% at 50% 100%,
-            rgba(10, 15, 26, 0.9),
-            transparent 60%
-          ),
-          linear-gradient(
-            to bottom,
-            rgba(15, 20, 35, 0.3) 0%,
-            transparent 30%,
-            transparent 70%,
-            rgba(10, 15, 26, 0.5) 100%
-          )
-        `
-      }} />
+      {/* Radial gradient overlay background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 3, background: `
+        radial-gradient(80rem 40rem at 50% -10%, rgba(16, 40, 90, 0.55), transparent 60%),
+        radial-gradient(60rem 30rem at 50% 120%, rgba(7, 12, 26, 0.8), transparent 60%)
+      ` }} />
 
-      {/* Sparse twinkling stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        {stars.map(star => (
-          <div 
-            key={star.id} 
-            className="star absolute rounded-full bg-white"
-            style={{
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              animationDelay: `${star.delay}s`,
-              animationDuration: `${star.duration}s`,
-            }}
-          />
-        ))}
+      {/* Floating particles container - original blue magnetic dots */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 4 }}>
+        {lucidParticles.map(particle => {
+          const magnetOffset = getParticleStyle(particle);
+          return (
+            <div
+              key={particle.id}
+              className="lucid-particle"
+              style={{
+                left: `${particle.baseX}%`,
+                top: `${particle.baseY}%`,
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                '--drift-x': `${particle.driftX}px`,
+                '--drift-y': `${particle.driftY}px`,
+                transform: `translate(${magnetOffset.x}px, ${magnetOffset.y}px)`,
+                transition: 'transform 0.3s ease-out'
+              } as React.CSSProperties}
+            />
+          );
+        })}
       </div>
       
       <header className="border-b border-blue-500/30 bg-black/40 backdrop-blur-md sticky top-0 z-50 relative">
@@ -176,15 +172,15 @@ const Index = () => {
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 animate-fade-in">
               <h1 className="text-7xl md:text-8xl font-light italic" style={{
-              fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
-              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 60px rgba(59, 130, 246, 0.6), 0 0 120px rgba(34, 211, 238, 0.3)',
-              letterSpacing: '0.08em',
-              fontWeight: 300,
-              filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
-            }}>TradePeaks</h1>
+                fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
+                background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 60px rgba(59, 130, 246, 0.6), 0 0 120px rgba(34, 211, 238, 0.3)',
+                letterSpacing: '0.08em',
+                fontWeight: 300,
+                filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))'
+              }}>TradePeaks</h1>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent animate-fade-in">Your Dream-Driven Path to Trading Excellence</h2>
             <p className="text-xl text-blue-100/80 mb-8 animate-fade-in italic font-light">Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.</p>
@@ -253,6 +249,8 @@ const Index = () => {
           <p>© 2025 TradePeaks. All rights reserved.</p>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
