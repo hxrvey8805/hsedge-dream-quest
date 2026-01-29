@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LayoutDashboard, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import logo from "@/assets/tp-logo.png";
 import bg1 from "@/assets/landing/background/background1.png";
 import bg2 from "@/assets/landing/background/background2.png";
@@ -57,141 +57,245 @@ export default function Index() {
   };
 
   return (
-    <div className="relative w-full">
-      {/* Header - fixed, transparent */}
+    <div className="relative w-full bg-[#050A14]">
+      {/* Header - fixed, transparent, centered */}
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <img src={logo} alt="TradePeaks" className="h-7 w-7" />
-          </div>
-
-          <nav className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-center gap-8">
+          <img src={logo} alt="TradePeaks" className="h-6 w-6" />
+          
+          <nav className="flex items-center gap-6">
             <a href="#features" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Features</a>
-            <a href="#analysis" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Analysis</a>
-            <a href="#why" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Why TradePeaks</a>
+            <a href="#analytics" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Analytics</a>
+            <a href="#playbooks" className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">Playbooks</a>
             <button type="button" onClick={() => navigate("/pricing")} className="text-xs text-blue-100/80 hover:text-white transition whitespace-nowrap">
               Pricing
             </button>
-
-            <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-blue-600/25 text-blue-100 hover:bg-blue-600/35 border border-blue-400/25 shadow-lg shadow-blue-500/20 text-xs px-3 py-1 h-7">
-                  Join Waitlist
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-[520px] bg-black/80 backdrop-blur-xl border border-blue-500/25 text-foreground">
-                <DialogHeader>
-                  <DialogTitle className="text-xl">Join the TradePeaks waitlist</DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4">
-                  <p className="text-sm text-blue-100/70">
-                    We're polishing onboarding. Drop your email and you'll be first in when it opens.
-                  </p>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="waitlistEmail" className="text-blue-100/80">
-                      Email
-                    </Label>
-
-                    <div className="flex gap-2">
-                      <Input
-                        id="waitlistEmail"
-                        value={waitlistEmail}
-                        onChange={e => setWaitlistEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="bg-black/40 border-blue-500/25 text-blue-50 placeholder:text-blue-100/40"
-                      />
-                      <Button
-                        onClick={submitWaitlist}
-                        disabled={waitlistLoading}
-                        className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
-                      >
-                        {waitlistLoading ? "Joining…" : (
-                          <span className="inline-flex items-center gap-2">
-                            <Mail className="h-4 w-4" /> Join
-                          </span>
-                        )}
-                      </Button>
-                    </div>
-
-                    <p className="text-xs text-blue-100/50">No spam. One email when onboarding opens.</p>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
           </nav>
+
+          <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 text-xs px-4 py-1 h-7 rounded-full">
+                Log in
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="max-w-[520px] bg-black/80 backdrop-blur-xl border border-blue-500/25 text-foreground">
+              <DialogHeader>
+                <DialogTitle className="text-xl">Join the TradePeaks waitlist</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <p className="text-sm text-blue-100/70">
+                  We're polishing onboarding. Drop your email and you'll be first in when it opens.
+                </p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="waitlistEmail" className="text-blue-100/80">
+                    Email
+                  </Label>
+
+                  <div className="flex gap-2">
+                    <Input
+                      id="waitlistEmail"
+                      value={waitlistEmail}
+                      onChange={e => setWaitlistEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="bg-black/40 border-blue-500/25 text-blue-50 placeholder:text-blue-100/40"
+                    />
+                    <Button
+                      onClick={submitWaitlist}
+                      disabled={waitlistLoading}
+                      className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/30"
+                    >
+                      {waitlistLoading ? "Joining…" : (
+                        <span className="inline-flex items-center gap-2">
+                          <Mail className="h-4 w-4" /> Join
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-blue-100/50">No spam. One email when onboarding opens.</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
-      {/* Background images stacked vertically */}
+      {/* Background images stacked vertically with content overlays */}
       <div className="w-full">
-        {/* Background 1 - Hero with TP logo, moon, mountains, headline */}
+        {/* Background 1 - Hero section */}
         <div className="relative w-full">
           <img src={bg1} alt="" className="w-full h-auto" />
           
-          {/* Interactive overlay for hero section - buttons positioned over the image */}
-          <div className="absolute inset-0 flex flex-col items-center justify-end pb-[8%]">
-            <div className="flex flex-col sm:flex-row gap-3 justify-center px-4">
-              <Button 
-                size="lg" 
-                className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30"
-                onClick={() => setWaitlistOpen(true)}
-              >
-                Start Free
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/40 text-white hover:bg-white/10 hover:border-white/60"
-                onClick={() => navigate("/dashboard")}
-              >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Your Dashboard
-              </Button>
-            </div>
+          {/* Hero content overlay - positioned at bottom of bg1 */}
+          <div className="absolute inset-x-0 bottom-0 pb-[5%]">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+                {/* Left side - Text content */}
+                <div className="lg:col-span-7 text-center lg:text-left">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                    Track Your Trades. Find Your Edge.
+                    <br />
+                    <span className="text-white">Climb Faster.</span>
+                  </h1>
+                  
+                  <p className="mt-4 text-sm md:text-base text-blue-100/70 max-w-lg mx-auto lg:mx-0">
+                    A trading journal built for momentum and scalp traders—imports your executions, 
+                    grades your process, and shows you exactly where your performance peaks.
+                  </p>
 
-            {/* Today's Score Card */}
-            <Card className="mt-6 mx-4 max-w-sm bg-black/55 backdrop-blur-xl border border-blue-500/25 shadow-[0_0_40px_rgba(59,130,246,0.12)] overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-widest text-blue-100/60">Today's Score</p>
-                    <p className="text-xl font-semibold text-white">
-                      8.2 <span className="text-sm text-blue-100/60">/ 10</span>
-                    </p>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-500 text-white border-0 shadow-lg shadow-blue-500/30 px-6"
+                      onClick={() => setWaitlistOpen(true)}
+                    >
+                      Start Free
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-6"
+                      onClick={() => navigate("/dashboard")}
+                    >
+                      View Dashboard
+                    </Button>
                   </div>
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600/50 to-cyan-400/40 border border-blue-500/25" />
+
+                  {/* Feature highlights */}
+                  <div className="mt-6 flex flex-wrap gap-4 justify-center lg:justify-start text-xs text-blue-100/50">
+                    <span>Auto-imports executions</span>
+                    <span>·</span>
+                    <span>Setup tagging + playbooks</span>
+                    <span>·</span>
+                    <span>Stats that actually matter</span>
+                  </div>
                 </div>
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between rounded-lg border border-blue-500/20 bg-black/40 px-2.5 py-2">
-                    <span className="text-xs text-blue-100/80">Wins / Losses</span>
-                    <span className="text-xs font-medium text-white">8.2/10</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border border-blue-500/20 bg-black/40 px-2.5 py-2">
-                    <span className="text-xs text-blue-100/80">Mindset</span>
-                    <span className="text-xs font-medium text-white">Neutral</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border border-blue-500/20 bg-black/40 px-2.5 py-2">
-                    <span className="text-xs text-blue-100/80">First 30 Minutes</span>
-                    <span className="text-xs font-medium text-white">On track</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border border-blue-500/20 bg-black/40 px-2.5 py-2">
-                    <span className="text-xs text-blue-100/80">Risk/Reward Ratio Check</span>
-                    <span className="text-xs font-medium text-white">✓</span>
-                  </div>
+
+                {/* Right side - Today's Score Card */}
+                <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                  <Card className="w-full max-w-xs bg-black/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                    <div className="p-4">
+                      <p className="text-xs uppercase tracking-widest text-blue-100/50 mb-3">Today's Score</p>
+                      
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                            <span className="text-xs text-blue-100/70">Discipline</span>
+                          </div>
+                          <span className="text-xs font-medium text-white">8.2 / 10</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                            <span className="text-xs text-blue-100/70">Best Setup</span>
+                          </div>
+                          <span className="text-xs font-medium text-white">Pullback</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                            <span className="text-xs text-blue-100/70">Peak Window</span>
+                          </div>
+                          <span className="text-xs font-medium text-white">14:32 – 14:51</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                            <span className="text-xs text-blue-100/70">Mistake Flag</span>
+                          </div>
+                          <span className="text-xs font-medium text-white">Chased extension</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
 
-        {/* Background 2 - Mid section */}
-        <img src={bg2} alt="" className="w-full h-auto" id="features" />
+        {/* Background 2 - Why TradePeaks section */}
+        <div className="relative w-full" id="features">
+          <img src={bg2} alt="" className="w-full h-auto" />
+          
+          {/* Why TradePeaks content overlay */}
+          <div className="absolute inset-0 flex flex-col justify-start pt-[8%]">
+            <div className="container mx-auto px-4">
+              <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
+                Why TradePeaks
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                {/* Left - Feature list */}
+                <div>
+                  <h3 className="text-lg md:text-xl font-semibold text-white mb-4">
+                    Performance that's<br />actually tradable
+                  </h3>
+                  
+                  <div className="space-y-2.5">
+                    {[
+                      "Expectancy by setup (R-based)",
+                      "Win rate by time window",
+                      "Best tickers + catalysts",
+                      "Heatmaps: time + setup + volatility",
+                      "Rule breaks & 'tilt' moments"
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-blue-100/80">
+                        <span className="text-cyan-400">✓</span>
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    className="mt-6 bg-transparent border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 px-5"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    See a Live Example
+                  </Button>
+                </div>
 
-        {/* Background 3 - Bottom section */}
-        <img src={bg3} alt="" className="w-full h-auto" id="why" />
+                {/* Right - Dashboard preview placeholder */}
+                <div className="hidden lg:block">
+                  {/* Dashboard preview is part of bg2 image */}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Background 3 - System section */}
+        <div className="relative w-full" id="analytics">
+          <img src={bg3} alt="" className="w-full h-auto" />
+          
+          {/* The TradePeaks System content overlay */}
+          <div className="absolute inset-0 flex flex-col justify-start pt-[5%]">
+            <div className="container mx-auto px-4">
+              <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
+                The TradePeaks System
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                {[
+                  { num: "1.", title: "Import", desc: "Paste trades from your broker CSV, or enter them manually." },
+                  { num: "2.", title: "Tag", desc: "Setup tagging, emotional state, playbook alignment." },
+                  { num: "3.", title: "Improve", desc: "Personalized insights, performance tracking over time." }
+                ].map((step) => (
+                  <div key={step.num} className="text-center">
+                    <div className="text-3xl font-light text-blue-400 mb-2">{step.num}</div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+                    <p className="text-xs text-blue-100/60">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Footer */}
