@@ -100,7 +100,8 @@ export default function Index() {
     try {
       setWaitlistLoading(true);
 
-      const { error } = await supabase.from("waitlist_signups").insert({ email, source: "landing" });
+      // Type assertion needed until types regenerate
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email, source: "landing" });
 
       if (error) {
         const msg = (error as any)?.message?.toLowerCase?.() || "";
