@@ -13,6 +13,7 @@ import Accounts from "./pages/Accounts";
 import Goals from "./pages/Goals";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import Playbooks from "./pages/Playbooks";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/dream-builder" element={<DreamBuilder />} />
+          <Route path="/playbooks" element={<Playbooks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
