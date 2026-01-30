@@ -150,7 +150,7 @@ export default function Index() {
 
           {/* Hero content */}
           <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">WELCOME TO TWIN PEAKS</h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 font-serif text-primary">WELCOME TO TWIN PEAKS</h1>
             
             <p className="text-white/60 max-w-2xl text-base md:text-lg mb-10">
               Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
