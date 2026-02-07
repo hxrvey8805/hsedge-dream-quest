@@ -150,7 +150,18 @@ export default function Index() {
 
           {/* Hero content */}
           <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 font-serif" style={{ WebkitTextStroke: '1.5px hsl(212, 98%, 62%)', color: 'transparent' }}>WELCOME TO TRADE PEAKS</h1>
+            <h1
+              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 font-serif tracking-wider"
+              style={{
+                color: 'transparent',
+                textShadow: `
+                  -1px -1px 0 hsl(212, 98%, 62%),
+                   1px -1px 0 hsl(212, 98%, 62%),
+                  -1px  1px 0 hsl(212, 98%, 62%),
+                   1px  1px 0 hsl(212, 98%, 62%)
+                `,
+              }}
+            >WELCOME TO TRADE PEAKS</h1>
             
             <p className="text-white/60 max-w-2xl text-base md:text-lg mb-10">
               Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
