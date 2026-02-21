@@ -431,16 +431,20 @@ const Dashboard = () => {
             />
           </Card>
 
-          {/* Right Column - 2x2 Stats + Equity Curve */}
-          <div className="space-y-6 flex flex-col">
-            <FourStatsGrid {...statsProps} />
-            <EquityCurve 
-              refreshTrigger={refreshTrigger} 
-              viewMode={viewMode}
-              monthSwitchEnabled={monthSwitchEnabled}
-              currentMonth={currentMonth}
-              selectedAccountId={selectedAccount}
-            />
+          {/* Right Column - 2x2 Stats + Equity Curve, match calendar height */}
+          <div className="flex flex-col h-full min-h-0">
+            <div className="flex-1 min-h-0">
+              <FourStatsGrid {...statsProps} />
+            </div>
+            <div className="flex-1 min-h-0 mt-4">
+              <EquityCurve 
+                refreshTrigger={refreshTrigger} 
+                viewMode={viewMode}
+                monthSwitchEnabled={monthSwitchEnabled}
+                currentMonth={currentMonth}
+                selectedAccountId={selectedAccount}
+              />
+            </div>
           </div>
         </div>
       </div>

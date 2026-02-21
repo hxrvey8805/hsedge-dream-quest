@@ -279,9 +279,9 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 h-full">
         {/* Trade Win % */}
-        <Card className="p-3 bg-card border-border">
+        <Card className="p-4 bg-card border-border flex flex-col justify-center">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Trade Win %</span>
             <Tooltip>
@@ -298,7 +298,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Profit Factor */}
-        <Card className="p-3 bg-card border-border">
+        <Card className="p-4 bg-card border-border flex flex-col justify-center">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Profit Factor</span>
             <Tooltip>
@@ -317,7 +317,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Day Win % */}
-        <Card className="p-3 bg-card border-border">
+        <Card className="p-4 bg-card border-border flex flex-col justify-center">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Day Win %</span>
             <Tooltip>
@@ -334,7 +334,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Avg Win/Loss */}
-        <Card className="p-3 bg-card border-border">
+        <Card className="p-4 bg-card border-border flex flex-col justify-center">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground uppercase tracking-wide">Avg Win/Loss</span>
             <Tooltip>
