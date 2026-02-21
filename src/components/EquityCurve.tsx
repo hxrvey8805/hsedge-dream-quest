@@ -177,7 +177,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
   };
 
   return (
-    <div className="flex-1 mt-auto">
+    <div className="flex-1 mt-auto flex flex-col h-full">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
@@ -194,7 +194,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
         </div>
       </div>
 
-      <div className="h-32 w-full">
+      <div className="flex-1 min-h-[120px] w-full">
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
