@@ -348,7 +348,7 @@ const Dashboard = () => {
                   Undo Last Import
                 </Button>
               </div>
-              <div className="relative flex items-center gap-2 transition-all duration-300">
+              <div className="relative flex flex-col gap-2 transition-all duration-300">
                 {/* Pips / P&L Toggle */}
                 <button
                   onClick={() => setViewMode(viewMode === 'pips' ? 'profit' : 'pips')}
