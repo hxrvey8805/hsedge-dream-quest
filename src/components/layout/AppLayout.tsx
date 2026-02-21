@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard" },
@@ -11,6 +12,7 @@ const navItems = [
   { label: "Accounts", path: "/accounts" },
   { label: "Goals", path: "/goals" },
   { label: "Dream Builder", path: "/dream-builder" },
+  { label: "Playbooks", path: "/playbooks" },
 ];
 
 export const AppLayout = () => {
@@ -54,7 +56,11 @@ export const AppLayout = () => {
                   >
                     {item.label}
                     {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full" />
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
                     )}
                   </button>
                 );
@@ -76,7 +82,18 @@ export const AppLayout = () => {
         </div>
       </header>
       <main className="flex-1 w-full">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="h-full"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

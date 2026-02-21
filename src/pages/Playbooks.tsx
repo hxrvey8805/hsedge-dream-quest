@@ -94,27 +94,11 @@ export default function Playbooks() {
         ))}
       </div>
 
-      {/* Header */}
-      <header className="border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-              className="text-white/60 hover:text-white hover:bg-white/5"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logo} alt="TradePeaks" className="h-8 w-auto object-contain" />
-            <span className="text-lg font-semibold text-white">The Vault</span>
-          </div>
-          <div className="flex items-center gap-2 text-white/40">
-            <Lock className="h-4 w-4" />
-            <span className="text-xs uppercase tracking-widest">Sacred Knowledge</span>
-          </div>
-        </div>
-      </header>
+      {/* Header accent bar */}
+      <div className="relative z-10 flex items-center justify-center gap-2 py-3 text-white/40 border-b border-white/5">
+        <Lock className="h-4 w-4" />
+        <span className="text-xs uppercase tracking-widest">Sacred Knowledge — The Vault</span>
+      </div>
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 px-[5%]">

@@ -49,23 +49,7 @@ const DreamBuilder = () => {
     setSelectedDreamId(null);
     setViewMode("list");
   };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="HS-Edge" className="h-10 w-10" />
-            <div>
-              
-              
-            </div>
-          </div>
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-        </div>
-      </header>
-
+  return <div className="bg-gradient-to-br from-background via-primary/5 to-background">
       <main className="container mx-auto px-4 py-8">
         {viewMode === "list" ? <>
             <div className="mb-8 text-center max-w-3xl mx-auto">
