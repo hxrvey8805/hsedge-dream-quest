@@ -361,7 +361,7 @@ export const DashboardStats = ({
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-5 gap-4 w-full max-w-[1800px]">
+      <div className="grid grid-cols-1 gap-4 w-full">
         {/* Net P&L */}
         <Card className="p-4 bg-card border-border">
           <div className="flex items-center justify-between mb-2">

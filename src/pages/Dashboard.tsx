@@ -12,8 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
-import { RiskManagement } from "@/components/RiskManagement";
-import { StrategyChecklist } from "@/components/StrategyChecklist";
 import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
@@ -312,19 +310,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards - New Dashboard Stats Component */}
-        <div className="flex justify-center mb-8">
-          <DashboardStats
-            accounts={accounts}
-            selectedAccountId={selectedAccount}
-            monthSwitchEnabled={monthSwitchEnabled}
-            currentMonth={currentMonth}
-            refreshTrigger={refreshTrigger}
-            viewMode={viewMode}
-          />
-        </div>
-
-        {/* Main Content - Two Column Layout with larger calendar */}
+        {/* Main Content - Two Column Layout */}
         <div className="grid lg:grid-cols-[2fr_1fr] gap-6 max-w-[1800px] mx-auto">
           {/* Left Column - Trading Calendar */}
           <Card className="p-8 bg-card border-border">
@@ -435,10 +421,16 @@ const Dashboard = () => {
             />
           </Card>
 
-          {/* Right Column - Risk Management, Strategy Checklist, and Equity Curve */}
+          {/* Right Column - Stats + Equity Curve */}
           <div className="space-y-6 flex flex-col">
-            <RiskManagement />
-            <StrategyChecklist />
+            <DashboardStats
+              accounts={accounts}
+              selectedAccountId={selectedAccount}
+              monthSwitchEnabled={monthSwitchEnabled}
+              currentMonth={currentMonth}
+              refreshTrigger={refreshTrigger}
+              viewMode={viewMode}
+            />
             <EquityCurve 
               refreshTrigger={refreshTrigger} 
               viewMode={viewMode}
