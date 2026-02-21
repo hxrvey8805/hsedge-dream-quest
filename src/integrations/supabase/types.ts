@@ -427,52 +427,78 @@ export type Database = {
         }
         Relationships: []
       }
-      playbooks: {
+      playbook_setups: {
         Row: {
           created_at: string
           description: string | null
-          entry_rules: string | null
-          exit_rules: string | null
           id: string
-          is_purchased: boolean
           name: string
-          purchased_playbook_id: string | null
-          screenshots: string[] | null
-          session: string | null
-          time_window_end: string | null
-          time_window_start: string | null
+          playbook_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           description?: string | null
-          entry_rules?: string | null
-          exit_rules?: string | null
           id?: string
-          is_purchased?: boolean
           name: string
-          purchased_playbook_id?: string | null
-          screenshots?: string[] | null
-          session?: string | null
-          time_window_end?: string | null
-          time_window_start?: string | null
+          playbook_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           description?: string | null
-          entry_rules?: string | null
-          exit_rules?: string | null
+          id?: string
+          name?: string
+          playbook_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_setups_playbook_id_fkey"
+            columns: ["playbook_id"]
+            isOneToOne: false
+            referencedRelation: "playbooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playbooks: {
+        Row: {
+          created_at: string
+          description: string | null
+          documentation_notes: string | null
+          file_urls: string[] | null
+          id: string
+          is_purchased: boolean
+          name: string
+          purchased_playbook_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          documentation_notes?: string | null
+          file_urls?: string[] | null
+          id?: string
+          is_purchased?: boolean
+          name: string
+          purchased_playbook_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          documentation_notes?: string | null
+          file_urls?: string[] | null
           id?: string
           is_purchased?: boolean
           name?: string
           purchased_playbook_id?: string | null
-          screenshots?: string[] | null
-          session?: string | null
-          time_window_end?: string | null
-          time_window_start?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -671,6 +697,7 @@ export type Database = {
           risk_to_pay: number | null
           screenshots: string[] | null
           session: string | null
+          setup_id: string | null
           size: number | null
           stop_loss: number | null
           strategy_type: string | null
@@ -708,6 +735,7 @@ export type Database = {
           risk_to_pay?: number | null
           screenshots?: string[] | null
           session?: string | null
+          setup_id?: string | null
           size?: number | null
           stop_loss?: number | null
           strategy_type?: string | null
@@ -745,6 +773,7 @@ export type Database = {
           risk_to_pay?: number | null
           screenshots?: string[] | null
           session?: string | null
+          setup_id?: string | null
           size?: number | null
           stop_loss?: number | null
           strategy_type?: string | null
@@ -756,7 +785,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trades_setup_id_fkey"
+            columns: ["setup_id"]
+            isOneToOne: false
+            referencedRelation: "playbook_setups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trading_income_sources: {
         Row: {

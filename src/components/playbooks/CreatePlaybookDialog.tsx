@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BookOpen, Clock, Save } from "lucide-react";
+import { BookOpen, Save, Upload, X, FileText } from "lucide-react";
 
 interface CreatePlaybookDialogProps {
   open: boolean;
@@ -15,22 +14,48 @@ interface CreatePlaybookDialogProps {
   onCreated: () => void;
 }
 
-const sessions = ["Pre-Market", "Market Open", "Mid-Day", "Power Hour", "After Hours"];
-
 export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePlaybookDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    entry_rules: "",
-    exit_rules: "",
-    time_window_start: "",
-    time_window_end: "",
-    session: "",
-  });
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [documentationNotes, setDocumentationNotes] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (userId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of files) {
+      const filePath = `${userId}/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
+        .from("playbook-files")
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Upload error:", error);
+        continue;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("playbook-files")
+        .getPublicUrl(filePath);
+
+      urls.push(publicUrl);
+    }
+    return urls;
+  };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
+    if (!name.trim()) {
       toast.error("Playbook name is required");
       return;
     }
@@ -40,27 +65,35 @@ export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePl
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      let fileUrls: string[] = [];
+      if (files.length > 0) {
+        setUploading(true);
+        fileUrls = await uploadFiles(user.id);
+        setUploading(false);
+      }
+
       const { error } = await supabase.from("playbooks").insert({
         user_id: user.id,
-        name: form.name.trim(),
-        description: form.description.trim() || null,
-        entry_rules: form.entry_rules.trim() || null,
-        exit_rules: form.exit_rules.trim() || null,
-        time_window_start: form.time_window_start || null,
-        time_window_end: form.time_window_end || null,
-        session: form.session || null,
+        name: name.trim(),
+        description: description.trim() || null,
+        documentation_notes: documentationNotes.trim() || null,
+        file_urls: fileUrls.length > 0 ? fileUrls : null,
       });
 
       if (error) throw error;
 
-      toast.success("Playbook created!");
-      setForm({ name: "", description: "", entry_rules: "", exit_rules: "", time_window_start: "", time_window_end: "", session: "" });
+      toast.success("Playbook added!");
+      setName("");
+      setDescription("");
+      setDocumentationNotes("");
+      setFiles([]);
       onOpenChange(false);
       onCreated();
     } catch (err: any) {
       toast.error(err.message || "Failed to create playbook");
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -70,7 +103,7 @@ export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePl
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <BookOpen className="h-5 w-5 text-primary" />
-            Create New Playbook
+            Add Playbook Documentation
           </DialogTitle>
         </DialogHeader>
 
@@ -79,9 +112,9 @@ export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePl
           <div className="space-y-2">
             <Label className="text-sm font-medium">Playbook Name *</Label>
             <Input
-              placeholder="e.g. Morning Momentum Scalp"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Morning Momentum Strategy"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="bg-secondary/50 border-border"
             />
           </div>
@@ -90,74 +123,67 @@ export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePl
           <div className="space-y-2">
             <Label className="text-sm font-medium">Description</Label>
             <Textarea
-              placeholder="Describe the overall strategy and when to use it..."
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="bg-secondary/50 border-border min-h-[80px]"
+              placeholder="Brief overview of this playbook..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="bg-secondary/50 border-border min-h-[60px]"
             />
           </div>
 
-          {/* Time & Session row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                Window Start
-              </Label>
-              <Input
-                type="time"
-                value={form.time_window_start}
-                onChange={(e) => setForm({ ...form, time_window_start: e.target.value })}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                Window End
-              </Label>
-              <Input
-                type="time"
-                value={form.time_window_end}
-                onChange={(e) => setForm({ ...form, time_window_end: e.target.value })}
-                className="bg-secondary/50 border-border"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Session</Label>
-              <Select value={form.session} onValueChange={(v) => setForm({ ...form, session: v })}>
-                <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Select session" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sessions.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Entry Rules */}
+          {/* Documentation Notes */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-success">Entry Rules</Label>
+            <Label className="text-sm font-medium">Documentation Notes</Label>
             <Textarea
-              placeholder="Define your entry conditions...&#10;• Price above VWAP&#10;• Volume spike > 2x average&#10;• Pullback to EMA 9"
-              value={form.entry_rules}
-              onChange={(e) => setForm({ ...form, entry_rules: e.target.value })}
-              className="bg-secondary/50 border-border min-h-[100px] font-mono text-sm"
+              placeholder="Add your strategy documentation, rules, notes, observations..."
+              value={documentationNotes}
+              onChange={(e) => setDocumentationNotes(e.target.value)}
+              className="bg-secondary/50 border-border min-h-[120px] font-mono text-sm"
             />
           </div>
 
-          {/* Exit Rules */}
+          {/* File uploads */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-destructive">Exit Rules</Label>
-            <Textarea
-              placeholder="Define your exit conditions...&#10;• Target: 2R&#10;• Stop: Below entry candle low&#10;• Trail stop after 1R"
-              value={form.exit_rules}
-              onChange={(e) => setForm({ ...form, exit_rules: e.target.value })}
-              className="bg-secondary/50 border-border min-h-[100px] font-mono text-sm"
-            />
+            <Label className="text-sm font-medium">Attach Files (PDFs, Images, Screenshots)</Label>
+            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/30 transition-colors">
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                id="playbook-file-upload"
+              />
+              <label htmlFor="playbook-file-upload" className="cursor-pointer">
+                <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Click to upload files
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  PDFs, images, screenshots
+                </p>
+              </label>
+            </div>
+
+            {files.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {files.map((file, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 border border-border">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-foreground truncate">{file.name}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive flex-shrink-0"
+                      onClick={() => removeFile(i)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <Button
@@ -166,7 +192,7 @@ export function CreatePlaybookDialog({ open, onOpenChange, onCreated }: CreatePl
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-5"
           >
             <Save className="h-4 w-4 mr-2" />
-            {loading ? "Creating..." : "Create Playbook"}
+            {uploading ? "Uploading files..." : loading ? "Saving..." : "Add Playbook"}
           </Button>
         </div>
       </DialogContent>
