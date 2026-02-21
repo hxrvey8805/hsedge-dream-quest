@@ -168,35 +168,35 @@ export default function Index() {
         </section>
 
         {/* Feature Cards */}
-        <section className="relative w-full py-20 lg:py-28 bg-[#030712]">
+        <section className="relative w-full py-12 lg:py-16 bg-[#030712]">
           <div className="relative z-10 px-[5%]">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-8 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors duration-500">
-                  <Mountain className="h-6 w-6 text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-10 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-500">
+                  <Mountain className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Climb Higher</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <h3 className="text-2xl font-semibold text-white mb-3">Climb Higher</h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
                   Each trade is a step up the mountain. Track your ascent and reach new peaks.
                 </p>
               </Card>
 
-              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-8 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors duration-500">
-                  <Target className="h-6 w-6 text-primary" />
+              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-10 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-500">
+                  <Target className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">The Summit Awaits</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <h3 className="text-2xl font-semibold text-white mb-3">The Summit Awaits</h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
                   Chart your course to the peaks. Define your destination and map the journey.
                 </p>
               </Card>
 
-              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-8 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors duration-500">
-                  <LineChart className="h-6 w-6 text-primary" />
+              <Card className="group relative bg-white/[0.03] border border-white/10 hover:border-primary/40 p-10 rounded-2xl backdrop-blur-sm transition-all duration-500 hover:bg-white/[0.06] hover:shadow-[0_0_40px_hsl(212_98%_62%/0.1)]">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-500">
+                  <LineChart className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Read the Terrain</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <h3 className="text-2xl font-semibold text-white mb-3">Read the Terrain</h3>
+                <p className="text-muted-foreground text-base leading-relaxed">
                   Understand every ridge and valley of your trading journey. See the path clearly.
                 </p>
               </Card>
@@ -205,20 +205,22 @@ export default function Index() {
         </section>
 
         {/* But Why Section */}
-        <section id="analytics" className="relative w-full py-24 lg:py-32 bg-[#030712]">
-          <div className="relative z-10 flex flex-col items-center justify-center px-[5%] text-center">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
-              But why?
-            </h2>
-            <div className="w-16 h-1 bg-gradient-to-r from-primary to-primary/40 rounded-full mb-8" />
-            
-            <p className="text-muted-foreground max-w-xl text-base md:text-lg mb-12 leading-relaxed">
-              While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit.
-            </p>
+        <section id="analytics" className="relative w-full py-16 lg:py-20 bg-[#030712]">
+          <div className="relative z-10 flex items-center justify-center px-[5%]">
+            <Card className="max-w-3xl w-full bg-white/[0.03] border border-white/10 rounded-2xl backdrop-blur-sm p-12 md:p-16 text-center">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
+                But why?
+              </h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-primary to-primary/40 rounded-full mb-8 mx-auto" />
+              
+              <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg mb-12 leading-relaxed">
+                While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit.
+              </p>
 
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-10 py-6 text-base font-medium shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40" onClick={() => setWaitlistOpen(true)}>
-              Start Free Trial Today
-            </Button>
+              <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-10 py-6 text-base font-medium shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-blue-500/40" onClick={() => setWaitlistOpen(true)}>
+                Start Free Trial Today
+              </Button>
+            </Card>
           </div>
         </section>
       </main>
