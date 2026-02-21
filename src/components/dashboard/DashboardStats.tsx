@@ -67,7 +67,7 @@ const NetPLGauge = ({ value, max }: { value: number; max: number }) => {
   );
 };
 
-// Arc diagram for win/loss percentages
+// Arc diagram for win/loss percentages - LARGE version for cards
 const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; winCount: number; lossCount: number }) => {
   const winAngle = (winPercent / 100) * 180;
   
@@ -84,7 +84,7 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
   };
 
   return (
-    <svg viewBox="0 0 100 60" className="w-16 h-12">
+    <svg viewBox="0 0 120 70" className="w-full max-w-[140px] h-auto">
       <defs>
         <linearGradient id="winArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="hsl(163 100% 45%)" />
@@ -96,48 +96,51 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
         </linearGradient>
       </defs>
       {winAngle > 0 && (
-        <path d={describeArc(50, 50, 32, 0, Math.max(winAngle, 1))} fill="none" stroke="url(#winArcGradient)" strokeWidth="6" strokeLinecap="round" />
+        <path d={describeArc(60, 55, 40, 0, Math.max(winAngle, 1))} fill="none" stroke="url(#winArcGradient)" strokeWidth="8" strokeLinecap="round" />
       )}
       {winAngle < 180 && (
-        <path d={describeArc(50, 50, 32, Math.min(winAngle, 179), 180)} fill="none" stroke="url(#lossArcGradient)" strokeWidth="6" strokeLinecap="round" />
+        <path d={describeArc(60, 55, 40, Math.min(winAngle, 179), 180)} fill="none" stroke="url(#lossArcGradient)" strokeWidth="8" strokeLinecap="round" />
       )}
-      <circle cx="18" cy="56" r="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
-      <text x="18" y="59" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="8" fontWeight="600">{winCount}</text>
-      <circle cx="82" cy="56" r="8" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
-      <text x="82" y="59" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="8" fontWeight="600">{lossCount}</text>
+      <circle cx="22" cy="65" r="9" fill="hsl(var(--success))" className="drop-shadow-sm" />
+      <text x="22" y="68.5" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="9" fontWeight="700">{winCount}</text>
+      <circle cx="98" cy="65" r="9" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
+      <text x="98" y="68.5" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="9" fontWeight="700">{lossCount}</text>
     </svg>
   );
 };
 
-// Circular progress for Profit Factor
+// Circular progress for Profit Factor - LARGE version
 const ProfitFactorRing = ({ value }: { value: number }) => {
   const maxValue = 3;
   const percent = Math.min(value / maxValue, 1) * 100;
-  const circumference = 2 * Math.PI * 22;
+  const circumference = 2 * Math.PI * 36;
   const strokeDashoffset = circumference - (percent / 100) * circumference;
   
   return (
-    <svg viewBox="0 0 60 60" className="w-12 h-12">
+    <svg viewBox="0 0 90 90" className="w-full max-w-[100px] h-auto">
       <defs>
         <linearGradient id="profitFactorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="hsl(212 98% 55%)" />
           <stop offset="100%" stopColor="hsl(163 100% 50%)" />
         </linearGradient>
       </defs>
-      <circle cx="30" cy="30" r="22" fill="none" stroke="hsl(var(--muted))" strokeWidth="5" opacity="0.5" />
-      <circle cx="30" cy="30" r="22" fill="none" stroke="url(#profitFactorGradient)" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} transform="rotate(-90 30 30)" className="transition-all duration-500" />
+      <circle cx="45" cy="45" r="36" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" opacity="0.4" />
+      <circle cx="45" cy="45" r="36" fill="none" stroke="url(#profitFactorGradient)" strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} transform="rotate(-90 45 45)" className="transition-all duration-500" />
+      <text x="45" y="49" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="14" fontWeight="700">
+        {value >= 999 ? '∞' : value.toFixed(1)}
+      </text>
     </svg>
   );
 };
 
-// Horizontal bar for Avg Win/Loss
+// Horizontal bar for Avg Win/Loss - thicker
 const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number }) => {
   const total = avgWin + Math.abs(avgLoss);
   const winWidth = total > 0 ? (avgWin / total) * 100 : 50;
   
   return (
-    <div className="w-full mt-1">
-      <div className="flex h-2 rounded-full overflow-hidden bg-muted/30">
+    <div className="w-full mt-2">
+      <div className="flex h-3 rounded-full overflow-hidden bg-muted/30">
         <div className="bg-gradient-to-r from-success/90 to-success transition-all duration-500 rounded-l-full" style={{ width: `${winWidth}%` }} />
         <div className="bg-gradient-to-r from-destructive/90 to-destructive transition-all duration-500 rounded-r-full" style={{ width: `${100 - winWidth}%` }} />
       </div>
@@ -281,35 +284,35 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
     <TooltipProvider>
       <div className="grid grid-cols-2 gap-3 h-full">
         {/* Trade Win % */}
-        <Card className="p-4 bg-card border-border flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Trade Win %</span>
+        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Trade Win %</span>
             <Tooltip>
-              <TooltipTrigger><Info className="w-3 h-3 text-muted-foreground" /></TooltipTrigger>
+              <TooltipTrigger><Info className="w-3.5 h-3.5 text-muted-foreground" /></TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px]">
                 <p className="text-sm">The percentage of your trades that ended in profit.</p>
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xl font-bold">{stats.tradeWinPercent.toFixed(1)}%</p>
+          <div className="flex items-end justify-between mt-auto">
+            <p className="text-3xl font-extrabold tracking-tight">{stats.tradeWinPercent.toFixed(1)}%</p>
             <WinLossArc winPercent={stats.tradeWinPercent} winCount={stats.winCount} lossCount={stats.lossCount} />
           </div>
         </Card>
 
         {/* Profit Factor */}
-        <Card className="p-4 bg-card border-border flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Profit Factor</span>
+        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Profit Factor</span>
             <Tooltip>
-              <TooltipTrigger><Info className="w-3 h-3 text-muted-foreground" /></TooltipTrigger>
+              <TooltipTrigger><Info className="w-3.5 h-3.5 text-muted-foreground" /></TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px]">
                 <p className="text-sm">Total gains divided by total losses. Above 1.0 is profitable.</p>
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center justify-between">
-            <p className={`text-xl font-bold ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>
+          <div className="flex items-end justify-between mt-auto">
+            <p className={`text-3xl font-extrabold tracking-tight ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>
               {stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}
             </p>
             <ProfitFactorRing value={stats.profitFactor} />
@@ -317,37 +320,37 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Day Win % */}
-        <Card className="p-4 bg-card border-border flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Day Win %</span>
+        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Day Win %</span>
             <Tooltip>
-              <TooltipTrigger><Info className="w-3 h-3 text-muted-foreground" /></TooltipTrigger>
+              <TooltipTrigger><Info className="w-3.5 h-3.5 text-muted-foreground" /></TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px]">
                 <p className="text-sm">Percentage of trading days that ended with net profit.</p>
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xl font-bold">{stats.dayWinPercent.toFixed(1)}%</p>
+          <div className="flex items-end justify-between mt-auto">
+            <p className="text-3xl font-extrabold tracking-tight">{stats.dayWinPercent.toFixed(1)}%</p>
             <WinLossArc winPercent={stats.dayWinPercent} winCount={stats.winDays} lossCount={stats.lossDays} />
           </div>
         </Card>
 
         {/* Avg Win/Loss */}
-        <Card className="p-4 bg-card border-border flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-muted-foreground uppercase tracking-wide">Avg Win/Loss</span>
+        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Avg Win/Loss</span>
             <Tooltip>
-              <TooltipTrigger><Info className="w-3 h-3 text-muted-foreground" /></TooltipTrigger>
+              <TooltipTrigger><Info className="w-3.5 h-3.5 text-muted-foreground" /></TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px]">
                 <p className="text-sm">Average profit on wins vs average loss on losses.</p>
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="flex flex-col">
-            <p className="text-base font-bold mb-1">
+          <div className="flex flex-col mt-auto">
+            <p className="text-2xl font-extrabold tracking-tight mb-2">
               <span className="text-success">${stats.avgWinTrade.toFixed(0)}</span>
-              <span className="text-muted-foreground mx-1">/</span>
+              <span className="text-muted-foreground mx-1.5 text-lg">/</span>
               <span className="text-destructive">-${stats.avgLossTrade.toFixed(0)}</span>
             </p>
             <AvgWinLossBar avgWin={stats.avgWinTrade} avgLoss={stats.avgLossTrade} />
