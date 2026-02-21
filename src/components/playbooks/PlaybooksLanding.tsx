@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Clock, Zap, TrendingUp, Sparkles, Lock } from "lucide-react";
+import { Clock, Zap, TrendingUp, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const playbooks = [
@@ -86,10 +86,15 @@ export function PlaybooksLanding() {
         ))}
       </div>
 
-      {/* Header accent bar */}
-      <div className="relative z-10 flex items-center justify-center gap-2 py-3 text-white/40 border-b border-white/5">
-        <Lock className="h-4 w-4" />
-        <span className="text-xs uppercase tracking-widest">Sacred Knowledge — The Vault</span>
+      {/* Header bar */}
+      <div className="relative z-10 flex items-center justify-between px-[5%] py-3 border-b border-white/5">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="text-white/50 hover:text-white hover:bg-white/5 text-sm gap-2"
+        >
+          ← Home
+        </Button>
       </div>
 
       {/* Hero Section */}
@@ -100,15 +105,6 @@ export function PlaybooksLanding() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <motion.div 
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 mb-10 backdrop-blur-sm"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <Sparkles className="h-4 w-4 text-amber-400" />
-            <span className="text-sm text-white/70 tracking-wide">Ancient Trading Wisdom</span>
-          </motion.div>
 
           <motion.h1 
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight"
