@@ -11,11 +11,8 @@ interface Playbook {
   id: string;
   name: string;
   description: string | null;
-  entry_rules: string | null;
-  exit_rules: string | null;
-  time_window_start: string | null;
-  time_window_end: string | null;
-  session: string | null;
+  documentation_notes: string | null;
+  file_urls: string[] | null;
   is_purchased: boolean;
   created_at: string;
 }

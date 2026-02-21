@@ -35,6 +35,12 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { detectSession } from "@/lib/sessionDetection";
 
+interface PlaybookSetup {
+  id: string;
+  name: string;
+  playbook_name: string;
+}
+
 interface TradeDialogProps {
   selectedDate?: Date | null;
   onTradeAdded?: () => void;
@@ -82,6 +88,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [setupId, setSetupId] = useState<string>("");
+  const [allSetups, setAllSetups] = useState<PlaybookSetup[]>([]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -101,12 +109,14 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setTimeOpened("");
       setTimeClosed("");
       setNotes("");
+      setSetupId("");
       setShowAddStrategy(false);
       setNewStrategyName("");
       setSizeInputMode('units');
       setRiskAmount("");
     } else {
       fetchStrategies();
+      fetchSetups();
     }
   }, [open]);
 
@@ -123,6 +133,35 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
 
     if (!error && data) {
       setStrategies(data as unknown as Strategy[]);
+    }
+  };
+
+  const fetchSetups = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Fetch setups with their playbook names
+    const { data, error } = await supabase
+      .from("playbook_setups")
+      .select("id, name, playbook_id")
+      .eq("user_id", user.id)
+      .order("name", { ascending: true });
+
+    if (!error && data) {
+      // Fetch playbook names
+      const playbookIds = [...new Set(data.map(s => s.playbook_id))];
+      const { data: playbooks } = await supabase
+        .from("playbooks")
+        .select("id, name")
+        .in("id", playbookIds);
+
+      const playbookMap = new Map((playbooks || []).map(p => [p.id, p.name]));
+
+      setAllSetups(data.map(s => ({
+        id: s.id,
+        name: s.name,
+        playbook_name: playbookMap.get(s.playbook_id) || "Unknown",
+      })));
     }
   };
 
@@ -334,6 +373,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         notes: notes || null,
         account_id: selectedAccountId || null,
         account_type: accountType || null,
+        setup_id: setupId || null,
       });
 
       if (error) throw error;
@@ -884,6 +924,25 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                     />
                   </div>
                 </div>
+
+                {/* Setup (linked to playbook) */}
+                {allSetups.length > 0 && (
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Setup (Playbook)</Label>
+                    <Select value={setupId} onValueChange={setSetupId}>
+                      <SelectTrigger className="bg-secondary/50 border-border/50">
+                        <SelectValue placeholder="Link to a setup" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSetups.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name} <span className="text-muted-foreground">— {s.playbook_name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes & Reflections</Label>
