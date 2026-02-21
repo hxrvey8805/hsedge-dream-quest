@@ -5,6 +5,7 @@ import { BookOpen, Plus } from "lucide-react";
 import { CreatePlaybookDialog } from "@/components/playbooks/CreatePlaybookDialog";
 import { PlaybookCard } from "@/components/playbooks/PlaybookCard";
 import { PurchasedPlaybooksSection } from "@/components/playbooks/PurchasedPlaybooksSection";
+import { PlaybooksLanding } from "@/components/playbooks/PlaybooksLanding";
 
 interface Playbook {
   id: string;
@@ -20,11 +21,26 @@ interface Playbook {
 }
 
 export default function Playbooks() {
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const fetchPlaybooks = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("playbooks")
@@ -34,12 +50,18 @@ export default function Playbooks() {
 
     if (!error && data) setPlaybooks(data);
     setLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    fetchPlaybooks();
-  }, [fetchPlaybooks]);
+    if (user) fetchPlaybooks();
+  }, [user, fetchPlaybooks]);
 
+  if (authLoading) return null;
+
+  // Not signed in → show the Vault landing page
+  if (!user) return <PlaybooksLanding />;
+
+  // Signed in → show the playbooks dashboard
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
