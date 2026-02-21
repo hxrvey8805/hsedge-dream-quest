@@ -1,117 +1,42 @@
 
-# Plan: Replace Landing Page Text with Classic Mountain Theme
+# Redesign Dashboard Header to Match Reference Style
 
 ## Overview
-Replace the current "Trading Journal for Scalpers" content below the hero banner with the classic TradePeaks mountain-themed messaging. This includes the main headline, description, feature cards, and CTA sections.
+Redesign the header on the Dashboard page (and AppLayout) to match the sleek, dark reference image style -- with the TradePeaks logo and name on the left, navigation links inline next to it, and user controls on the right side.
 
-## Content to Replace
+## Design Details
 
-### Current Content (to remove)
-- "Trading Journal for Scalpers" eyebrow
-- "Track Your Trades. Find Your Edge. Climb Faster." headline
-- Scalp trader-focused description
-- "Today's Score" card with trading metrics
-- Feature pills (Auto-imports, Setup tagging, etc.)
-- "Why TradePeaks" section with analytics features
+**Left Side:**
+- TradePeaks logo icon + "TradePeaks" text
+- Navigation links inline: Dashboard, Statistics, Accounts, Goals, Dream Builder
+- Active link gets a blue underline indicator (like "Dashboard" in the reference)
 
-### New Content (from old design)
+**Right Side:**
+- User avatar/icon with user name/email
+- Sign Out button (minimal icon style)
 
-**Hero Section:**
-- Title: "TradePeaks - our Dream-Driven Path to Trading Excellence"
-- Description: "Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal."
-- Buttons: "Get Started" and "Learn More"
-
-**Feature Cards (3 cards):**
-1. **Climb Higher** - "Each trade is a step up the mountain. Track your ascent and reach new peaks."
-2. **The Summit Awaits** - "Chart your course to the peaks. Define your destination and map the journey."
-3. **Read the Terrain** - "Understand every ridge and valley of your trading journey. See the path clearly."
-
-**Bottom Section:**
-- Heading: "But why?"
-- Description: "While others stay in the feeding grounds, some traders are drawn to the mountains. Find out what waits at the summit."
-- CTA Button: "Start Free Trial Today"
-
----
+**Styling:**
+- Dark background matching the reference (dark navy/card background)
+- Navigation links as plain text (no ghost buttons), with subtle hover and active underline
+- Compact, single-line layout
+- Sticky at top
 
 ## Technical Changes
 
-### File: `src/pages/Index.tsx`
+### 1. Update `src/pages/Dashboard.tsx` (header section, ~lines 293-322)
+- Replace the current `<Button variant="ghost">` navigation with styled text links
+- Add active state detection using current route
+- Add underline indicator for active nav item
+- Move Sign Out to right side as an icon-only button
+- Add user display (avatar icon + name) on the right
+- Remove icons from nav links for cleaner look matching reference
 
-**Lines 147-393** - Replace the entire features and analytics sections with:
+### 2. Update `src/components/layout/AppLayout.tsx`
+- Apply the same header redesign for consistency across pages that use AppLayout
+- Use `useLocation()` to detect active route and apply underline styling
 
-1. **Simplified Hero Content Section**
-   - Remove motion wrappers and complex animations
-   - Simple centered text layout
-   - Clean white text styling (no gradients)
-   - Two buttons side-by-side: "Get Started" (primary blue) and "Learn More" (outline)
-
-2. **Feature Cards Grid**
-   - 3-column responsive grid (1 col mobile, 3 col desktop)
-   - Simple Card components with:
-     - Title in white
-     - Description in white/60
-     - Subtle glassmorphism background (bg-white/5)
-   - Icons: Mountain, Target/Flag, LineChart (from lucide-react)
-
-3. **"But Why" Section**
-   - Centered heading and description
-   - Single CTA button: "Start Free Trial Today"
-   - Keep floating particles background for visual interest
-
-4. **Styling Approach**
-   - Remove gradient text effects
-   - Use simple `text-white` and `text-white/60` colors
-   - Keep the particle animation background (it's the "blue floating dots" aesthetic)
-   - Simpler button styling without hover scale effects
-   - Standard Tailwind responsive font sizes
-
----
-
-## Layout Structure
-
-```text
-┌─────────────────────────────────────────────┐
-│              Hero Banner Image               │
-├─────────────────────────────────────────────┤
-│     [Floating Particles Background]          │
-│                                              │
-│   TradePeaks - Dream-Driven Path to         │
-│       Trading Excellence                     │
-│                                              │
-│   Transform your trading journey...          │
-│                                              │
-│   [Get Started]  [Learn More]               │
-│                                              │
-├─────────────────────────────────────────────┤
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐     │
-│  │  Climb   │ │  Summit  │ │  Read    │     │
-│  │  Higher  │ │  Awaits  │ │  Terrain │     │
-│  └──────────┘ └──────────┘ └──────────┘     │
-├─────────────────────────────────────────────┤
-│              But why?                        │
-│                                              │
-│   While others stay in the feeding...        │
-│                                              │
-│      [Start Free Trial Today]               │
-├─────────────────────────────────────────────┤
-│              © 2026 TradePeaks              │
-└─────────────────────────────────────────────┘
-```
-
----
-
-## Icons to Add
-Import additional icons from lucide-react:
-- `Mountain` - for "Climb Higher" card
-- `Target` or `Flag` - for "The Summit Awaits" card  
-- `LineChart` or `Eye` - for "Read the Terrain" card
-
----
-
-## What Stays the Same
-- Header with logo, navigation, and login button
-- Hero banner image at the top
-- Floating particle animation system
-- Dark background color (#030712)
-- Footer with copyright
-- Waitlist dialog functionality
+### Style Approach
+- Nav links: `text-sm font-medium text-white/60 hover:text-white transition-colors` with active state `text-white` + bottom border
+- Header: darker background with `bg-[#0a0e1a]` or similar dark navy
+- Underline: `border-b-2 border-blue-500` on active item
+- Compact padding: `py-3` instead of `py-4`
