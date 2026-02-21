@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload, Trash2 } from "lucide-react";
+import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload, Trash2, CalendarDays, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
@@ -348,43 +348,51 @@ const Dashboard = () => {
                   Undo Last Import
                 </Button>
               </div>
-              <div className="relative flex flex-col items-end gap-3 transition-all duration-300">
-                <div className="grid grid-cols-[auto_auto_auto] gap-x-2 gap-y-3 items-center justify-end">
-                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors text-right ${viewMode === 'pips' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
-                    Pips
-                  </Label>
-                  <Switch 
-                    id="view-toggle" 
-                    checked={viewMode === 'profit'} 
-                    onCheckedChange={checked => setViewMode(checked ? 'profit' : 'pips')}
-                    className="data-[state=unchecked]:bg-primary data-[state=checked]:bg-emerald-500"
-                  />
-                  <Label htmlFor="view-toggle" className={`text-sm font-medium transition-colors ${viewMode === 'profit' ? 'text-emerald-500 font-bold' : 'text-muted-foreground'}`}>
-                    P&L ($)
-                  </Label>
+              <div className="relative flex items-center gap-2 transition-all duration-300">
+                {/* Pips / P&L Toggle */}
+                <button
+                  onClick={() => setViewMode(viewMode === 'pips' ? 'profit' : 'pips')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    viewMode === 'pips'
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-success/10 border-success/40 text-success'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">
+                    {viewMode === 'pips' ? 'PIPS' : 'P&L ($)'}
+                  </span>
+                  <div className={`w-2 h-2 rounded-full ${viewMode === 'pips' ? 'bg-primary' : 'bg-success'}`} />
+                </button>
 
-                  <Label htmlFor="month-toggle" className={`text-sm font-medium transition-colors text-right ${monthSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
-                    Month
-                  </Label>
-                  <Switch 
-                    id="month-toggle" 
-                    checked={monthSwitchEnabled} 
-                    onCheckedChange={setMonthSwitchEnabled}
-                    className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
-                  />
-                  <span></span>
+                {/* Month Toggle */}
+                <button
+                  onClick={() => setMonthSwitchEnabled(!monthSwitchEnabled)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    monthSwitchEnabled
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">MONTH</span>
+                  <div className={`w-2 h-2 rounded-full transition-colors ${monthSwitchEnabled ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                </button>
 
-                  <Label htmlFor="account-toggle" className={`text-sm font-medium transition-colors text-right ${accountSwitchEnabled ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
-                    Account
-                  </Label>
-                  <Switch 
-                    id="account-toggle" 
-                    checked={accountSwitchEnabled} 
-                    onCheckedChange={setAccountSwitchEnabled}
-                    className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary"
-                  />
-                  <span></span>
-                </div>
+                {/* Account Toggle */}
+                <button
+                  onClick={() => setAccountSwitchEnabled(!accountSwitchEnabled)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    accountSwitchEnabled
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">ACCOUNT</span>
+                  <div className={`w-2 h-2 rounded-full transition-colors ${accountSwitchEnabled ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                </button>
+
                 {accountSwitchEnabled && (
                   <div className="absolute right-0 top-full mt-2 z-50">
                     <Select value={selectedAccount || "all"} onValueChange={(value) => setSelectedAccount(value === "all" ? null : value)}>
