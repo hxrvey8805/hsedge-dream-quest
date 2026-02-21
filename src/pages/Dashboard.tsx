@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
 import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { NetPLCard, FourStatsGrid } from "@/components/dashboard/DashboardStats";
 import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
@@ -289,12 +289,21 @@ const Dashboard = () => {
   if (showVisionMode) {
     return <VisionModeDashboard onClose={() => setShowVisionMode(false)} />;
   };
+  const statsProps = {
+    accounts,
+    selectedAccountId: selectedAccount,
+    monthSwitchEnabled,
+    currentMonth,
+    refreshTrigger,
+    viewMode,
+  };
+
   return <div className="bg-background">
       <div className="w-full px-6 py-8">
-        {/* Minimal Progress Bar - Clickable for Vision Mode */}
-        <div className="mb-8 flex justify-center">
+        {/* Top Row: Dream Progress Line Chart + Net P&L */}
+        <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[1fr_280px] gap-4">
           <div 
-            className="w-full max-w-[1800px] cursor-pointer group"
+            className="cursor-pointer group"
             onClick={() => setShowVisionMode(true)}
           >
             <div className="flex items-center justify-between mb-2">
@@ -308,6 +317,7 @@ const Dashboard = () => {
             </div>
             <MinimalProgressBar />
           </div>
+          <NetPLCard {...statsProps} />
         </div>
 
         {/* Main Content - Two Column Layout */}
@@ -421,16 +431,9 @@ const Dashboard = () => {
             />
           </Card>
 
-          {/* Right Column - Stats + Equity Curve */}
+          {/* Right Column - 2x2 Stats + Equity Curve */}
           <div className="space-y-6 flex flex-col">
-            <DashboardStats
-              accounts={accounts}
-              selectedAccountId={selectedAccount}
-              monthSwitchEnabled={monthSwitchEnabled}
-              currentMonth={currentMonth}
-              refreshTrigger={refreshTrigger}
-              viewMode={viewMode}
-            />
+            <FourStatsGrid {...statsProps} />
             <EquityCurve 
               refreshTrigger={refreshTrigger} 
               viewMode={viewMode}
