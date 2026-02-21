@@ -106,7 +106,7 @@ export default function Playbooks() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <img src={logo} alt="TradePeaks" className="h-8 w-8 animate-logo-float" />
+            <img src={logo} alt="TradePeaks" className="h-8 w-auto object-contain" />
             <span className="text-lg font-semibold text-white">The Vault</span>
           </div>
           <div className="flex items-center gap-2 text-white/40">
