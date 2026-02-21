@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -78,6 +78,7 @@ const Dashboard = () => {
   const [isClearing, setIsClearing] = useState(false);
   const { accounts } = useAccounts();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleClearLastImport = async () => {
     setIsClearing(true);
@@ -291,34 +292,55 @@ const Dashboard = () => {
     return <VisionModeDashboard onClose={() => setShowVisionMode(false)} />;
   };
   return <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="TradePeaks" className="h-10 w-10" />
-            <h1 className="text-xl font-bold">TradePeaks</h1>
+      <header className="border-b border-border/30 bg-[hsl(222,47%,6%)] sticky top-0 z-50">
+        <div className="w-full px-6 py-0 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3 py-3">
+              <img src={logo} alt="TradePeaks" className="h-8 w-8" />
+              <span className="text-lg font-bold text-foreground">TradePeaks</span>
+            </div>
+            <nav className="flex items-center gap-1">
+              {[
+                { label: "Dashboard", path: "/dashboard" },
+                { label: "Statistics", path: `/statistics${selectedAccount ? `?accountId=${selectedAccount}` : ''}` },
+                { label: "Accounts", path: "/accounts" },
+                { label: "Goals", path: "/goals" },
+                { label: "Dream Builder", path: "/dream-builder" },
+              ].map((item) => {
+                const isActive = location.pathname === item.path.split('?')[0];
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => navigate(item.path)}
+                    className={`relative px-4 py-4 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-          <nav className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate(`/statistics${selectedAccount ? `?accountId=${selectedAccount}` : ''}`)}>
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Statistics
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/accounts")}>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Accounts
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/goals")}>
-              <Trophy className="mr-2 h-4 w-4" />
-              Goals
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/dream-builder")}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Dream Builder
-            </Button>
-            <Button variant="ghost" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </nav>
+          <div className="flex items-center gap-3">
+            {user && (
+              <span className="text-sm text-muted-foreground">
+                {user.email}
+              </span>
+            )}
+            <button
+              onClick={handleSignOut}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </header>
 
