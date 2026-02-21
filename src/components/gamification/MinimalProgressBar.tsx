@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LineChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, YAxis, Area, XAxis } from "recharts";
+import { AreaChart, Area, ReferenceLine, ResponsiveContainer, Tooltip, YAxis, XAxis } from "recharts";
 import tlIcon from "@/assets/tp-logo.png";
 
 interface DreamData {
@@ -149,7 +149,7 @@ export const MinimalProgressBar = () => {
   const progressPercent = Math.min(100, (dreamData.monthlyProfit / dreamData.totalMonthlyCost) * 100);
   const remaining = Math.max(0, dreamData.totalMonthlyCost - dreamData.monthlyProfit);
   const goalValue = dreamData.totalMonthlyCost;
-  const lineColor = progressPercent >= 100 ? "hsl(var(--success))" : "hsl(var(--primary))";
+  const isGoalMet = progressPercent >= 100;
 
   return (
     <div className="w-full space-y-1">
@@ -162,17 +162,30 @@ export const MinimalProgressBar = () => {
           <span className="text-xs text-muted-foreground">
             ${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo to goal
           </span>
-          <span className="font-semibold text-primary">{Math.round(progressPercent)}%</span>
+          <span className={`font-bold text-sm ${isGoalMet ? 'text-success' : 'text-primary'}`}>{Math.round(progressPercent)}%</span>
         </div>
       </div>
-      <div className="h-[80px] w-full">
+      <div className="h-[80px] w-full relative overflow-hidden rounded-lg" style={{ background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={dreamData.dailyData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+          <AreaChart data={dreamData.dailyData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <defs>
-              <linearGradient id="dreamGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={lineColor} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={lineColor} stopOpacity={0.05} />
+              <linearGradient id="dreamAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={isGoalMet ? "hsl(163 100% 50%)" : "hsl(212 98% 55%)"} stopOpacity={0.5} />
+                <stop offset="40%" stopColor={isGoalMet ? "hsl(163 100% 45%)" : "hsl(250 80% 60%)"} stopOpacity={0.25} />
+                <stop offset="100%" stopColor={isGoalMet ? "hsl(163 100% 40%)" : "hsl(280 70% 50%)"} stopOpacity={0.02} />
               </linearGradient>
+              <linearGradient id="dreamStrokeGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={isGoalMet ? "hsl(163 100% 45%)" : "hsl(212 98% 60%)"} />
+                <stop offset="50%" stopColor={isGoalMet ? "hsl(163 100% 55%)" : "hsl(250 80% 65%)"} />
+                <stop offset="100%" stopColor={isGoalMet ? "hsl(163 100% 50%)" : "hsl(280 70% 55%)"} />
+              </linearGradient>
+              <filter id="dreamGlow">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <YAxis hide domain={['auto', 'auto']} />
             <XAxis dataKey="date" hide />
@@ -182,6 +195,7 @@ export const MinimalProgressBar = () => {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
                 fontSize: '12px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
               }}
               formatter={(value: number) => [`$${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Cumulative']}
               labelFormatter={(label) => `Date: ${label}`}
@@ -190,26 +204,21 @@ export const MinimalProgressBar = () => {
               <ReferenceLine
                 y={goalValue}
                 stroke="hsl(var(--success))"
-                strokeDasharray="4 4"
-                strokeOpacity={0.6}
-                label={{ value: `Goal: $${goalValue.toFixed(0)}`, position: 'right', fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                strokeDasharray="6 3"
+                strokeOpacity={0.5}
+                strokeWidth={1.5}
               />
             )}
             <Area
               type="monotone"
               dataKey="cumulative"
-              stroke="none"
-              fill="url(#dreamGradient)"
+              stroke="url(#dreamStrokeGradient)"
+              strokeWidth={2.5}
+              fill="url(#dreamAreaGradient)"
+              filter="url(#dreamGlow)"
+              activeDot={{ r: 4, fill: isGoalMet ? "hsl(163 100% 50%)" : "hsl(250 80% 65%)", stroke: "hsl(var(--background))", strokeWidth: 2 }}
             />
-            <Line
-              type="monotone"
-              dataKey="cumulative"
-              stroke={lineColor}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 3, fill: lineColor }}
-            />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
