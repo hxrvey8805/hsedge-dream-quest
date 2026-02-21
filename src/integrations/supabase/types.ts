@@ -427,6 +427,57 @@ export type Database = {
         }
         Relationships: []
       }
+      playbooks: {
+        Row: {
+          created_at: string
+          description: string | null
+          entry_rules: string | null
+          exit_rules: string | null
+          id: string
+          is_purchased: boolean
+          name: string
+          purchased_playbook_id: string | null
+          screenshots: string[] | null
+          session: string | null
+          time_window_end: string | null
+          time_window_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entry_rules?: string | null
+          exit_rules?: string | null
+          id?: string
+          is_purchased?: boolean
+          name: string
+          purchased_playbook_id?: string | null
+          screenshots?: string[] | null
+          session?: string | null
+          time_window_end?: string | null
+          time_window_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entry_rules?: string | null
+          exit_rules?: string | null
+          id?: string
+          is_purchased?: boolean
+          name?: string
+          purchased_playbook_id?: string | null
+          screenshots?: string[] | null
+          session?: string | null
+          time_window_end?: string | null
+          time_window_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       risk_management_rules: {
         Row: {
           created_at: string
