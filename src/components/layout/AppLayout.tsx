@@ -15,7 +15,7 @@ const navItems = [
   { label: "Playbooks", path: "/playbooks" },
 ];
 
-export const AppLayout = () => {
+export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -91,7 +91,7 @@ export const AppLayout = () => {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="h-full"
           >
-            <Outlet />
+            {children || <Outlet />}
           </motion.div>
         </AnimatePresence>
       </main>
