@@ -291,60 +291,8 @@ const Dashboard = () => {
   if (showVisionMode) {
     return <VisionModeDashboard onClose={() => setShowVisionMode(false)} />;
   };
-  return <div className="min-h-screen bg-background">
-      <header className="border-b border-border/30 bg-[hsl(222,47%,6%)] sticky top-0 z-50">
-        <div className="w-full px-6 py-0 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 py-3">
-              <img src={logo} alt="TradePeaks" className="h-8 w-8" />
-              <span className="text-lg font-bold text-foreground">TradePeaks</span>
-            </div>
-            <nav className="flex items-center gap-1">
-              {[
-                { label: "Dashboard", path: "/dashboard" },
-                { label: "Statistics", path: `/statistics${selectedAccount ? `?accountId=${selectedAccount}` : ''}` },
-                { label: "Accounts", path: "/accounts" },
-                { label: "Goals", path: "/goals" },
-                { label: "Dream Builder", path: "/dream-builder" },
-              ].map((item) => {
-                const isActive = location.pathname === item.path.split('?')[0];
-                return (
-                  <button
-                    key={item.label}
-                    onClick={() => navigate(item.path)}
-                    className={`relative px-4 py-4 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {item.label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full" />
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <span className="text-sm text-muted-foreground">
-                {user.email}
-              </span>
-            )}
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
-              title="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="w-full px-6 py-8">
+  return <div className="bg-background">
+      <div className="w-full px-6 py-8">
         {/* Minimal Progress Bar - Clickable for Vision Mode */}
         <div className="mb-8 flex justify-center">
           <div 
@@ -500,7 +448,7 @@ const Dashboard = () => {
             />
           </div>
         </div>
-      </main>
+      </div>
 
       <TradeDialog 
         onTradeAdded={handleTradeAdded} 

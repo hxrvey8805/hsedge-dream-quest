@@ -14,6 +14,7 @@ import Goals from "./pages/Goals";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import Playbooks from "./pages/Playbooks";
+import { AppLayout } from "./components/layout/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -28,12 +29,16 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/statistics" element={<Statistics />} />
-          <Route path="/accounts" element={<Accounts />} />
-          <Route path="/goals" element={<Goals />} />
-          <Route path="/dream-builder" element={<DreamBuilder />} />
-          <Route path="/playbooks" element={<Playbooks />} />
+          {/* All app pages share the persistent header via AppLayout */}
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/statistics" element={<Statistics />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/dream-builder" element={<DreamBuilder />} />
+            <Route path="/playbooks" element={<Playbooks />} />
+            <Route path="/achievements" element={<Accounts />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
