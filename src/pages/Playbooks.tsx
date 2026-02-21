@@ -177,7 +177,7 @@ export default function Playbooks() {
       </div>
 
       {/* Playbooks Grid */}
-      <section className="py-20 lg:py-28 px-[5%]">
+      <section className="py-20 lg:py-28 px-[5%] relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
