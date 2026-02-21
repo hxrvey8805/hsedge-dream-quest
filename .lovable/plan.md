@@ -1,42 +1,63 @@
 
-# Redesign Dashboard Header to Match Reference Style
+# Dashboard Layout Redesign
 
-## Overview
-Redesign the header on the Dashboard page (and AppLayout) to match the sleek, dark reference image style -- with the TradePeaks logo and name on the left, navigation links inline next to it, and user controls on the right side.
+## New Layout Structure
 
-## Design Details
+The dashboard will be reorganized into a cleaner, more logical arrangement:
 
-**Left Side:**
-- TradePeaks logo icon + "TradePeaks" text
-- Navigation links inline: Dashboard, Statistics, Accounts, Goals, Dream Builder
-- Active link gets a blue underline indicator (like "Dashboard" in the reference)
+```text
++----------------------------------------------------------+
+|  Dream Progress Line Chart (full width)                   |
++----------------------------------------------------------+
+|                                    |                      |
+|  Trading Calendar                  |  Net P&L             |
+|  (with toggles & controls)        |  Trade Win %          |
+|                                    |  Profit Factor        |
+|                                    |  Day Win %            |
+|                                    |  Avg Win/Loss         |
+|                                    |                      |
+|                                    |  Equity Curve         |
++------------------------------------+----------------------+
+```
 
-**Right Side:**
-- User avatar/icon with user name/email
-- Sign Out button (minimal icon style)
+## What Changes
 
-**Styling:**
-- Dark background matching the reference (dark navy/card background)
-- Navigation links as plain text (no ghost buttons), with subtle hover and active underline
-- Compact, single-line layout
-- Sticky at top
+1. **Top section** -- The MinimalProgressBar (which we'll convert to a line chart per the approved plan) stays at the top, spanning full width. It keeps its "Click to see Vision Mode" interaction.
 
-## Technical Changes
+2. **Left column (Calendar)** -- The Trading Calendar stays exactly where it is, with all its toggles (Pips/P&L, Month, Account) and buttons (Import CSV, Undo Last Import).
 
-### 1. Update `src/pages/Dashboard.tsx` (header section, ~lines 293-322)
-- Replace the current `<Button variant="ghost">` navigation with styled text links
-- Add active state detection using current route
-- Add underline indicator for active nav item
-- Move Sign Out to right side as an icon-only button
-- Add user display (avatar icon + name) on the right
-- Remove icons from nav links for cleaner look matching reference
+3. **Right column (Stats + Equity Curve)** -- The five stat cards (Net P&L, Trade Win %, Profit Factor, Day Win %, Avg Win/Loss) move from the horizontal row above the calendar into the right sidebar, stacked vertically. The Equity Curve stays below them. Risk Management and Strategy Checklist are removed from this page (they can still be accessed elsewhere).
 
-### 2. Update `src/components/layout/AppLayout.tsx`
-- Apply the same header redesign for consistency across pages that use AppLayout
-- Use `useLocation()` to detect active route and apply underline styling
+## Technical Details
 
-### Style Approach
-- Nav links: `text-sm font-medium text-white/60 hover:text-white transition-colors` with active state `text-white` + bottom border
-- Header: darker background with `bg-[#0a0e1a]` or similar dark navy
-- Underline: `border-b-2 border-blue-500` on active item
-- Compact padding: `py-3` instead of `py-4`
+### File: `src/pages/Dashboard.tsx`
+
+**Remove from layout:**
+- `<RiskManagement />` component (lines 440)
+- `<StrategyChecklist />` component (lines 441)
+
+**Move DashboardStats into right column:**
+- Remove the full-width `DashboardStats` section (lines 316-325) from its current position above the grid
+- Place it inside the right column (replacing RiskManagement and StrategyChecklist)
+
+**Update DashboardStats layout:**
+- The stats cards currently use `grid-cols-5` (horizontal row). They'll switch to a vertical stack layout for the sidebar.
+
+### File: `src/components/dashboard/DashboardStats.tsx`
+
+- Change the grid from `grid-cols-5` (horizontal) to `grid-cols-1` (vertical stack) so the five stat cards stack neatly in the sidebar
+- Each card keeps its gauge/arc visualizations -- they'll just be stacked vertically instead of side-by-side
+
+### File: `src/components/gamification/MinimalProgressBar.tsx`
+
+- Replace the `<Progress>` bar with a compact Recharts `<LineChart>` showing cumulative daily profit over the last 30 days
+- Add a horizontal dashed reference line at the dream cost goal
+- Use gradient fill under the line for a polished look
+- Keep the percentage label and fallback states
+- Chart height approximately 80px to stay compact
+
+### Grid adjustment in Dashboard.tsx
+
+The main content grid (`lg:grid-cols-[2fr_1fr]`) stays the same -- the right column will now contain:
+1. DashboardStats (5 cards stacked vertically)
+2. EquityCurve (below the stats)
