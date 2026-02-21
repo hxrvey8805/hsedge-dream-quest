@@ -35,11 +35,11 @@ export const AppLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border/30 bg-[hsl(222,47%,6%)] sticky top-0 z-50 shrink-0">
-        <div className="w-full px-6 py-0 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 py-3">
-              <img src={logo} alt="TradePeaks" className="h-8 w-8" />
-              <span className="text-lg font-bold text-foreground">TradePeaks</span>
+        <div className="w-full px-8 py-0 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <div className="flex items-center gap-3 py-4">
+              <img src={logo} alt="TradePeaks" className="h-10 w-10" />
+              <span className="text-xl font-bold text-foreground">TradePeaks</span>
             </div>
             <nav className="flex items-center gap-1">
               {navItems.map((item) => {
@@ -48,7 +48,7 @@ export const AppLayout = () => {
                   <button
                     key={item.label}
                     onClick={() => navigate(item.path)}
-                    className={`relative px-4 py-4 text-sm font-medium transition-colors ${
+                    className={`relative px-5 py-5 text-base font-medium transition-colors ${
                       isActive
                         ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground"
