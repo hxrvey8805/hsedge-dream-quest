@@ -85,42 +85,9 @@ export default function Index() {
             </button>
           </nav>
 
-          <Dialog open={waitlistOpen} onOpenChange={setWaitlistOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 hover:border-white/40">
+          <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
                 Log in
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="max-w-[520px] bg-[#0a0f1a]/95 backdrop-blur-2xl border border-white/10 text-foreground shadow-2xl shadow-blue-500/10">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">Join the TradePeaks waitlist</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <p className="text-sm text-white/50 leading-relaxed">
-                  We're polishing onboarding. Drop your email and you'll be first in when it opens.
-                </p>
-
-                <div className="space-y-2">
-                  <Label htmlFor="waitlistEmail" className="text-white/60 text-sm">
-                    Email
-                  </Label>
-
-                  <div className="flex gap-2">
-                    <Input id="waitlistEmail" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} placeholder="you@example.com" className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 transition-colors" />
-                    <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border-0 shadow-lg shadow-blue-500/25 transition-all duration-300">
-                      {waitlistLoading ? "Joining…" : <span className="inline-flex items-center gap-2">
-                          <Mail className="h-4 w-4" /> Join
-                        </span>}
-                    </Button>
-                  </div>
-
-                  <p className="text-xs text-white/40">No spam. One email when onboarding opens.</p>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          </Button>
         </div>
       </header>
 
