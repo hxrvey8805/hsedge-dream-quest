@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Target, Plus, X, ChevronDown, ChevronRight, Flame, TrendingUp, DollarSign, Trophy, Sparkles } from "lucide-react";
+import { HabitTracker } from "@/components/goals/HabitTracker";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,50 +19,10 @@ interface Goal {
   is_completed: boolean;
 }
 
-interface Milestone {
-  id: string;
-  milestone_type: string;
-  target_value: number;
-  current_value: number;
-  is_completed: boolean;
-  completed_at: string | null;
-}
-
-const getMilestoneIcon = (type: string) => {
-  switch (type) {
-    case "profit_target": return DollarSign;
-    case "trade_count": return Target;
-    case "win_rate": return TrendingUp;
-    case "streak": return Flame;
-    default: return Target;
-  }
-};
-
-const getMilestoneLabel = (type: string, value: number) => {
-  switch (type) {
-    case "profit_target": return `$${value} Profit`;
-    case "trade_count": return `${value} Trades`;
-    case "win_rate": return `${value}% Win Rate`;
-    case "streak": return `${value} Day Streak`;
-    default: return `${value}`;
-  }
-};
-
-const getMilestoneColor = (type: string) => {
-  switch (type) {
-    case "profit_target": return "emerald";
-    case "trade_count": return "blue";
-    case "win_rate": return "purple";
-    case "streak": return "amber";
-    default: return "primary";
-  }
-};
-
 const Goals = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [newGoalCategory, setNewGoalCategory] = useState("Learn");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["Learn", "Implement", "Backtest", "Avoid"]));
@@ -88,7 +49,6 @@ const Goals = () => {
   useEffect(() => {
     if (user) {
       fetchGoals();
-      fetchMilestones();
     }
   }, [user]);
 
@@ -103,16 +63,8 @@ const Goals = () => {
     if (!error && data) setGoals(data);
   };
 
-  const fetchMilestones = async () => {
-    const { data } = await supabase
-      .from("milestones")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("is_completed", { ascending: true })
-      .order("created_at", { ascending: false });
 
-    if (data) setMilestones(data);
-  };
+
 
   const toggleGoal = async (goalId: string, currentState: boolean) => {
     const { error } = await supabase
@@ -166,8 +118,8 @@ const Goals = () => {
   const completedGoals = goals.filter(g => g.is_completed).length;
   const overallProgress = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
 
-  const activeMilestones = milestones.filter(m => !m.is_completed);
-  const completedMilestones = milestones.filter(m => m.is_completed);
+
+
 
   if (!user) return null;
 
@@ -336,112 +288,7 @@ const Goals = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-gradient-to-br from-card to-card/50 border-border/50 shadow-lg h-full">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <div className="p-2 rounded-lg bg-amber-500/10">
-                      <Trophy className="h-5 w-5 text-amber-500" />
-                    </div>
-                    Milestones
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="px-2 py-1 rounded-full bg-primary/10">{activeMilestones.length} active</span>
-                    <span className="px-2 py-1 rounded-full bg-success/10 text-success">{completedMilestones.length} done</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {activeMilestones.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      In Progress
-                    </h3>
-                    {activeMilestones.map((milestone, index) => {
-                      const Icon = getMilestoneIcon(milestone.milestone_type);
-                      const progressPercent = (milestone.current_value / milestone.target_value) * 100;
-                      const color = getMilestoneColor(milestone.milestone_type);
-
-                      return (
-                        <motion.div
-                          key={milestone.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Card className={`p-4 bg-gradient-to-r from-${color}-500/10 to-transparent border-${color}-500/20 hover:border-${color}-500/40 transition-all`}>
-                            <div className="flex items-start gap-3">
-                              <div className={`p-2 rounded-xl bg-${color}-500/20`}>
-                                <Icon className={`h-5 w-5 text-${color}-500`} />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold">
-                                    {getMilestoneLabel(milestone.milestone_type, milestone.target_value)}
-                                  </h4>
-                                  <span className="text-sm font-medium">
-                                    {milestone.current_value.toFixed(0)}/{milestone.target_value}
-                                  </span>
-                                </div>
-                                <Progress value={progressPercent} className={`h-2 bg-${color}-500/20`} />
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  {Math.round(progressPercent)}% complete
-                                </p>
-                              </div>
-                            </div>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {completedMilestones.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      Completed
-                    </h3>
-                    {completedMilestones.slice(0, 4).map((milestone, index) => {
-                      const Icon = getMilestoneIcon(milestone.milestone_type);
-
-                      return (
-                        <motion.div
-                          key={milestone.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Card className="p-3 bg-success/5 border-success/20">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-success/10">
-                                <Icon className="h-4 w-4 text-success" />
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-medium text-sm">
-                                  {getMilestoneLabel(milestone.milestone_type, milestone.target_value)}
-                                </h4>
-                                <p className="text-xs text-muted-foreground">
-                                  Completed {new Date(milestone.completed_at!).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <span className="text-success text-lg">✓</span>
-                            </div>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {milestones.length === 0 && (
-                  <div className="text-center py-12">
-                    <Trophy className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">No milestones yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">Create milestones to track your trading journey</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <HabitTracker goals={goals} />
           </motion.div>
         </div>
       </main>
