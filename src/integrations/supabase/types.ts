@@ -358,6 +358,41 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_logs: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          is_completed: boolean
+          log_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          is_completed?: boolean
+          log_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          is_completed?: boolean
+          log_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals_checklist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       milestones: {
         Row: {
           completed_at: string | null
