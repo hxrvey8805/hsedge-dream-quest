@@ -244,14 +244,31 @@ export const NetPLCard = (props: DashboardStatsProps) => {
 
   return (
     <TooltipProvider>
-      <Card className="p-4 bg-card border-border flex flex-col justify-center h-full">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-muted-foreground uppercase tracking-wide">
+      <Card className="relative overflow-hidden p-5 bg-card border-border flex flex-col justify-between h-full">
+        {/* Dreamy ambient background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute -top-10 -left-10 w-40 h-40 rounded-full opacity-20 blur-[60px]"
+            style={{ background: stats.netPL >= 0 ? 'hsl(163 100% 50%)' : 'hsl(348 100% 60%)' }}
+          />
+          <div 
+            className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full opacity-15 blur-[50px]"
+            style={{ background: 'hsl(212 98% 62%)' }}
+          />
+          <div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full opacity-10 blur-[40px] lucid-orb-slow"
+            style={{ background: stats.netPL >= 0 ? 'hsl(163 100% 50%)' : 'hsl(348 100% 60%)' }}
+          />
+        </div>
+
+        {/* Top label */}
+        <div className="relative flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">
             {viewMode === 'pips' ? 'Net Pips' : 'Net P&L'}
           </span>
           <Tooltip>
             <TooltipTrigger>
-              <Info className="w-3 h-3 text-muted-foreground" />
+              <Info className="w-3 h-3 text-muted-foreground/60" />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[200px]">
               <p className="text-sm">
@@ -262,13 +279,28 @@ export const NetPLCard = (props: DashboardStatsProps) => {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center justify-between">
-          <p className={`text-2xl font-bold ${stats.netPL >= 0 ? 'text-success' : 'text-destructive'}`}>
+
+        {/* Large P&L value - centered */}
+        <div className="relative flex flex-col items-center justify-center flex-1 py-2">
+          <p className={`text-4xl font-black tracking-tight leading-none ${stats.netPL >= 0 ? 'text-success' : 'text-destructive'}`}
+             style={{ 
+               textShadow: stats.netPL >= 0 
+                 ? '0 0 30px hsl(163 100% 50% / 0.3)' 
+                 : '0 0 30px hsl(348 100% 60% / 0.3)' 
+             }}
+          >
             {viewMode === 'pips' 
-              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} pips`
+              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`
               : `${stats.netPL >= 0 ? '+' : ''}$${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             }
           </p>
+          {viewMode === 'pips' && (
+            <span className="text-xs text-muted-foreground/50 uppercase tracking-widest mt-1">pips</span>
+          )}
+        </div>
+
+        {/* Gauge at bottom */}
+        <div className="relative flex justify-center">
           <NetPLGauge value={stats.netPL} max={maxPL} />
         </div>
       </Card>

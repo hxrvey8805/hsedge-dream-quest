@@ -301,7 +301,7 @@ const Dashboard = () => {
   return <div className="bg-background">
       <div className="w-full px-6 py-8">
         {/* Top Row: Dream Progress Line Chart + Net P&L */}
-        <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[280px_1fr] gap-4">
+        <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />
           <div 
             className="cursor-pointer group"
