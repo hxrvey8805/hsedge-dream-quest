@@ -1,63 +1,63 @@
 
-# Dashboard Layout Redesign
 
-## New Layout Structure
+## "1% Better Every Day" - Daily Improvement Tracker
 
-The dashboard will be reorganized into a cleaner, more logical arrangement:
+### Concept
+
+A system that creates a bridge between yesterday's review and today's trading. After completing a daily review, the trader sets a specific "1% focus" for the next day -- one concrete thing to improve based on their lessons learned. The next day, they rate how well they executed on that focus, building an improvement chain.
+
+### How It Works
+
+1. **New slide in the Daily Review**: A final "Tomorrow's 1% Focus" slide added after "Lessons Learned." The trader writes one specific, actionable improvement commitment (e.g., "Wait for confirmation candle before entering," "Cut position size when trading against trend").
+
+2. **Pre-trade prompt on the Dashboard**: When the trader opens the dashboard, if they have an active 1% focus from their previous review, it appears as a persistent but dismissible banner reminding them of their commitment.
+
+3. **Self-assessment in next review**: When they start the next day's review, the first slide (after Day Summary) shows yesterday's 1% focus and asks them to rate their execution on a 1-5 scale + brief reflection. This rating feeds into a streak/score system.
+
+4. **Streak visualization**: A small "Improvement Streak" indicator on the dashboard or goals page showing consecutive days of rated 3+ execution on their focus.
+
+### Database Changes
+
+A new `daily_improvement_focus` table:
 
 ```text
-+----------------------------------------------------------+
-|  Dream Progress Line Chart (full width)                   |
-+----------------------------------------------------------+
-|                                    |                      |
-|  Trading Calendar                  |  Net P&L             |
-|  (with toggles & controls)        |  Trade Win %          |
-|                                    |  Profit Factor        |
-|                                    |  Day Win %            |
-|                                    |  Avg Win/Loss         |
-|                                    |                      |
-|                                    |  Equity Curve         |
-+------------------------------------+----------------------+
+daily_improvement_focus
+├── id (uuid, PK)
+├── user_id (uuid, NOT NULL)
+├── review_date (date, NOT NULL)          -- the review date this was set during
+├── focus_text (text, NOT NULL)           -- the 1% commitment
+├── execution_rating (integer, NULL)      -- 1-5 self-assessment (filled next day)
+├── execution_notes (text, NULL)          -- brief reflection on execution
+├── rated_at (timestamp, NULL)            -- when they rated it
+├── created_at (timestamp, default now)
+├── UNIQUE(user_id, review_date)
 ```
 
-## What Changes
+RLS: standard user_id = auth.uid() policies for all CRUD operations.
 
-1. **Top section** -- The MinimalProgressBar (which we'll convert to a line chart per the approved plan) stays at the top, spanning full width. It keeps its "Click to see Vision Mode" interaction.
+### Frontend Changes
 
-2. **Left column (Calendar)** -- The Trading Calendar stays exactly where it is, with all its toggles (Pips/P&L, Month, Account) and buttons (Import CSV, Undo Last Import).
+1. **New slide component**: `src/components/review/slides/DailyFocusSlide.tsx`
+   - Shows yesterday's focus (if exists and unrated) with a 1-5 rating scale and notes field
+   - Below that, a text input for setting tomorrow's 1% focus
+   - Visual emphasis: large "1%" branding, motivational framing
 
-3. **Right column (Stats + Equity Curve)** -- The five stat cards (Net P&L, Trade Win %, Profit Factor, Day Win %, Avg Win/Loss) move from the horizontal row above the calendar into the right sidebar, stacked vertically. The Equity Curve stays below them. Risk Management and Strategy Checklist are removed from this page (they can still be accessed elsewhere).
+2. **Update `DailyReviewDialog.tsx`**:
+   - Add the new slide as the final slide (after Lessons Learned)
+   - Load previous day's unrated focus on dialog open
+   - Save both the rating of yesterday's focus and the new focus on review save
 
-## Technical Details
+3. **Dashboard banner**: `src/components/dashboard/ImprovementFocusBanner.tsx`
+   - A subtle card/banner at the top of the dashboard showing today's active 1% focus
+   - Shows current improvement streak count
+   - Dismissible but reappears on page reload
 
-### File: `src/pages/Dashboard.tsx`
+4. **Streak calculation**: Count consecutive days where the trader rated their execution >= 3 out of 5.
 
-**Remove from layout:**
-- `<RiskManagement />` component (lines 440)
-- `<StrategyChecklist />` component (lines 441)
+### Technical Details
 
-**Move DashboardStats into right column:**
-- Remove the full-width `DashboardStats` section (lines 316-325) from its current position above the grid
-- Place it inside the right column (replacing RiskManagement and StrategyChecklist)
+- The slide fetches the most recent unrated `daily_improvement_focus` row for the user
+- On save, it upserts the rating for yesterday's focus and inserts a new row for tomorrow's focus
+- The dashboard banner queries for the latest focus where `review_date` equals yesterday (or most recent) and `execution_rating IS NULL`
+- Streak is calculated client-side from the last N rows ordered by date descending, counting consecutive ratings >= 3
 
-**Update DashboardStats layout:**
-- The stats cards currently use `grid-cols-5` (horizontal row). They'll switch to a vertical stack layout for the sidebar.
-
-### File: `src/components/dashboard/DashboardStats.tsx`
-
-- Change the grid from `grid-cols-5` (horizontal) to `grid-cols-1` (vertical stack) so the five stat cards stack neatly in the sidebar
-- Each card keeps its gauge/arc visualizations -- they'll just be stacked vertically instead of side-by-side
-
-### File: `src/components/gamification/MinimalProgressBar.tsx`
-
-- Replace the `<Progress>` bar with a compact Recharts `<LineChart>` showing cumulative daily profit over the last 30 days
-- Add a horizontal dashed reference line at the dream cost goal
-- Use gradient fill under the line for a polished look
-- Keep the percentage label and fallback states
-- Chart height approximately 80px to stay compact
-
-### Grid adjustment in Dashboard.tsx
-
-The main content grid (`lg:grid-cols-[2fr_1fr]`) stays the same -- the right column will now contain:
-1. DashboardStats (5 cards stacked vertically)
-2. EquityCurve (below the stats)
