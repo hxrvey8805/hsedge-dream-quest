@@ -150,8 +150,8 @@ export const ImageEditorDialog = ({
     }
 
     if (selectedMarkerType) {
-      // Remove existing marker of same type and add new one
-      const newMarkers = markers.filter(m => m.type !== selectedMarkerType);
+      // Allow multiple markers of the same type
+      const newMarkers = [...markers];
       newMarkers.push({
         id: `${selectedMarkerType}-${Date.now()}`,
         type: selectedMarkerType,
