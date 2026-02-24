@@ -1,0 +1,1 @@
+ALTER TABLE public.daily_reviews ADD COLUMN missed_opportunities_data jsonb DEFAULT '[]'::jsonb;
