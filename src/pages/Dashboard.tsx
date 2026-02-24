@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MinimalProgressBar } from "@/components/gamification/MinimalProgressBar";
+import { ImprovementFocusBanner } from "@/components/dashboard/ImprovementFocusBanner";
 import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { NetPLCard, FourStatsGrid } from "@/components/dashboard/DashboardStats";
@@ -300,6 +301,10 @@ const Dashboard = () => {
 
   return <div className="bg-background">
       <div className="w-full px-6 py-8">
+        {/* 1% Improvement Focus Banner */}
+        <div className="max-w-[1800px] mx-auto">
+          <ImprovementFocusBanner />
+        </div>
         {/* Top Row: Dream Progress Line Chart + Net P&L */}
         <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />

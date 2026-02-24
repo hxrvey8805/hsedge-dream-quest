@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_improvement_focus: {
+        Row: {
+          created_at: string
+          execution_notes: string | null
+          execution_rating: number | null
+          focus_text: string
+          id: string
+          rated_at: string | null
+          review_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          execution_notes?: string | null
+          execution_rating?: number | null
+          focus_text: string
+          id?: string
+          rated_at?: string | null
+          review_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          execution_notes?: string | null
+          execution_rating?: number | null
+          focus_text?: string
+          id?: string
+          rated_at?: string | null
+          review_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_reviews: {
         Row: {
           created_at: string

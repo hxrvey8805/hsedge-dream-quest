@@ -11,6 +11,7 @@ import { TradeReviewSlide } from "./slides/TradeReviewSlide";
 import { MissedOpportunitiesSlide, type MissedOpportunityScreenshot } from "./slides/MissedOpportunitiesSlide";
 import { WhatWentWellSlide } from "./slides/WhatWentWellSlide";
 import { LessonsLearnedSlide } from "./slides/LessonsLearnedSlide";
+import { DailyFocusSlide } from "./slides/DailyFocusSlide";
 import type { Json } from "@/integrations/supabase/types";
 
 interface Trade {
@@ -86,16 +87,43 @@ export const DailyReviewDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [reviewId, setReviewId] = useState<string | null>(null);
 
+  // 1% Focus state
+  const [previousFocus, setPreviousFocus] = useState<{ id: string; focus_text: string; review_date: string } | null>(null);
+  const [executionRating, setExecutionRating] = useState<number | null>(null);
+  const [executionNotes, setExecutionNotes] = useState("");
+  const [newFocusText, setNewFocusText] = useState("");
+
   // Calculate slide count dynamically
-  // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons)
-  const totalSlides = 2 + trades.length + 3;
+  // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
+  const totalSlides = 2 + trades.length + 4;
 
   useEffect(() => {
     if (open && date) {
       loadExistingReview();
       initializeTradeSlides();
+      loadPreviousFocus();
     }
   }, [open, date, trades]);
+
+  const loadPreviousFocus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Find most recent unrated focus for this user
+    const { data } = await supabase
+      .from("daily_improvement_focus")
+      .select("id, focus_text, review_date")
+      .eq("user_id", user.id)
+      .is("execution_rating", null)
+      .order("review_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    setPreviousFocus(data);
+    setExecutionRating(null);
+    setExecutionNotes("");
+    setNewFocusText("");
+  };
 
   const initializeTradeSlides = () => {
     setTradeSlides(trades.map(trade => ({
@@ -244,6 +272,29 @@ export const DailyReviewDialog = ({
       }
 
       setReviewId(review.id);
+
+      // Save 1% focus data
+      if (previousFocus && executionRating !== null) {
+        await supabase
+          .from("daily_improvement_focus")
+          .update({
+            execution_rating: executionRating,
+            execution_notes: executionNotes || null,
+            rated_at: new Date().toISOString(),
+          })
+          .eq("id", previousFocus.id);
+      }
+
+      if (newFocusText.trim()) {
+        await supabase
+          .from("daily_improvement_focus")
+          .upsert({
+            user_id: user.id,
+            review_date: reviewDate,
+            focus_text: newFocusText.trim(),
+          }, { onConflict: 'user_id,review_date' });
+      }
+
       toast.success("Review saved successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to save review");
@@ -344,7 +395,8 @@ export const DailyReviewDialog = ({
     }
     if (currentSlide === 2 + trades.length) return "Missed Opportunities";
     if (currentSlide === 3 + trades.length) return "What Went Well";
-    return "Lessons Learned";
+    if (currentSlide === 4 + trades.length) return "Lessons Learned";
+    return "1% Better Tomorrow";
   };
 
   const renderSlide = () => {
@@ -396,10 +448,25 @@ export const DailyReviewDialog = ({
     }
     
     // Lessons Learned
+    if (currentSlide === 4 + trades.length) {
+      return (
+        <LessonsLearnedSlide
+          content={reviewData.lessons_learned}
+          onContentChange={(content) => setReviewData(prev => ({ ...prev, lessons_learned: content }))}
+        />
+      );
+    }
+
+    // 1% Focus (final slide)
     return (
-      <LessonsLearnedSlide
-        content={reviewData.lessons_learned}
-        onContentChange={(content) => setReviewData(prev => ({ ...prev, lessons_learned: content }))}
+      <DailyFocusSlide
+        previousFocus={previousFocus}
+        executionRating={executionRating}
+        executionNotes={executionNotes}
+        newFocusText={newFocusText}
+        onExecutionRatingChange={setExecutionRating}
+        onExecutionNotesChange={setExecutionNotes}
+        onNewFocusTextChange={setNewFocusText}
       />
     );
   };
