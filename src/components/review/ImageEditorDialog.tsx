@@ -37,6 +37,7 @@ interface ImageEditorDialogProps {
   markers: Marker[];
   onSave: (imageUrl: string, markers: Marker[]) => void;
   tradeId: string;
+  allowMultiplePerType?: boolean;
 }
 
 const MARKER_TYPES = [
@@ -52,7 +53,8 @@ export const ImageEditorDialog = ({
   imageUrl, 
   markers: initialMarkers,
   onSave,
-  tradeId
+  tradeId,
+  allowMultiplePerType = false
 }: ImageEditorDialogProps) => {
   const [markers, setMarkers] = useState<Marker[]>(initialMarkers);
   const [isCropping, setIsCropping] = useState(false);
@@ -150,8 +152,10 @@ export const ImageEditorDialog = ({
     }
 
     if (selectedMarkerType) {
-      // Remove existing marker of same type and add new one
-      const newMarkers = markers.filter(m => m.type !== selectedMarkerType);
+      // Remove existing marker of same type (unless multiple allowed) and add new one
+      const newMarkers = allowMultiplePerType
+        ? [...markers]
+        : markers.filter(m => m.type !== selectedMarkerType);
       newMarkers.push({
         id: `${selectedMarkerType}-${Date.now()}`,
         type: selectedMarkerType,

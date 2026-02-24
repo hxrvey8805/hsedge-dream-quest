@@ -338,6 +338,7 @@ export const MissedOpportunitiesSlide = ({
           markers={screenshots[editingIndex].markers}
           onSave={handleEditorSave}
           tradeId={`missed-${editingIndex}`}
+          allowMultiplePerType
         />
       )}
 
