@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { DaySummarySlide } from "./slides/DaySummarySlide";
 import { TradesOverviewSlide } from "./slides/TradesOverviewSlide";
 import { TradeReviewSlide } from "./slides/TradeReviewSlide";
-import { MissedOpportunitiesSlide } from "./slides/MissedOpportunitiesSlide";
+import { MissedOpportunitiesSlide, type MissedOpportunityScreenshot } from "./slides/MissedOpportunitiesSlide";
 import { WhatWentWellSlide } from "./slides/WhatWentWellSlide";
 import { LessonsLearnedSlide } from "./slides/LessonsLearnedSlide";
 import type { Json } from "@/integrations/supabase/types";
@@ -82,7 +82,7 @@ export const DailyReviewDialog = ({
     missed_opportunities: "",
   });
   const [tradeSlides, setTradeSlides] = useState<TradeSlideData[]>([]);
-  const [missedScreenshots, setMissedScreenshots] = useState<string[]>([]);
+  const [missedScreenshots, setMissedScreenshots] = useState<MissedOpportunityScreenshot[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [reviewId, setReviewId] = useState<string | null>(null);
 
@@ -129,12 +129,22 @@ export const DailyReviewDialog = ({
         missed_opportunities: review.missed_opportunities || "",
       });
 
-      // Load missed opportunity screenshots
-      const screenshots = (review as any).missed_opportunities_screenshots;
-      if (Array.isArray(screenshots) && screenshots.length > 0) {
-        setMissedScreenshots(screenshots);
+      // Load missed opportunity screenshots with markers
+      const missedData = (review as any).missed_opportunities_data;
+      if (Array.isArray(missedData) && missedData.length > 0) {
+        setMissedScreenshots(missedData as MissedOpportunityScreenshot[]);
       } else {
-        setMissedScreenshots([]);
+        // Backward compat: migrate old string[] screenshots
+        const oldScreenshots = (review as any).missed_opportunities_screenshots;
+        if (Array.isArray(oldScreenshots) && oldScreenshots.length > 0) {
+          setMissedScreenshots(oldScreenshots.map((url: string, i: number) => ({
+            id: `migrated-${i}`,
+            screenshot_url: url,
+            markers: [],
+          })));
+        } else {
+          setMissedScreenshots([]);
+        }
       }
 
       // Load trade slides
@@ -199,7 +209,8 @@ export const DailyReviewDialog = ({
           what_went_well: reviewData.what_went_well,
           lessons_learned: reviewData.lessons_learned,
           missed_opportunities: reviewData.missed_opportunities,
-          missed_opportunities_screenshots: missedScreenshots.length > 0 ? missedScreenshots : null,
+          missed_opportunities_screenshots: missedScreenshots.length > 0 ? missedScreenshots.map(s => s.screenshot_url) : null,
+          missed_opportunities_data: missedScreenshots.length > 0 ? JSON.parse(JSON.stringify(missedScreenshots)) : null,
         }, { onConflict: 'user_id,review_date' })
         .select()
         .single();
