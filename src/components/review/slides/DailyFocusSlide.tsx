@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, Star } from "lucide-react";
+import { TrendingUp, Star, RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PreviousFocus {
+  id: string;
+  focus_text: string;
+  review_date: string;
+}
+
+interface UnachievedFocus {
   id: string;
   focus_text: string;
   review_date: string;
@@ -29,6 +36,25 @@ export const DailyFocusSlide = ({
   onExecutionNotesChange,
   onNewFocusTextChange,
 }: DailyFocusSlideProps) => {
+  const [suggestions, setSuggestions] = useState<UnachievedFocus[]>([]);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("daily_improvement_focus")
+        .select("id, focus_text, review_date")
+        .eq("user_id", user.id)
+        .not("execution_rating", "is", null)
+        .lt("execution_rating", 3)
+        .order("review_date", { ascending: false })
+        .limit(3);
+      setSuggestions(data ?? []);
+    };
+    fetchSuggestions();
+  }, []);
+
   return (
     <div className="space-y-8 max-w-2xl mx-auto">
       {/* Header */}
@@ -105,6 +131,25 @@ export const DailyFocusSlide = ({
         <p className="text-sm text-muted-foreground mb-3">
           What's the one specific thing you'll focus on improving tomorrow?
         </p>
+        {suggestions.length > 0 && (
+          <div className="mb-3">
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+              <RotateCcw className="h-3 w-3" />
+              Suggested re-focuses (unachieved):
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestions.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => onNewFocusTextChange(s.focus_text)}
+                  className="text-xs px-2.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors truncate max-w-[240px]"
+                >
+                  {s.focus_text}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <Textarea
           placeholder="e.g., Wait for confirmation candle before entering, Cut position size when trading against trend..."
           value={newFocusText}
