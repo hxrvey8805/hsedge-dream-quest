@@ -10,11 +10,16 @@ interface FocusData {
   review_date: string;
 }
 
+interface PreviousRated {
+  execution_rating: number;
+}
+
 export const ImprovementFocusBanner = () => {
   const [focus, setFocus] = useState<FocusData | null>(null);
   const [streak, setStreak] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previousMissed, setPreviousMissed] = useState(false);
 
   useEffect(() => {
     fetchFocusAndStreak();
@@ -35,6 +40,20 @@ export const ImprovementFocusBanner = () => {
       .maybeSingle();
 
     setFocus(latestFocus);
+
+    // Check if previous rated focus was missed
+    const { data: prevRated } = await supabase
+      .from("daily_improvement_focus")
+      .select("execution_rating")
+      .eq("user_id", user.id)
+      .not("execution_rating", "is", null)
+      .order("review_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (prevRated && (prevRated.execution_rating ?? 0) < 3) {
+      setPreviousMissed(true);
+    }
 
     // Calculate streak: consecutive rated >= 3
     const { data: ratings } = await supabase
@@ -79,11 +98,16 @@ export const ImprovementFocusBanner = () => {
           <TrendingUp className="w-5 h-5 text-primary" />
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 space-y-1">
           {focus && (
             <p className="text-sm text-foreground font-medium truncate">
               <span className="text-muted-foreground">Today's focus: </span>
               {focus.focus_text}
+            </p>
+          )}
+          {previousMissed && (
+            <p className="text-xs text-amber-500">
+              ⚠ Yesterday's focus was not fully achieved — consider re-committing
             </p>
           )}
         </div>

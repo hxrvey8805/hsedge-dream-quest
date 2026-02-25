@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Target, Plus, X, ChevronDown, ChevronRight, Flame, TrendingUp, DollarSign, Trophy, Sparkles } from "lucide-react";
 import { HabitTracker } from "@/components/goals/HabitTracker";
+import { ImprovementJournal } from "@/components/goals/ImprovementJournal";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
@@ -290,6 +291,11 @@ const Goals = () => {
           >
             <HabitTracker goals={goals} />
           </motion.div>
+        </div>
+
+        {/* 1% Improvement Journal - full width */}
+        <div className="mt-8">
+          <ImprovementJournal />
         </div>
       </main>
     </div>
