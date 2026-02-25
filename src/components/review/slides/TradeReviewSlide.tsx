@@ -646,6 +646,18 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
               markers={activeSlot.markers}
               onSave={handleEditorSave}
               tradeId={trade.id}
+              tradeInfo={{
+                symbol: trade.symbol,
+                pair: trade.pair,
+                buy_sell: trade.buy_sell,
+                time_opened: trade.time_opened,
+                time_closed: trade.time_closed,
+                entry_price: trade.entry_price,
+                exit_price: trade.exit_price,
+                pips: trade.pips,
+                profit: trade.profit,
+                outcome: trade.outcome,
+              }}
             />
           )}
         </div>
