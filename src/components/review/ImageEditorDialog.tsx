@@ -30,6 +30,19 @@ export interface Marker {
   labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
 }
 
+export interface TradeInfo {
+  symbol: string | null;
+  pair: string | null;
+  buy_sell: string;
+  time_opened: string | null;
+  time_closed: string | null;
+  entry_price: number | null;
+  exit_price: number | null;
+  pips: number | null;
+  profit: number | null;
+  outcome: string;
+}
+
 interface ImageEditorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,6 +51,7 @@ interface ImageEditorDialogProps {
   onSave: (imageUrl: string, markers: Marker[]) => void;
   tradeId: string;
   allowMultiplePerType?: boolean;
+  tradeInfo?: TradeInfo;
 }
 
 const MARKER_TYPES = [
@@ -54,7 +68,8 @@ export const ImageEditorDialog = ({
   markers: initialMarkers,
   onSave,
   tradeId,
-  allowMultiplePerType = false
+  allowMultiplePerType = false,
+  tradeInfo
 }: ImageEditorDialogProps) => {
   const [markers, setMarkers] = useState<Marker[]>(initialMarkers);
   const [isCropping, setIsCropping] = useState(false);
@@ -691,6 +706,58 @@ export const ImageEditorDialog = ({
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* Trade Info */}
+            {tradeInfo && (
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-sm font-semibold">Trade Info</Label>
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{tradeInfo.symbol || tradeInfo.pair || 'Unknown'}</span>
+                    <span className={tradeInfo.buy_sell === 'Buy' ? 'text-emerald-500 font-medium' : 'text-destructive font-medium'}>
+                      {tradeInfo.buy_sell}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    <div>
+                      <span className="text-muted-foreground">Opened:</span>
+                      <span className="ml-1 font-mono">{tradeInfo.time_opened || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Closed:</span>
+                      <span className="ml-1 font-mono">{tradeInfo.time_closed || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Entry:</span>
+                      <span className="ml-1 font-mono">{tradeInfo.entry_price?.toFixed(5) || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Exit:</span>
+                      <span className="ml-1 font-mono">{tradeInfo.exit_price?.toFixed(5) || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Pips:</span>
+                      <span className={`ml-1 font-mono ${(tradeInfo.pips || 0) >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                        {tradeInfo.pips?.toFixed(1) || 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">P&L:</span>
+                      <span className={`ml-1 font-mono ${(tradeInfo.profit || 0) >= 0 ? 'text-emerald-500' : 'text-destructive'}`}>
+                        ${tradeInfo.profit?.toFixed(2) || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                    tradeInfo.outcome === 'Win' ? 'bg-emerald-500/20 text-emerald-500' :
+                    tradeInfo.outcome === 'Loss' ? 'bg-destructive/20 text-destructive' :
+                    'bg-yellow-500/20 text-yellow-500'
+                  }`}>
+                    {tradeInfo.outcome}
+                  </div>
                 </div>
               </div>
             )}
