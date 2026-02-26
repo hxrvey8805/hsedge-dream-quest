@@ -50,6 +50,16 @@ All colors MUST be HSL.
     --shadow-danger: 0 0 30px hsl(348 100% 60% / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --hud-glass: 0 0% 10% / 0.6;
+    --hud-border: 0 0% 22% / 0.4;
+    --hud-glow-cyan: 190 100% 50%;
+    --hud-glow-green: 163 100% 50%;
+    --hud-glow-red: 348 100% 60%;
+    --hud-glow-amber: 38 92% 50%;
+    --hud-glow-purple: 270 70% 55%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -286,4 +296,40 @@ All colors MUST be HSL.
   filter: blur(80px);
   animation: subtle-float 12s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* HUD Glass Card */
+.hud-glass {
+  background: linear-gradient(145deg, hsl(0 0% 11% / 0.7), hsl(0 0% 7% / 0.8));
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(0 0% 20% / 0.3);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.03), 0 8px 32px hsl(0 0% 0% / 0.4);
+  position: relative;
+}
+
+.hud-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(190 100% 50% / 0.15), transparent 60%, hsl(190 100% 50% / 0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.hud-neon-text {
+  text-shadow: 0 0 10px hsl(190 100% 50% / 0.4), 0 0 30px hsl(190 100% 50% / 0.15);
+}
+
+@keyframes hud-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.hud-dot-pulse {
+  animation: hud-pulse 2s ease-in-out infinite;
 }
