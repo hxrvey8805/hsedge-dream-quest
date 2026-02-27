@@ -124,8 +124,8 @@ export default function Index() {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-5 leading-[1.08] tracking-tight">
-                <span className="text-transparent [-webkit-text-stroke:1.5px_hsl(var(--primary))] drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]">WELCOME TO </span>
-                <span className="text-transparent [-webkit-text-stroke:1.5px_hsl(var(--primary))] drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]">
+                <span className="text-foreground">WELCOME TO </span>
+                <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
                   TRADE PEAKS
                 </span>
               </h1>
