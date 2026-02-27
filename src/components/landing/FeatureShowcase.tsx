@@ -15,6 +15,10 @@ import {
   Clock,
   Layers,
 } from "lucide-react";
+import { CalendarPreview } from "./previews/CalendarPreview";
+import { AnalyticsPreview } from "./previews/AnalyticsPreview";
+import { PlaybookPreview } from "./previews/PlaybookPreview";
+import { ReviewPreview } from "./previews/ReviewPreview";
 
 /* ─── Feature deep-dive rows (alternating left/right) ─── */
 const deepFeatures = [
@@ -30,6 +34,7 @@ const deepFeatures = [
       "Session & time-of-day tagging",
       "Attach screenshots & annotations",
     ],
+    Preview: CalendarPreview,
   },
   {
     icon: BarChart3,
@@ -43,6 +48,7 @@ const deepFeatures = [
       "Risk-reward distribution charts",
       "Performance comparison across accounts",
     ],
+    Preview: AnalyticsPreview,
   },
   {
     icon: BookOpen,
@@ -56,6 +62,7 @@ const deepFeatures = [
       "Track per-setup win-rate & expectancy",
       "Attach documentation & chart examples",
     ],
+    Preview: PlaybookPreview,
   },
   {
     icon: Eye,
@@ -69,6 +76,7 @@ const deepFeatures = [
       "Missed opportunities tracking",
       "Lessons-learned knowledge base",
     ],
+    Preview: ReviewPreview,
   },
 ];
 
@@ -151,14 +159,9 @@ export function FeatureShowcase() {
                   </ul>
                 </div>
 
-                {/* Visual placeholder side */}
-                <div className={`${isEven ? "" : "lg:[direction:ltr]"} rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm aspect-[4/3] flex items-center justify-center`}>
-                  <div className="text-center space-y-3">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
-                      <Icon className="h-8 w-8 text-primary" />
-                    </div>
-                    <p className="text-muted-foreground text-sm font-medium">{feature.badge} Preview</p>
-                  </div>
+                {/* Visual preview side */}
+                <div className={`${isEven ? "" : "lg:[direction:ltr]"} aspect-[4/3]`}>
+                  <feature.Preview />
                 </div>
               </motion.div>
             );
