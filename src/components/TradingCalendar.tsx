@@ -61,6 +61,7 @@ interface DayStats {
 
 interface TradingCalendarProps {
   onDaySelect: (date: Date) => void;
+  onDayAction?: (date: Date, hasTrades: boolean) => void;
   viewMode: 'pips' | 'profit';
   refreshTrigger?: number;
   onRefresh?: () => void;
@@ -79,7 +80,7 @@ const ASSET_CLASSES = [
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
-export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
+export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const { accounts } = useAccounts();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -167,11 +168,22 @@ export const TradingCalendar = ({ onDaySelect, viewMode, refreshTrigger, onRefre
   };
 
   const handleDayClick = (day: Date, dayStats: DayStats) => {
-    if (dayStats.trades.length > 0) {
-      setSelectedDay(day);
-      setShowDetailsDialog(true);
+    if (onDayAction) {
+      // Use new action picker flow
+      if (dayStats.trades.length > 0) {
+        setSelectedDay(day);
+        setShowDetailsDialog(true);
+      } else {
+        onDayAction(day, dayStats.trades.length > 0);
+      }
     } else {
-      onDaySelect(day);
+      // Legacy behavior
+      if (dayStats.trades.length > 0) {
+        setSelectedDay(day);
+        setShowDetailsDialog(true);
+      } else {
+        onDaySelect(day);
+      }
     }
   };
 

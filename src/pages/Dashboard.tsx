@@ -7,6 +7,8 @@ import { LogOut, Trophy, TrendingUp, BarChart3, Sparkles, Upload, Trash2, Calend
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
+import { DayActionPicker } from "@/components/DayActionPicker";
+import { GamePlanDialog } from "@/components/GamePlanDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -60,6 +62,9 @@ const Dashboard = () => {
   const [viewMode, setViewMode] = useState<'pips' | 'profit'>(persistedState.viewMode);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [actionPickerOpen, setActionPickerOpen] = useState(false);
+  const [gamePlanOpen, setGamePlanOpen] = useState(false);
+  const [gamePlanViewOnly, setGamePlanViewOnly] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(persistedState.monthSwitchEnabled);
   const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(persistedState.accountSwitchEnabled);
@@ -206,6 +211,10 @@ const Dashboard = () => {
   const handleDaySelect = (date: Date) => {
     setSelectedDate(date);
     setDialogOpen(true);
+  };
+  const handleDayAction = (date: Date) => {
+    setSelectedDate(date);
+    setActionPickerOpen(true);
   };
   const handleTradeAdded = () => {
     fetchStats();
@@ -430,6 +439,7 @@ const Dashboard = () => {
             
             <TradingCalendar 
               onDaySelect={handleDaySelect} 
+              onDayAction={handleDayAction}
               viewMode={viewMode} 
               refreshTrigger={refreshTrigger} 
               onRefresh={() => {
@@ -498,6 +508,35 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedDate && (
+        <>
+          <DayActionPicker
+            open={actionPickerOpen}
+            onOpenChange={setActionPickerOpen}
+            date={selectedDate}
+            onLogTrade={() => setDialogOpen(true)}
+            onGamePlan={() => {
+              setGamePlanViewOnly(false);
+              setGamePlanOpen(true);
+            }}
+            onNoTradeDay={() => {
+              // Open review dialog for no-trade day - just open log for now
+              setDialogOpen(true);
+            }}
+            onViewGamePlan={() => {
+              setGamePlanViewOnly(true);
+              setGamePlanOpen(true);
+            }}
+          />
+          <GamePlanDialog
+            open={gamePlanOpen}
+            onOpenChange={setGamePlanOpen}
+            date={selectedDate}
+            viewOnly={gamePlanViewOnly}
+          />
+        </>
+      )}
     </div>;
 };
 export default Dashboard;
