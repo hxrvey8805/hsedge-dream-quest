@@ -655,6 +655,79 @@ export type Database = {
           },
         ]
       }
+      room_members: {
+        Row: {
+          id: string
+          joined_at: string
+          room_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          room_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          room_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "trading_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_races: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          name: string
+          room_id: string
+          start_date: string
+          target_amount: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          room_id: string
+          start_date?: string
+          target_amount: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          room_id?: string
+          start_date?: string
+          target_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_races_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "trading_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strategies: {
         Row: {
           created_at: string
@@ -949,6 +1022,45 @@ export type Database = {
           },
         ]
       }
+      trading_rooms: {
+        Row: {
+          access_mode: string
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          invite_code: string
+          is_active: boolean
+          name: string
+          privacy_level: string
+          updated_at: string
+        }
+        Insert: {
+          access_mode?: string
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          invite_code?: string
+          is_active?: boolean
+          name: string
+          privacy_level?: string
+          updated_at?: string
+        }
+        Update: {
+          access_mode?: string
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          invite_code?: string
+          is_active?: boolean
+          name?: string
+          privacy_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -1063,7 +1175,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_room_by_invite_code: {
+        Args: { code: string }
+        Returns: {
+          access_mode: string
+          creator_id: string
+          description: string
+          id: string
+          name: string
+          privacy_level: string
+        }[]
+      }
     }
     Enums: {
       achievement_category: "trading" | "consistency" | "profit" | "streak"

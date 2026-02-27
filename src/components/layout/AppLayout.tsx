@@ -11,6 +11,7 @@ const navItems = [
   { label: "Statistics", path: "/statistics" },
   { label: "Accounts", path: "/accounts" },
   { label: "Goals", path: "/goals" },
+  { label: "Rooms", path: "/rooms" },
   { label: "Dream Builder", path: "/dream-builder" },
   { label: "Playbooks", path: "/playbooks" },
 ];
