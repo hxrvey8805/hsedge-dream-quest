@@ -113,103 +113,90 @@ export default function Index() {
           ))}
         </div>
 
-        {/* Hero Content Section - Side by side like TradeZella */}
-        <section id="features" className="relative w-full py-12 lg:py-16 bg-[hsl(var(--background))]">
-          <div className="relative z-10 max-w-7xl mx-auto px-[5%]">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-              {/* Left: Text content */}
-              <div>
-                <motion.h1
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-[1.1] tracking-tight"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
+        {/* Hero Content Section */}
+        <section id="features" className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+          <div className="relative z-10 max-w-[1400px] mx-auto px-[5%]">
+            {/* Centered hero heading */}
+            <motion.div
+              className="text-center mb-14"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-5 leading-[1.08] tracking-tight">
+                <span className="text-foreground">WELCOME TO </span>
+                <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
+                  TRADE PEAKS
+                </span>
+              </h1>
+              <p className="text-muted-foreground text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto mb-8">
+                Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg font-semibold shadow-[var(--shadow-glow)] hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300"
+                  onClick={() => setWaitlistOpen(true)}
                 >
-                  <span className="text-foreground">Everything you need to </span>
-                  <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
-                    master your trading
-                  </span>
-                </motion.h1>
-
-                <motion.p
-                  className="text-muted-foreground text-lg md:text-xl mb-8 leading-relaxed max-w-xl"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-border text-foreground hover:bg-secondary px-10 py-6 text-lg font-medium"
+                  onClick={() => navigate("/dashboard")}
                 >
-                  TradePeaks shows you the metrics that matter — and the behaviours that lead to profit.
-                </motion.p>
-
-                <motion.div
-                  className="space-y-3 mb-10"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                  {heroPoints.map((point, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <p className="text-base md:text-lg">
-                        <span className="font-semibold text-foreground">{point.text}</span>{" "}
-                        <span className="text-muted-foreground">{point.sub}</span>
-                      </p>
-                    </div>
-                  ))}
-                </motion.div>
-
-                <motion.div
-                  className="flex flex-col sm:flex-row gap-3"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                >
-                  <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-base font-semibold shadow-[var(--shadow-glow)] hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300"
-                    onClick={() => setWaitlistOpen(true)}
-                  >
-                    Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-border text-foreground hover:bg-secondary px-8 py-6 text-base font-medium"
-                    onClick={() => navigate("/dashboard")}
-                  >
-                    Explore Dashboard
-                  </Button>
-                </motion.div>
+                  Learn More
+                </Button>
               </div>
+            </motion.div>
 
-              {/* Right: Quick feature highlights grid */}
-              <motion.div
-                className="grid grid-cols-2 gap-4"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.7, delay: 0.2 }}
-              >
-                {[
-                  { icon: CalendarDays, title: "Trade Calendar", desc: "Visual P&L calendar with color-coded days, streaks, and session breakdowns" },
-                  { icon: BarChart3, title: "Advanced Analytics", desc: "Equity curves, win-rate by session, risk-reward distributions and more" },
-                  { icon: BookOpen, title: "Playbook Builder", desc: "Define setups, tag trades, and see which strategies actually make money" },
-                  { icon: Eye, title: "Daily Reviews", desc: "Guided slide-based reviews with screenshots, annotations, and lessons" },
-                  { icon: Shield, title: "Risk Management", desc: "Pre-trade checklists and custom rules that enforce discipline every time" },
-                  { icon: Target, title: "Dream Builder", desc: "Map out financial goals and connect daily trading to your bigger vision" },
-                ].map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={i}
-                      className="group rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm p-5 hover:border-primary/30 hover:bg-card/70 transition-all duration-400"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-3 group-hover:bg-primary/15 transition-all">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-foreground mb-1">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+            {/* Full-width feature grid */}
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 lg:gap-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              {[
+                { icon: CalendarDays, title: "Trade Calendar", desc: "Visual P&L calendar with colour-coded days, streaks, session breakdowns, and click-to-expand trade details." },
+                { icon: BarChart3, title: "Advanced Analytics", desc: "Equity curves, win-rate by session and strategy, risk-reward distributions, and day-of-week heatmaps." },
+                { icon: BookOpen, title: "Playbook Builder", desc: "Define your A+ setups, tag every trade to a strategy, and watch which setups print money over time." },
+                { icon: Eye, title: "Daily Reviews", desc: "Guided slide-based reviews with screenshot uploads, annotations, missed opportunities, and lessons learned." },
+                { icon: Shield, title: "Risk Management", desc: "Pre-trade checklists and custom risk rules that enforce discipline on every single entry you take." },
+                { icon: Target, title: "Dream Builder", desc: "Map out your financial goals and connect your daily trading performance directly to your bigger vision." },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={i}
+                    className="group rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm p-6 lg:p-7 hover:border-primary/30 hover:bg-card/70 transition-all duration-400"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-all">
+                      <Icon className="h-6 w-6 text-primary" />
                     </div>
-                  );
-                })}
-              </motion.div>
-            </div>
+                    <h3 className="text-base lg:text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                );
+              })}
+            </motion.div>
+
+            {/* Hero bullet points below grid */}
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-10"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              {heroPoints.map((point, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-lg border border-border/30 bg-card/20">
+                  <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground leading-tight">{point.text}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{point.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </section>
 
