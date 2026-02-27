@@ -57,7 +57,7 @@ export const GoalsCategoriesCard = ({ goals, habitLogs, onToggle, onAdd, onDelet
         <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Goal Categories</h3>
       </div>
 
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[500px]">
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[500px] hud-scrollbar">
         {CATEGORIES.map(cat => {
           const catGoals = goalsByCategory[cat.key];
           const completed = catGoals.filter(g => g.is_completed).length;
@@ -112,12 +112,12 @@ export const GoalsCategoriesCard = ({ goals, habitLogs, onToggle, onAdd, onDelet
                             {/* Consistency dots */}
                             <div className="flex gap-1 shrink-0">
                               {dots.map((d, j) => (
-                                <div
-                                  key={j}
-                                  className={`w-2 h-2 rounded-full ${
-                                    d === "green" ? "bg-success" : d === "amber" ? "bg-warning" : "bg-muted/40"
-                                  }`}
-                                />
+                                  <div
+                                    key={j}
+                                    className={`w-2 h-2 rounded-full border ${
+                                      d === "green" ? "bg-success border-success/50" : d === "amber" ? "bg-warning border-warning/50" : "bg-muted/20 border-muted-foreground/20"
+                                    }`}
+                                  />
                               ))}
                             </div>
                             <Button

@@ -89,8 +89,8 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
                               checked
                                 ? "bg-success shadow-[0_0_8px_hsl(var(--success)/0.5)]"
                                 : isToday
-                                  ? "bg-primary/30 shadow-[0_0_6px_hsl(var(--primary)/0.3)] hud-dot-pulse"
-                                  : "bg-muted/30"
+                                  ? "bg-primary/30 border border-primary/50 shadow-[0_0_6px_hsl(var(--primary)/0.3)] hud-dot-pulse"
+                                  : "bg-muted/20 border border-muted-foreground/20"
                             }`} />
                           </button>
                         </td>
