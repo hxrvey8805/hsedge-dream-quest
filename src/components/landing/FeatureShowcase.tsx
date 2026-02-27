@@ -7,155 +7,162 @@ import {
   Trophy,
   Users,
   Shield,
-  Sparkles,
-  ArrowRight,
   TrendingUp,
   Eye,
   Repeat,
+  Zap,
+  LineChart,
+  Clock,
+  Layers,
 } from "lucide-react";
 
-const features = [
+/* ─── Feature deep-dive rows (alternating left/right) ─── */
+const deepFeatures = [
   {
     icon: CalendarDays,
-    title: "Visual Trade Calendar",
+    badge: "Journaling",
+    title: "A calendar that tells your trading story",
     description:
-      "Log every trade on an interactive calendar. Color-coded days show your P&L at a glance — see winning streaks, losing days, and patterns emerge over weeks and months.",
-    accent: "primary",
-  },
-  {
-    icon: Eye,
-    title: "Daily Review System",
-    description:
-      "End each session with a guided slide-based review. Capture screenshots, annotate charts, document what went well, missed opportunities, and key lessons learned.",
-    accent: "primary",
-  },
-  {
-    icon: BookOpen,
-    title: "Playbook Builder",
-    description:
-      "Define your setups, tag trades to specific strategies, and build a living playbook. Over time, see exactly which setups print money and which to cut.",
-    accent: "primary",
+      "Every day is colour-coded by P&L so patterns jump off the screen. Click any date to see individual trades, session breakdowns, notes, and screenshots — all in one place.",
+    bullets: [
+      "Colour-coded daily P&L at a glance",
+      "Click-to-expand trade details per day",
+      "Session & time-of-day tagging",
+      "Attach screenshots & annotations",
+    ],
   },
   {
     icon: BarChart3,
-    title: "Advanced Analytics",
+    badge: "Analytics",
+    title: "Data-driven insights that sharpen your edge",
     description:
-      "Equity curves, win-rate breakdowns by session, day-of-week analysis, risk-reward distributions, and more. Data-driven insights to sharpen your edge.",
-    accent: "primary",
+      "Equity curves, win-rate breakdowns by session, day-of-week heatmaps, risk-reward distributions, and running P&L — everything you need to find what's actually working.",
+    bullets: [
+      "Equity curve with drawdown overlay",
+      "Win-rate by day, session & strategy",
+      "Risk-reward distribution charts",
+      "Performance comparison across accounts",
+    ],
   },
   {
-    icon: Target,
-    title: "Dream Builder",
+    icon: BookOpen,
+    badge: "Playbooks",
+    title: "Build a living playbook of your setups",
     description:
-      "Visualise your financial goals. Map out dream purchases, calculate the monthly income required, and connect your daily trading to a purpose that drives you.",
-    accent: "primary",
+      "Define your A+ setups, tag every trade to a specific strategy, and watch your playbook evolve. Over time, see exactly which setups print money — and which to cut.",
+    bullets: [
+      "Create & organise multiple playbooks",
+      "Tag trades to specific setups",
+      "Track per-setup win-rate & expectancy",
+      "Attach documentation & chart examples",
+    ],
   },
   {
-    icon: Shield,
-    title: "Risk Management",
+    icon: Eye,
+    badge: "Reviews",
+    title: "End every session with a guided review",
     description:
-      "Set custom risk rules per strategy. Pre-trade checklists enforce discipline before every entry — ensuring you stick to the plan, every single time.",
-    accent: "primary",
+      "A structured, slide-based daily review that captures what went well, missed opportunities, lessons learned, and individual trade breakdowns with annotated screenshots.",
+    bullets: [
+      "Slide-based review workflow",
+      "Screenshot upload & annotation",
+      "Missed opportunities tracking",
+      "Lessons-learned knowledge base",
+    ],
   },
 ];
 
+/* ─── Secondary feature pills ─── */
 const secondaryFeatures = [
-  {
-    icon: Trophy,
-    title: "Gamified Progress",
-    description: "Earn XP, unlock achievements, and level up as you build consistency.",
-  },
-  {
-    icon: Users,
-    title: "Trading Rooms",
-    description: "Compete with peers in private rooms. Leaderboards and profit races keep you accountable.",
-  },
-  {
-    icon: Repeat,
-    title: "Habit Tracking",
-    description: "Build daily trading habits with streak tracking and consistency scoring.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Prop Firm Tracker",
-    description: "Monitor evaluations, funded accounts, and drawdown limits all in one place.",
-  },
+  { icon: Trophy, title: "Gamified Progress", desc: "Earn XP, unlock achievements, and level up as you build consistency." },
+  { icon: Users, title: "Trading Rooms", desc: "Compete with peers in private rooms. Leaderboards and races keep you sharp." },
+  { icon: Repeat, title: "Habit Tracking", desc: "Build daily trading habits with streak tracking and consistency scoring." },
+  { icon: TrendingUp, title: "Prop Firm Tracker", desc: "Monitor evaluations, funded accounts, and drawdown limits in one place." },
+  { icon: Target, title: "Dream Builder", desc: "Map financial goals and connect daily performance to your bigger vision." },
+  { icon: Shield, title: "Risk Rules", desc: "Pre-trade checklists and custom risk rules that enforce discipline every entry." },
+  { icon: Clock, title: "Session Analysis", desc: "Break down performance by London, New York, Asian sessions and more." },
+  { icon: Layers, title: "Multi-Account", desc: "Track personal accounts, prop firms, and evaluations all in one dashboard." },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
-};
+const stats = [
+  { value: "6+", label: "Core Modules" },
+  { value: "∞", label: "Trades Tracked" },
+  { value: "100%", label: "Data Privacy" },
+  { value: "24/7", label: "Cloud Access" },
+];
 
 export function FeatureShowcase() {
   return (
     <>
-      {/* Primary Features Grid */}
-      <section className="relative w-full py-20 lg:py-28 bg-[hsl(var(--background))]">
-        <div className="relative z-10 px-[5%] max-w-7xl mx-auto">
-          {/* Section Header */}
+      {/* ── Deep Feature Rows ── */}
+      <section className="relative w-full py-14 lg:py-20 bg-[hsl(var(--background))]">
+        <div className="relative z-10 px-[5%] max-w-7xl mx-auto space-y-20 lg:space-y-28">
+          {/* Section header */}
           <motion.div
-            className="text-center mb-16 lg:mb-20"
+            className="text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-4">
+            <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-3">
               Everything you need
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 tracking-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
               Your complete trading{" "}
               <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
                 command centre
               </span>
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
-              Built by traders, for traders. Every tool designed to turn raw data into actionable insight and lasting discipline.
-            </p>
           </motion.div>
 
-          {/* Features Grid */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-          >
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={feature.title}
-                  variants={itemVariants}
-                  className="group relative rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 transition-all duration-500 hover:border-primary/30 hover:bg-card/60 hover:shadow-[0_0_50px_hsl(var(--primary)/0.08)]"
-                >
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/15 group-hover:border-primary/30 transition-all duration-500">
-                    <Icon className="h-6 w-6 text-primary" />
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary-foreground transition-colors duration-300">
+          {/* Alternating feature rows */}
+          {deepFeatures.map((feature, idx) => {
+            const Icon = feature.icon;
+            const isEven = idx % 2 === 0;
+            return (
+              <motion.div
+                key={feature.title}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center ${isEven ? "" : "lg:[direction:rtl]"}`}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6 }}
+              >
+                {/* Text side */}
+                <div className={isEven ? "" : "lg:[direction:ltr]"}>
+                  <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+                    <Icon className="h-3.5 w-3.5" />
+                    {feature.badge}
+                  </span>
+                  <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight tracking-tight">
                     {feature.title}
                   </h3>
-
-                  <p className="text-muted-foreground text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
                     {feature.description}
                   </p>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+                  <ul className="space-y-2.5">
+                    {feature.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-3 text-sm md:text-base text-foreground/80">
+                        <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Visual placeholder side */}
+                <div className={`${isEven ? "" : "lg:[direction:ltr]"} rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm aspect-[4/3] flex items-center justify-center`}>
+                  <div className="text-center space-y-3">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+                      <Icon className="h-8 w-8 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground text-sm font-medium">{feature.badge} Preview</p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
@@ -164,45 +171,44 @@ export function FeatureShowcase() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
       </div>
 
-      {/* Secondary Features Row */}
-      <section className="relative w-full py-20 lg:py-24 bg-[hsl(var(--background))]">
+      {/* ── Secondary Features Grid ── */}
+      <section className="relative w-full py-14 lg:py-20 bg-[hsl(var(--background))]">
         <div className="relative z-10 px-[5%] max-w-7xl mx-auto">
           <motion.div
-            className="text-center mb-14"
+            className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-muted-foreground text-sm uppercase tracking-[0.25em] mb-4">
+            <p className="text-muted-foreground text-sm uppercase tracking-[0.25em] mb-3">
               And there's more
             </p>
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
               Built for the long game
             </h2>
           </motion.div>
 
           <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             {secondaryFeatures.map((feature) => {
               const Icon = feature.icon;
               return (
-                <motion.div
+                <div
                   key={feature.title}
-                  variants={itemVariants}
-                  className="group text-center p-6 rounded-xl border border-border/30 bg-card/20 hover:border-border/60 hover:bg-card/40 transition-all duration-500"
+                  className="group p-5 rounded-xl border border-border/40 bg-card/25 hover:border-primary/25 hover:bg-card/50 transition-all duration-400"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/12 transition-all duration-500">
-                    <Icon className="h-5 w-5 text-primary/80" />
+                  <div className="w-9 h-9 rounded-lg bg-primary/8 border border-primary/15 flex items-center justify-center mb-3 group-hover:bg-primary/12 transition-all">
+                    <Icon className="h-4.5 w-4.5 text-primary/80" />
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-xs leading-relaxed">{feature.description}</p>
-                </motion.div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1.5">{feature.title}</h3>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{feature.desc}</p>
+                </div>
               );
             })}
           </motion.div>
@@ -214,22 +220,17 @@ export function FeatureShowcase() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
       </div>
 
-      {/* Social Proof / Stats Strip */}
-      <section className="relative w-full py-16 bg-[hsl(var(--background))]">
+      {/* ── Stats Strip ── */}
+      <section className="relative w-full py-12 bg-[hsl(var(--background))]">
         <div className="relative z-10 px-[5%] max-w-5xl mx-auto">
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            {[
-              { value: "6+", label: "Core Modules" },
-              { value: "∞", label: "Trades Tracked" },
-              { value: "100%", label: "Data Privacy" },
-              { value: "24/7", label: "Cloud Access" },
-            ].map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label}>
                 <div className="text-3xl md:text-4xl font-bold text-primary mb-1">{stat.value}</div>
                 <div className="text-muted-foreground text-xs uppercase tracking-[0.2em]">{stat.label}</div>
