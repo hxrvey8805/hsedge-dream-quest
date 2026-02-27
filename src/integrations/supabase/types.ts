@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_game_plans: {
+        Row: {
+          created_at: string
+          id: string
+          key_levels: string | null
+          market_bias: string | null
+          mental_notes: string | null
+          plan_date: string
+          risk_notes: string | null
+          updated_at: string
+          user_id: string
+          watchlist: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_levels?: string | null
+          market_bias?: string | null
+          mental_notes?: string | null
+          plan_date: string
+          risk_notes?: string | null
+          updated_at?: string
+          user_id: string
+          watchlist?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_levels?: string | null
+          market_bias?: string | null
+          mental_notes?: string | null
+          plan_date?: string
+          risk_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          watchlist?: string | null
+        }
+        Relationships: []
+      }
       daily_improvement_focus: {
         Row: {
           created_at: string
