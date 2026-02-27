@@ -333,3 +333,23 @@ All colors MUST be HSL.
 .hud-dot-pulse {
   animation: hud-pulse 2s ease-in-out infinite;
 }
+
+/* HUD-themed scrollbar */
+.hud-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.hud-scrollbar::-webkit-scrollbar-track {
+  background: hsl(0 0% 10% / 0.5);
+  border-radius: 3px;
+}
+.hud-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 30% / 0.6);
+  border-radius: 3px;
+}
+.hud-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(0 0% 40% / 0.7);
+}
+.hud-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(0 0% 30% / 0.6) hsl(0 0% 10% / 0.5);
+}

@@ -63,7 +63,7 @@ export const GoalsProgressHeader = ({ goals, habitLogs }: Props) => {
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
             {completedGoals} / {totalGoals} <span className="text-muted-foreground text-lg font-normal">Active Goals</span>
           </h2>
-          <div className="mt-3 h-2 rounded-full bg-muted/30 overflow-hidden max-w-md">
+          <div className="mt-3 h-2 rounded-full bg-muted/30 border border-muted-foreground/15 overflow-hidden max-w-md">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500"
               style={{ width: `${progressPercent}%`, boxShadow: "0 0 12px hsl(var(--primary) / 0.5)" }}
