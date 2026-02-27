@@ -123,11 +123,8 @@ export default function Index() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-5 leading-[1.08] tracking-tight">
-                <span className="text-transparent [-webkit-text-stroke:1.5px_hsl(var(--primary))] drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]">WELCOME TO </span>
-                <span className="text-transparent [-webkit-text-stroke:1.5px_hsl(var(--primary))] drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]">
-                  TRADE PEAKS
-                </span>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-5 leading-[1.08] tracking-tight text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" style={{ WebkitTextStroke: '1.5px hsl(212 98% 62%)', WebkitTextFillColor: 'transparent', paintOrder: 'stroke fill' }}>
+                WELCOME TO TRADE PEAKS
               </h1>
               <p className="text-muted-foreground text-lg md:text-xl lg:text-2xl leading-relaxed max-w-3xl mx-auto mb-8">
                 Transform your trading journey with TP. Track every trade, build your dreams, and reach the summit with our trading journal.
