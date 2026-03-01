@@ -76,13 +76,13 @@ export default function Index() {
     <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center gap-6">
-          <nav className="flex items-center gap-6">
-            <a href="#system" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
-            <a href="#analytics" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
-            <button type="button" onClick={() => navigate("/pricing")} className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Pricing</button>
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-center gap-10">
+          <nav className="flex items-center gap-8">
+            <a href="#system" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
+            <a href="#analytics" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Pricing</button>
           </nav>
-          <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
+          <Button size="default" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
             Log in
           </Button>
         </div>
