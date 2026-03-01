@@ -120,15 +120,17 @@ export default function Index() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
+              {/* Centered H1 */}
+              <h1
+                className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-16 leading-[1.08] tracking-tight text-center whitespace-nowrap"
+                style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)' }}
+              >
+                WELCOME TO TRADE PEAKS
+              </h1>
+
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
                 {/* Left column */}
                 <div className="lg:col-span-7">
-                  <h1
-                    className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 leading-[1.08] tracking-tight text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)] whitespace-nowrap"
-                    style={{ WebkitTextStroke: '1.5px hsl(212 98% 62%)', WebkitTextFillColor: 'transparent', paintOrder: 'stroke fill' }}
-                  >
-                    WELCOME TO TRADE PEAKS
-                  </h1>
 
                   <p className="text-xl md:text-2xl lg:text-3xl font-semibold text-foreground mb-8 leading-tight">
                     Define your summit. Trade with direction.
