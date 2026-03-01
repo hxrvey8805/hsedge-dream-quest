@@ -143,7 +143,7 @@ const Dashboard = () => {
     } = await supabase.auth.getUser();
     if (!user) return;
     
-    let query = supabase.from("trades").select("*").eq("user_id", user.id);
+    let query = supabase.from("trades").select("*").eq("user_id", user.id).range(0, 9999);
     
     // Filter by account if selected
     if (selectedAccount) {
@@ -182,6 +182,7 @@ const Dashboard = () => {
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
+      .range(0, 9999)
       .gte("trade_date", monthStart.toISOString().split('T')[0])
       .lte("trade_date", monthEnd.toISOString().split('T')[0]);
 
