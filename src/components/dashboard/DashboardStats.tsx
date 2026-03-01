@@ -173,7 +173,7 @@ const useStats = (props: DashboardStatsProps) => {
         }
       }
 
-      let query = supabase.from("trades").select("*").eq("user_id", user.id);
+      let query = supabase.from("trades").select("*").eq("user_id", user.id).range(0, 9999);
 
       if (monthSwitchEnabled) {
         const monthStart = startOfMonth(currentMonth);

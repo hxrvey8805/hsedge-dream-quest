@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
+import { TrendingUp, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { useAccounts } from "@/hooks/useAccounts";
 
 interface Trade {
   id: string;
@@ -41,12 +42,14 @@ const loadDashboardFilters = () => {
     const accountSwitchEnabled = localStorage.getItem('dashboard_accountSwitchEnabled') === 'true';
     const savedAccount = localStorage.getItem('dashboard_selectedAccount');
     const savedMonth = localStorage.getItem('dashboard_currentMonth');
+    const savedViewMode = localStorage.getItem('dashboard_viewMode');
 
     return {
       monthSwitchEnabled,
       accountSwitchEnabled,
       selectedAccountId: accountSwitchEnabled ? (savedAccount || null) : null,
       currentMonth: savedMonth ? new Date(savedMonth) : new Date(),
+      viewMode: (savedViewMode as 'pips' | 'profit') || 'profit',
     };
   } catch {
     return {
@@ -54,6 +57,7 @@ const loadDashboardFilters = () => {
       accountSwitchEnabled: false,
       selectedAccountId: null,
       currentMonth: new Date(),
+      viewMode: 'profit' as const,
     };
   }
 };
@@ -63,8 +67,9 @@ const Statistics = () => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(loadDashboardFilters);
+  const { accounts } = useAccounts();
 
-  // Re-read filters when component mounts or window regains focus (in case user changed them on dashboard)
+  // Re-read filters when component mounts or window regains focus
   useEffect(() => {
     const handleFocus = () => setFilters(loadDashboardFilters());
     window.addEventListener('focus', handleFocus);
@@ -86,7 +91,8 @@ const Statistics = () => {
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
-      .order("trade_date", { ascending: false });
+      .order("trade_date", { ascending: false })
+      .range(0, 9999); // Avoid default 1000-row limit
 
     // Apply month filter if enabled on dashboard
     if (filters.monthSwitchEnabled) {
@@ -101,7 +107,6 @@ const Statistics = () => {
     if (filters.selectedAccountId) {
       query = query.eq("account_id", filters.selectedAccountId);
     } else {
-      // When "All Accounts", exclude evaluation and backtesting
       query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
 
@@ -112,6 +117,25 @@ const Statistics = () => {
     }
     setLoading(false);
   };
+
+  // Calculate account P&L the same way as Dashboard's useStats hook
+  const getAccountPL = () => {
+    // When month filter is on, dashboard doesn't add account running_pl
+    if (filters.monthSwitchEnabled) return 0;
+    // When in pips mode, dashboard doesn't add account running_pl
+    if (filters.viewMode === 'pips') return 0;
+
+    if (filters.selectedAccountId) {
+      const selectedAccount = accounts.find(a => a.id === filters.selectedAccountId);
+      return selectedAccount?.running_pl || 0;
+    } else {
+      return accounts
+        .filter(acc => acc.type === 'personal' || acc.type === 'funded')
+        .reduce((sum, acc) => sum + (acc.running_pl || 0), 0);
+    }
+  };
+
+  const accountPL = getAccountPL();
 
   const calculateStats = (filteredTrades: Trade[]): CategoryStats => {
     const wins = filteredTrades.filter(t => t.outcome === "Win").length;
@@ -150,6 +174,9 @@ const Statistics = () => {
   };
 
   const globalStats = calculateStats(trades);
+  // Net P&L matches dashboard: accountPL + trade profits
+  const netPL = accountPL + globalStats.totalProfit;
+
   const sessions = [...new Set(trades.map(t => t.session).filter(Boolean))];
   const timeframes = [...new Set(trades.map(t => t.entry_timeframe).filter(Boolean))];
   const strategies = [...new Set(trades.map(t => t.strategy_type).filter(Boolean))];
@@ -224,10 +251,15 @@ const Statistics = () => {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total P&L</p>
-                <p className={`text-2xl font-bold ${globalStats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  ${globalStats.totalProfit >= 0 ? '+' : ''}{globalStats.totalProfit.toFixed(2)}
+                <p className="text-sm text-muted-foreground">Net P&L</p>
+                <p className={`text-2xl font-bold ${netPL >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  ${netPL >= 0 ? '+' : ''}{netPL.toFixed(2)}
                 </p>
+                {accountPL !== 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Account P&L: ${accountPL.toFixed(2)} · Trades: ${globalStats.totalProfit.toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
           </Card>
