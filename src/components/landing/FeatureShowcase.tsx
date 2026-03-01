@@ -5,7 +5,6 @@ import {
   BookOpen,
   Target,
   Trophy,
-  Users,
   Shield,
   TrendingUp,
   Eye,
@@ -17,10 +16,8 @@ import {
   ClipboardCheck,
   LineChart,
   ArrowRight,
-  X,
   AlertTriangle,
   HelpCircle,
-  Gauge,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,12 +26,21 @@ import { AnalyticsPreview } from "./previews/AnalyticsPreview";
 import { PlaybookPreview } from "./previews/PlaybookPreview";
 import { ReviewPreview } from "./previews/ReviewPreview";
 
+const cx = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"; // consistent container
+const cxNarrow = "mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8";
+
 const sectionAnim = {
   initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-60px" as const },
   transition: { duration: 0.6 },
 };
+
+const Divider = () => (
+  <div className={cx}>
+    <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+  </div>
+);
 
 /* ─── The Problem ─── */
 const problems = [
@@ -67,7 +73,7 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
     <>
       {/* ── THE PROBLEM ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-3xl mx-auto px-[5%] text-center">
+        <div className={cxNarrow + " text-center"}>
           <motion.div {...sectionAnim}>
             <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-3">The Problem</p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-6">
@@ -94,14 +100,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── THE SYSTEM ── */}
       <section id="system" className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-4xl mx-auto px-[5%]">
+        <div className={cx}>
           <motion.div {...sectionAnim} className="text-center mb-14">
             <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-3">The TradePeaks System</p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
@@ -144,14 +147,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── CALENDAR SECTION ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-7xl mx-auto px-[5%]">
+        <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
@@ -183,14 +183,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── ANALYTICS ── */}
       <section id="analytics" className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-7xl mx-auto px-[5%]">
+        <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:[direction:rtl]">
             <div className="lg:[direction:ltr]">
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
@@ -222,14 +219,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── PLAYBOOKS ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-7xl mx-auto px-[5%]">
+        <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
@@ -258,14 +252,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── DAILY REVIEWS ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-7xl mx-auto px-[5%]">
+        <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:[direction:rtl]">
             <div className="lg:[direction:ltr]">
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
@@ -298,14 +289,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── DREAM BUILDER ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-3xl mx-auto px-[5%] text-center">
+        <div className={cxNarrow + " text-center"}>
           <motion.div {...sectionAnim}>
             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
               <Target className="h-3.5 w-3.5" />
@@ -330,19 +318,16 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── BUILT FOR THE LONG GAME ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="max-w-3xl mx-auto px-[5%] text-center">
+        <div className={cx + " text-center"}>
           <motion.div {...sectionAnim}>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-8">
               Built for the Long Game
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 text-left max-w-lg mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8 text-left max-w-4xl mx-auto">
               {longGameFeatures.map((f) => {
                 const Icon = f.icon;
                 return (
@@ -361,14 +346,11 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="relative h-px mx-[10%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      <Divider />
 
       {/* ── FINAL CTA ── */}
       <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className="relative z-10 flex items-center justify-center px-[5%]">
+        <div className={cx + " flex items-center justify-center"}>
           <Card className="max-w-3xl w-full bg-card/30 border border-border/50 rounded-2xl backdrop-blur-sm p-10 md:p-14 text-center">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
               Ready to climb?
