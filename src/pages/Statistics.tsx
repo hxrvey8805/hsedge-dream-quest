@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, TrendingUp, TrendingDown, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Clock, BarChart3, PieChart, Calendar as CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import logo from "@/assets/tp-logo.png";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 
 interface Trade {
   id: string;
@@ -21,6 +20,8 @@ interface Trade {
   time_opened: string | null;
   time_closed: string | null;
   buy_sell: string;
+  account_id: string | null;
+  account_type: string | null;
 }
 
 interface CategoryStats {
@@ -31,19 +32,48 @@ interface CategoryStats {
   winRate: number;
   totalProfit: number;
   avgProfit: number;
-  avgDuration?: string;
 }
+
+// Read the same persisted dashboard filters from localStorage
+const loadDashboardFilters = () => {
+  try {
+    const monthSwitchEnabled = localStorage.getItem('dashboard_monthSwitchEnabled') === 'true';
+    const accountSwitchEnabled = localStorage.getItem('dashboard_accountSwitchEnabled') === 'true';
+    const savedAccount = localStorage.getItem('dashboard_selectedAccount');
+    const savedMonth = localStorage.getItem('dashboard_currentMonth');
+
+    return {
+      monthSwitchEnabled,
+      accountSwitchEnabled,
+      selectedAccountId: accountSwitchEnabled ? (savedAccount || null) : null,
+      currentMonth: savedMonth ? new Date(savedMonth) : new Date(),
+    };
+  } catch {
+    return {
+      monthSwitchEnabled: false,
+      accountSwitchEnabled: false,
+      selectedAccountId: null,
+      currentMonth: new Date(),
+    };
+  }
+};
 
 const Statistics = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const selectedAccountId = searchParams.get('accountId');
+  const [filters, setFilters] = useState(loadDashboardFilters);
+
+  // Re-read filters when component mounts or window regains focus (in case user changed them on dashboard)
+  useEffect(() => {
+    const handleFocus = () => setFilters(loadDashboardFilters());
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   useEffect(() => {
     fetchTrades();
-  }, [selectedAccountId]);
+  }, [filters.selectedAccountId, filters.monthSwitchEnabled, filters.currentMonth]);
 
   const fetchTrades = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -58,11 +88,20 @@ const Statistics = () => {
       .eq("user_id", user.id)
       .order("trade_date", { ascending: false });
 
-    // Filter by account if selected
-    if (selectedAccountId) {
-      query = query.eq("account_id", selectedAccountId);
+    // Apply month filter if enabled on dashboard
+    if (filters.monthSwitchEnabled) {
+      const monthStart = startOfMonth(filters.currentMonth);
+      const monthEnd = endOfMonth(filters.currentMonth);
+      query = query
+        .gte("trade_date", format(monthStart, 'yyyy-MM-dd'))
+        .lte("trade_date", format(monthEnd, 'yyyy-MM-dd'));
+    }
+
+    // Apply account filter
+    if (filters.selectedAccountId) {
+      query = query.eq("account_id", filters.selectedAccountId);
     } else {
-      // When no account is selected (All Accounts), exclude evaluation and backtesting
+      // When "All Accounts", exclude evaluation and backtesting
       query = query.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
 
@@ -83,15 +122,7 @@ const Statistics = () => {
     const totalProfit = filteredTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const avgProfit = totalTrades > 0 ? totalProfit / totalTrades : 0;
 
-    return {
-      wins,
-      losses,
-      breakeven,
-      totalTrades,
-      winRate: Math.round(winRate),
-      totalProfit,
-      avgProfit,
-    };
+    return { wins, losses, breakeven, totalTrades, winRate: Math.round(winRate), totalProfit, avgProfit };
   };
 
   const getStatsByCategory = (category: keyof Trade, value: string) => {
@@ -124,6 +155,18 @@ const Statistics = () => {
   const strategies = [...new Set(trades.map(t => t.strategy_type).filter(Boolean))];
   const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const quarters = [1, 2, 3, 4];
+
+  // Build a subtitle showing active filters
+  const filterLabel = (() => {
+    const parts: string[] = [];
+    if (filters.monthSwitchEnabled) {
+      parts.push(format(filters.currentMonth, 'MMMM yyyy'));
+    }
+    if (filters.selectedAccountId) {
+      parts.push('Filtered account');
+    }
+    return parts.length > 0 ? parts.join(' · ') : 'All time · All accounts';
+  })();
 
   const StatCard = ({ title, stats, icon: Icon }: { title: string; stats: CategoryStats; icon: any }) => (
     <Card className="p-4 bg-card border-border hover:shadow-lg transition-shadow">
@@ -165,6 +208,14 @@ const Statistics = () => {
   return (
     <div className="bg-background">
       <main className="container mx-auto px-4 py-8">
+        {/* Filter indicator */}
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground">
+            Showing: <span className="text-foreground font-medium">{filterLabel}</span>
+            <span className="ml-2 text-xs text-muted-foreground/60">(synced from Dashboard filters)</span>
+          </p>
+        </div>
+
         {/* Global Stats Overview */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
