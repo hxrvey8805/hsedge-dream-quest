@@ -76,7 +76,7 @@ export default function Index() {
     <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center gap-6">
           <nav className="flex items-center gap-6">
             <a href="#system" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
             <a href="#analytics" className="text-sm text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
@@ -124,7 +124,7 @@ export default function Index() {
                 {/* Left column */}
                 <div className="lg:col-span-7">
                   <h1
-                    className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 leading-[1.08] tracking-tight text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]"
+                    className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 leading-[1.08] tracking-tight text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)] whitespace-nowrap"
                     style={{ WebkitTextStroke: '1.5px hsl(212 98% 62%)', WebkitTextFillColor: 'transparent', paintOrder: 'stroke fill' }}
                   >
                     WELCOME TO TRADE PEAKS
