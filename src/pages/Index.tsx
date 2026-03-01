@@ -81,6 +81,7 @@ export default function Index() {
             <a href="#system" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
             <a href="#analytics" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
             <button type="button" onClick={() => navigate("/pricing")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Playbooks</button>
           </nav>
           <Button size="default" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
             Log in
