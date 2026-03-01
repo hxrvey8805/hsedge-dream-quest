@@ -143,7 +143,9 @@ const Statistics = () => {
     const breakeven = filteredTrades.filter(t => t.outcome === "Break Even").length;
     const totalTrades = filteredTrades.length;
     const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
-    const totalProfit = filteredTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const totalProfit = filters.viewMode === 'pips'
+      ? filteredTrades.reduce((sum, t) => sum + (t.pips || 0), 0)
+      : filteredTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const avgProfit = totalTrades > 0 ? totalProfit / totalTrades : 0;
 
     return { wins, losses, breakeven, totalTrades, winRate: Math.round(winRate), totalProfit, avgProfit };
@@ -174,8 +176,12 @@ const Statistics = () => {
   };
 
   const globalStats = calculateStats(trades);
-  // Net P&L matches dashboard: accountPL + trade profits
-  const netPL = accountPL + globalStats.totalProfit;
+  // Net P&L matches dashboard: in pips mode just use trade pips, in profit mode add accountPL
+  const netPL = filters.viewMode === 'pips' ? globalStats.totalProfit : accountPL + globalStats.totalProfit;
+  const isPips = filters.viewMode === 'pips';
+  const formatValue = (v: number) => isPips
+    ? `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`
+    : `$${v >= 0 ? '+' : ''}${v.toFixed(2)}`;
 
   const sessions = [...new Set(trades.map(t => t.session).filter(Boolean))];
   const timeframes = [...new Set(trades.map(t => t.entry_timeframe).filter(Boolean))];
@@ -186,11 +192,13 @@ const Statistics = () => {
   // Build a subtitle showing active filters
   const filterLabel = (() => {
     const parts: string[] = [];
+    if (filters.viewMode === 'pips') parts.push('Pips mode');
     if (filters.monthSwitchEnabled) {
       parts.push(format(filters.currentMonth, 'MMMM yyyy'));
     }
     if (filters.selectedAccountId) {
-      parts.push('Filtered account');
+      const acct = accounts.find(a => a.id === filters.selectedAccountId);
+      parts.push(acct ? acct.displayName : 'Filtered account');
     }
     return parts.length > 0 ? parts.join(' · ') : 'All time · All accounts';
   })();
@@ -207,9 +215,9 @@ const Statistics = () => {
           <span className="font-bold text-lg">{stats.winRate}%</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">P&L</span>
+          <span className="text-xs text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span>
           <span className={`font-bold ${stats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-            ${stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(2)}
+            {formatValue(stats.totalProfit)}
           </span>
         </div>
         <div className="flex justify-between text-xs">
@@ -251,11 +259,11 @@ const Statistics = () => {
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Net P&L</p>
+                <p className="text-sm text-muted-foreground">{isPips ? 'Net Pips' : 'Net P&L'}</p>
                 <p className={`text-2xl font-bold ${netPL >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  ${netPL >= 0 ? '+' : ''}{netPL.toFixed(2)}
+                  {formatValue(netPL)}
                 </p>
-                {accountPL !== 0 && (
+                {!isPips && accountPL !== 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Account P&L: ${accountPL.toFixed(2)} · Trades: ${globalStats.totalProfit.toFixed(2)}
                   </p>
@@ -294,9 +302,9 @@ const Statistics = () => {
                 <PieChart className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Avg P&L</p>
+                <p className="text-sm text-muted-foreground">{isPips ? 'Avg Pips' : 'Avg P&L'}</p>
                 <p className={`text-2xl font-bold ${globalStats.avgProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  ${globalStats.avgProfit >= 0 ? '+' : ''}{globalStats.avgProfit.toFixed(2)}
+                  {formatValue(globalStats.avgProfit)}
                 </p>
               </div>
             </div>
