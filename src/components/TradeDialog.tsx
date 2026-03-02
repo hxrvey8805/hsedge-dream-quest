@@ -228,6 +228,41 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     }
   }, [timeOpened, timezone]); // Don't include session to avoid overriding manual selection
 
+  // Compute position size and validation for risk mode
+  const computeRiskModeShares = () => {
+    const entry = parseFloat(entryPrice);
+    const stop = parseFloat(stopLoss);
+    const risk = parseFloat(riskAmount);
+
+    if (!riskAmount || isNaN(entry) || isNaN(stop) || !entry || isNaN(risk) || risk <= 0) {
+      return { shares: 0, error: null };
+    }
+
+    const riskPerShare = Math.abs(entry - stop);
+    if (riskPerShare <= 0) {
+      return { shares: 0, error: "Enter a valid stop loss." };
+    }
+
+    // Validate stop loss side
+    if (buySell === "Buy" && stop >= entry) {
+      return { shares: 0, error: "Stop loss must be below entry for a Long trade." };
+    }
+    if (buySell === "Sell" && stop <= entry) {
+      return { shares: 0, error: "Stop loss must be above entry for a Short trade." };
+    }
+
+    const rawShares = risk / riskPerShare;
+    const floored = Math.floor(rawShares);
+
+    if (floored < 1) {
+      return { shares: 0, error: "Risk too small for this stop distance." };
+    }
+
+    return { shares: floored, error: null };
+  };
+
+  const riskModeResult = sizeInputMode === 'risk' ? computeRiskModeShares() : { shares: 0, error: null };
+
   const calculateRR = () => {
     const entry = parseFloat(entryPrice);
     const exit = parseFloat(exitPrice);
@@ -257,19 +292,15 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       if (riskPerUnit > 0) {
         switch(assetClass) {
           case "Forex":
-            // For Forex: risk per lot = riskPerUnit * 10000 * 10
             tradeSize = riskDollar / (riskPerUnit * 10000 * 10);
             break;
           case "Stocks":
-            // For Stocks: risk per share = riskPerUnit
-            tradeSize = riskDollar / riskPerUnit;
+            tradeSize = Math.floor(riskDollar / riskPerUnit);
             break;
           case "Futures":
-            // For Futures: risk per contract = riskPerUnit
             tradeSize = riskDollar / riskPerUnit;
             break;
           case "Crypto":
-            // For Crypto: risk per unit = riskPerUnit
             tradeSize = riskDollar / riskPerUnit;
             break;
         }
@@ -336,7 +367,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
               finalSize = riskDollar / (riskPerUnit * 10000 * 10);
               break;
             case "Stocks":
-              finalSize = riskDollar / riskPerUnit;
+              finalSize = Math.floor(riskDollar / riskPerUnit);
               break;
             case "Futures":
               finalSize = riskDollar / riskPerUnit;
@@ -426,9 +457,12 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const isLoss = previewProfit < 0;
 
   const canProceedStep1 = assetClass && symbol && buySell;
-  // Allow proceeding if entry/exit are filled and either size (units mode) or riskAmount (risk mode) is filled
-  // stopLoss is only required for risk mode calculation, not for proceeding to next step
-  const canProceedStep2 = entryPrice && exitPrice && (sizeInputMode === 'units' ? size : riskAmount);
+  // For risk mode: require valid stop loss, entry, risk amount, and computed shares >= 1
+  const canProceedStep2 = entryPrice && exitPrice && (
+    sizeInputMode === 'units' 
+      ? size 
+      : (riskAmount && stopLoss && riskModeResult.shares >= 1 && !riskModeResult.error)
+  );
   const canSubmit = canProceedStep1 && canProceedStep2;
 
   const stepVariants = {
@@ -675,15 +709,22 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Stop Loss</Label>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                      Stop Loss {sizeInputMode === 'risk' && <span className="text-rose-400">*</span>}
+                    </Label>
                     <Input 
                       type="number"
                       step="any"
                       value={stopLoss}
                       onChange={(e) => setStopLoss(e.target.value)}
                       placeholder="0.00"
-                      className="bg-secondary/50 border-border/50 focus:border-primary"
+                      className={`bg-secondary/50 border-border/50 focus:border-primary ${
+                        sizeInputMode === 'risk' && riskModeResult.error ? 'border-rose-500/50' : ''
+                      }`}
                     />
+                    {sizeInputMode === 'risk' && riskModeResult.error && (
+                      <p className="text-xs text-rose-400 mt-1">{riskModeResult.error}</p>
+                    )}
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
@@ -735,8 +776,23 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                   </div>
                 </div>
 
+                {/* Read-only Position Size field for risk mode */}
+                {sizeInputMode === 'risk' && riskModeResult.shares > 0 && (
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">
+                      Position Size ({assetClass === "Forex" ? "Lots" : assetClass === "Stocks" ? "Shares" : "Units"})
+                    </Label>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={riskModeResult.shares.toLocaleString()}
+                      className="bg-muted/50 border-border/50 text-foreground font-semibold cursor-default"
+                    />
+                  </div>
+                )}
+
                 {/* Live P&L Preview */}
-                {entryPrice && exitPrice && (sizeInputMode === 'units' ? size : riskAmount) && (
+                {entryPrice && exitPrice && (sizeInputMode === 'units' ? size : (riskAmount && riskModeResult.shares >= 1)) && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -752,7 +808,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                       <Sparkles className={`h-4 w-4 ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-muted-foreground'}`} />
                       <span className="text-xs uppercase tracking-wider text-muted-foreground">Live Preview</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className={`grid ${(assetClass === "Forex" || assetClass === "Futures") ? 'grid-cols-4' : (sizeInputMode === 'risk' ? 'grid-cols-3' : 'grid-cols-2')} gap-4`}>
                       <div className="text-center">
                         <p className="text-xs text-muted-foreground mb-1">R:R</p>
                         <p className="text-lg font-bold text-foreground">{previewRR}</p>
@@ -771,6 +827,14 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                           ${previewProfit >= 0 ? '+' : ''}{previewProfit.toFixed(2)}
                         </p>
                       </div>
+                      {sizeInputMode === 'risk' && riskAmount && parseFloat(riskAmount) > 0 && (
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground mb-1">R</p>
+                          <p className={`text-lg font-bold ${previewProfit > 0 ? 'text-emerald-500' : previewProfit < 0 ? 'text-rose-500' : 'text-foreground'}`}>
+                            {(previewProfit / parseFloat(riskAmount)).toFixed(2)}R
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
