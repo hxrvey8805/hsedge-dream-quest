@@ -109,20 +109,31 @@ export const DailyReviewDialog = ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Find most recent unrated focus for this user
-    const { data } = await supabase
+    const reviewDate = format(date, 'yyyy-MM-dd');
+
+    // Load the focus set on the PREVIOUS day (to rate in this review)
+    const { data: prevFocus } = await supabase
       .from("daily_improvement_focus")
-      .select("id, focus_text, review_date")
+      .select("id, focus_text, review_date, execution_rating, execution_notes")
       .eq("user_id", user.id)
-      .is("execution_rating", null)
+      .lt("review_date", reviewDate)
       .order("review_date", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    setPreviousFocus(data);
-    setExecutionRating(null);
-    setExecutionNotes("");
-    setNewFocusText("");
+    setPreviousFocus(prevFocus ? { id: prevFocus.id, focus_text: prevFocus.focus_text, review_date: prevFocus.review_date } : null);
+    setExecutionRating(prevFocus?.execution_rating ?? null);
+    setExecutionNotes(prevFocus?.execution_notes ?? "");
+
+    // Load the focus that was set FOR this review date (tomorrow's focus already saved)
+    const { data: todayFocus } = await supabase
+      .from("daily_improvement_focus")
+      .select("focus_text")
+      .eq("user_id", user.id)
+      .eq("review_date", reviewDate)
+      .maybeSingle();
+
+    setNewFocusText(todayFocus?.focus_text ?? "");
   };
 
   const initializeTradeSlides = () => {
