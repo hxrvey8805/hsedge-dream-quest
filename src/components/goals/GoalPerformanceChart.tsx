@@ -11,13 +11,14 @@ interface Props {
 export const GoalPerformanceChart = ({ goals, habitLogs }: Props) => {
   const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
 
+  // Daily Execution Score = rules followed that day ÷ total active rules
   const data = useMemo(() => {
     const points = [];
     for (let i = 13; i >= 0; i--) {
       const date = format(subDays(new Date(), i), "yyyy-MM-dd");
-      const dayLogs = habitLogs.filter(l => l.log_date === date && l.is_completed);
-      const rate = trackedGoals.length > 0 ? Math.round((dayLogs.length / trackedGoals.length) * 100) : 0;
-      points.push({ day: format(subDays(new Date(), i), "MMM d"), score: rate });
+      const followed = habitLogs.filter(l => l.log_date === date && l.is_completed && trackedGoals.some(g => g.id === l.goal_id)).length;
+      const score = trackedGoals.length > 0 ? Math.round((followed / trackedGoals.length) * 100) : 0;
+      points.push({ day: format(subDays(new Date(), i), "MMM d"), score });
     }
     return points;
   }, [habitLogs, trackedGoals]);
@@ -27,7 +28,7 @@ export const GoalPerformanceChart = ({ goals, habitLogs }: Props) => {
   return (
     <div className="hud-glass rounded-xl overflow-hidden">
       <div className="p-5 pb-3 border-b border-border/20 flex items-center justify-between">
-        <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Goal Performance Analysis</h3>
+        <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">Daily Execution Score</h3>
         <span className="text-lg font-bold text-success hud-neon-text" style={{ textShadow: "0 0 8px hsl(var(--success) / 0.4)" }}>
           {currentScore}%
         </span>
