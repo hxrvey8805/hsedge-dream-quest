@@ -107,13 +107,9 @@ export default function Playbooks() {
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <BookOpen className="h-12 w-12 text-muted-foreground/30 mb-4" />
                 <h3 className="text-foreground font-semibold mb-2">No playbooks yet</h3>
-                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                  Create your first playbook to document your trading strategies with entry/exit rules and time windows.
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Create your first playbook using the button above to document your trading strategies.
                 </p>
-                <Button onClick={() => setCreateOpen(true)} variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Playbook
-                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
