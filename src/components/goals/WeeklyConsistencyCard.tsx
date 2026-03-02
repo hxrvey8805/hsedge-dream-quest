@@ -8,9 +8,8 @@ interface Props {
   onToggleHabit: (goalId: string, dateStr: string) => void;
 }
 
-const WEEK_DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
-
 export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props) => {
+  // Track Implement and Avoid goals as daily boolean rules
   const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
 
   // Get last 5 weekdays + today
@@ -31,16 +30,23 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
     return habitLogs.some(l => l.goal_id === goalId && l.log_date === dateStr && l.is_completed);
   };
 
-  // Daily completion percentages
+  // Weekly % = total rules followed ÷ total rule opportunities
   const dailyRates = days.map(day => {
     const dateStr = format(day, "yyyy-MM-dd");
-    const completed = trackedGoals.filter(g =>
+    const followed = trackedGoals.filter(g =>
       habitLogs.some(l => l.goal_id === g.id && l.log_date === dateStr && l.is_completed)
     ).length;
-    return trackedGoals.length > 0 ? Math.round((completed / trackedGoals.length) * 100) : 0;
+    return trackedGoals.length > 0 ? Math.round((followed / trackedGoals.length) * 100) : 0;
   });
 
-  const avgRate = dailyRates.length > 0 ? Math.round(dailyRates.reduce((s, v) => s + v, 0) / dailyRates.length) : 0;
+  const totalFollowed = days.reduce((sum, day) => {
+    const dateStr = format(day, "yyyy-MM-dd");
+    return sum + trackedGoals.filter(g =>
+      habitLogs.some(l => l.goal_id === g.id && l.log_date === dateStr && l.is_completed)
+    ).length;
+  }, 0);
+  const totalOpportunities = days.length * trackedGoals.length;
+  const avgRate = totalOpportunities > 0 ? Math.round((totalFollowed / totalOpportunities) * 100) : 0;
 
   return (
     <div className="hud-glass rounded-xl overflow-hidden">
