@@ -49,6 +49,7 @@ interface Trade {
   notes: string | null;
   account_id: string | null;
   account_type: string | null;
+  setup_id: string | null;
 }
 
 interface DayStats {
@@ -95,6 +96,11 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
   const [tradeForChart, setTradeForChart] = useState<Trade | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   
+  // Playbook/setup state for edit form
+  const [editPlaybooks, setEditPlaybooks] = useState<{id: string; name: string}[]>([]);
+  const [editSelectedPlaybookId, setEditSelectedPlaybookId] = useState("");
+  const [editSetups, setEditSetups] = useState<{id: string; name: string; playbook_id: string}[]>([]);
+  
   // Edit form state
   const [editForm, setEditForm] = useState({
     symbol: "",
@@ -112,6 +118,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     time_closed: "",
     notes: "",
     account_id: "",
+    setup_id: "",
   });
 
   useEffect(() => {
@@ -195,7 +202,21 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     return `1:${(reward / risk).toFixed(2)}`;
   };
 
-  const handleEditTrade = (trade: Trade) => {
+  const fetchEditPlaybooks = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("playbooks").select("id, name").eq("user_id", user.id).order("name");
+    if (data) setEditPlaybooks(data);
+  };
+
+  const fetchEditSetups = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("playbook_setups").select("id, name, playbook_id").eq("user_id", user.id).order("name");
+    if (data) setEditSetups(data);
+  };
+
+  const handleEditTrade = async (trade: Trade) => {
     setEditingTrade(trade);
     setEditForm({
       symbol: trade.symbol || trade.pair || "",
@@ -213,8 +234,28 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
       time_closed: trade.time_closed || "",
       notes: trade.notes || "",
       account_id: trade.account_id || "",
+      setup_id: trade.setup_id || "",
     });
+
+    // Fetch playbooks and setups, then resolve the playbook from setup_id
+    await Promise.all([fetchEditPlaybooks(), fetchEditSetups()]);
+
+    if (trade.setup_id) {
+      const { data: setup } = await supabase.from("playbook_setups").select("playbook_id").eq("id", trade.setup_id).maybeSingle();
+      if (setup) setEditSelectedPlaybookId(setup.playbook_id);
+    } else {
+      // Try to match by strategy_type name
+      if (trade.strategy_type) {
+        const { data: pb } = await supabase.from("playbooks").select("id").eq("name", trade.strategy_type).maybeSingle();
+        if (pb) setEditSelectedPlaybookId(pb.id);
+        else setEditSelectedPlaybookId("");
+      } else {
+        setEditSelectedPlaybookId("");
+      }
+    }
   };
+
+  const editFilteredSetups = editSetups.filter(s => s.playbook_id === editSelectedPlaybookId);
 
   const handleMoveAccount = (trade: Trade) => {
     setTradeToMove(trade);
@@ -345,7 +386,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
           fees: tradeFees || null,
           session: editForm.session || null,
           entry_timeframe: editForm.entry_timeframe || null,
-          strategy_type: editForm.strategy_type || null,
+          strategy_type: editPlaybooks.find(p => p.id === editSelectedPlaybookId)?.name || editForm.strategy_type || null,
           time_opened: editForm.time_opened || null,
           time_closed: editForm.time_closed || null,
           notes: editForm.notes || null,
@@ -355,6 +396,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
           outcome: outcome,
           account_id: editForm.account_id || null,
           account_type: accountType || null,
+          setup_id: editForm.setup_id || null,
         })
         .eq("id", editingTrade.id);
 
@@ -857,13 +899,33 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Strategy</Label>
-                        <Input
-                          value={editForm.strategy_type}
-                          onChange={(e) => setEditForm({...editForm, strategy_type: e.target.value})}
-                          className="bg-secondary/50"
-                        />
+                        <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>
+                        <Select value={editSelectedPlaybookId} onValueChange={(val) => { setEditSelectedPlaybookId(val); setEditForm({...editForm, setup_id: ""}); }}>
+                          <SelectTrigger className="bg-secondary/50">
+                            <SelectValue placeholder="Select playbook" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {editPlaybooks.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
+                      {editSelectedPlaybookId && editFilteredSetups.length > 0 && (
+                        <div>
+                          <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Setup</Label>
+                          <Select value={editForm.setup_id} onValueChange={(val) => setEditForm({...editForm, setup_id: val})}>
+                            <SelectTrigger className="bg-secondary/50">
+                              <SelectValue placeholder="Select setup" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {editFilteredSetups.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Time Opened</Label>
                         <Input
