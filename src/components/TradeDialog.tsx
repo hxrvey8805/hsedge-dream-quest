@@ -38,7 +38,13 @@ import { detectSession } from "@/lib/sessionDetection";
 interface PlaybookSetup {
   id: string;
   name: string;
+  playbook_id: string;
   playbook_name: string;
+}
+
+interface PlaybookOption {
+  id: string;
+  name: string;
 }
 
 interface TradeDialogProps {
@@ -56,10 +62,6 @@ const ASSET_CLASSES = [
   { value: "Crypto", icon: null as any, iconString: "₿", label: "Crypto", isString: true },
 ];
 
-interface Strategy {
-  id: string;
-  name: string;
-}
 
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
@@ -81,10 +83,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const [riskAmount, setRiskAmount] = useState<string>("");
   const [session, setSession] = useState<string>("");
   const [timeframe, setTimeframe] = useState<string>("");
-  const [strategy, setStrategy] = useState<string>("");
-  const [strategies, setStrategies] = useState<{id: string, name: string}[]>([]);
-  const [newStrategyName, setNewStrategyName] = useState("");
-  const [showAddStrategy, setShowAddStrategy] = useState(false);
+  const [selectedPlaybookId, setSelectedPlaybookId] = useState<string>("");
+  const [playbooks, setPlaybooks] = useState<PlaybookOption[]>([]);
   const [timeOpened, setTimeOpened] = useState<string>("");
   const [timeClosed, setTimeClosed] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -105,34 +105,31 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setFees("");
       setSession("");
       setTimeframe("");
-      setStrategy("");
+      setSelectedPlaybookId("");
       setTimeOpened("");
       setTimeClosed("");
       setNotes("");
       setSetupId("");
-      setShowAddStrategy(false);
-      setNewStrategyName("");
       setSizeInputMode('units');
       setRiskAmount("");
     } else {
-      fetchStrategies();
+      fetchPlaybooks();
       fetchSetups();
     }
   }, [open]);
 
-  const fetchStrategies = async () => {
+  const fetchPlaybooks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
-      .from("strategies" as any)
+      .from("playbooks")
       .select("id, name")
       .eq("user_id", user.id)
-      .eq("is_active", true)
       .order("name", { ascending: true });
 
     if (!error && data) {
-      setStrategies(data as unknown as Strategy[]);
+      setPlaybooks(data);
     }
   };
 
@@ -140,7 +137,6 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch setups with their playbook names
     const { data, error } = await supabase
       .from("playbook_setups")
       .select("id, name, playbook_id")
@@ -148,56 +144,25 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       .order("name", { ascending: true });
 
     if (!error && data) {
-      // Fetch playbook names
       const playbookIds = [...new Set(data.map(s => s.playbook_id))];
-      const { data: playbooks } = await supabase
+      const { data: pbs } = await supabase
         .from("playbooks")
         .select("id, name")
         .in("id", playbookIds);
 
-      const playbookMap = new Map((playbooks || []).map(p => [p.id, p.name]));
+      const playbookMap = new Map((pbs || []).map(p => [p.id, p.name]));
 
       setAllSetups(data.map(s => ({
         id: s.id,
         name: s.name,
+        playbook_id: s.playbook_id,
         playbook_name: playbookMap.get(s.playbook_id) || "Unknown",
       })));
     }
   };
 
-  const handleAddStrategy = async () => {
-    if (!newStrategyName.trim()) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Not authenticated");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("strategies" as any)
-      .insert({
-        user_id: user.id,
-        name: newStrategyName.trim(),
-        is_active: true,
-      } as any)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Strategy insert error:", error);
-      toast.error(`Failed to add strategy: ${error.message || "Unknown error"}`);
-      return;
-    }
-
-    toast.success("Strategy added!");
-    setNewStrategyName("");
-    setShowAddStrategy(false);
-    await fetchStrategies();
-    if (data) {
-      setStrategy((data as any).name);
-    }
-  };
+  const filteredSetups = allSetups.filter(s => s.playbook_id === selectedPlaybookId);
+  const selectedPlaybookName = playbooks.find(p => p.id === selectedPlaybookId)?.name || "";
 
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
@@ -395,7 +360,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         time_opened: timeOpened || null,
         time_closed: timeClosed || null,
         session: session || null,
-        strategy_type: strategy || null,
+        strategy_type: selectedPlaybookName || null,
         entry_timeframe: timeframe || null,
         pips: calculatedPips,
         profit: calculatedProfit,
@@ -913,53 +878,36 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Strategy</Label>
-                    <div className="flex gap-2">
-                      <Select value={strategy} onValueChange={setStrategy}>
-                        <SelectTrigger className="bg-secondary/50 border-border/50 flex-1">
-                          <SelectValue placeholder="Select strategy" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {strategies.filter(s => s.name && s.name.trim() !== "").map((s) => (
-                            <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowAddStrategy(!showAddStrategy)}
-                        className="shrink-0"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {showAddStrategy && (
-                      <div className="flex gap-2 mt-2">
-                        <Input
-                          placeholder="New strategy name..."
-                          value={newStrategyName}
-                          onChange={(e) => setNewStrategyName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleAddStrategy();
-                            }
-                          }}
-                          className="bg-secondary/50 border-border/50"
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={handleAddStrategy}
-                          className="shrink-0"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                    )}
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>
+                    <Select value={selectedPlaybookId} onValueChange={(val) => { setSelectedPlaybookId(val); setSetupId(""); }}>
+                      <SelectTrigger className="bg-secondary/50 border-border/50">
+                        <SelectValue placeholder="Select playbook" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {playbooks.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
+
+                {/* Setup dropdown - shows when playbook selected and has setups */}
+                {selectedPlaybookId && filteredSetups.length > 0 && (
+                  <div>
+                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Setup</Label>
+                    <Select value={setupId} onValueChange={setSetupId}>
+                      <SelectTrigger className="bg-secondary/50 border-border/50">
+                        <SelectValue placeholder="Select setup" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredSetups.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -969,7 +917,6 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                       value={timeOpened}
                       onChange={(e) => {
                         setTimeOpened(e.target.value);
-                        // Auto-detect session on time change if no session is manually set
                         if (!session) {
                           const detected = detectSession(e.target.value, timezone);
                           if (detected) setSession(detected);
@@ -988,25 +935,6 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                     />
                   </div>
                 </div>
-
-                {/* Setup (linked to playbook) */}
-                {allSetups.length > 0 && (
-                  <div>
-                    <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Setup (Playbook)</Label>
-                    <Select value={setupId} onValueChange={setSetupId}>
-                      <SelectTrigger className="bg-secondary/50 border-border/50">
-                        <SelectValue placeholder="Link to a setup" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allSetups.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name} <span className="text-muted-foreground">— {s.playbook_name}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
 
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes & Reflections</Label>
