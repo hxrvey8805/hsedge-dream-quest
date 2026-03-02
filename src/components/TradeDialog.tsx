@@ -250,7 +250,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     
     // Calculate size from risk amount if risk mode is selected
     let tradeSize = parseFloat(size);
-    if (sizeInputMode === 'risk' && riskAmount && entry && stop) {
+    if (sizeInputMode === 'risk' && riskAmount && !isNaN(entry) && !isNaN(stop)) {
       const riskDollar = parseFloat(riskAmount);
       const riskPerUnit = Math.abs(entry - stop);
       
