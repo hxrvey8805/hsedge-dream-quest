@@ -11,12 +11,14 @@ import { Upload, FileText, Info, CheckCircle2, AlertTriangle, Loader2, X } from 
 import { parseTradesFromCSV, ParsedTrade, calculateTradePnL, TRADES_CSV_EXAMPLE } from "@/lib/tradesCsvParser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useStrategies } from "@/hooks/useStrategies";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { detectSession, TradingSession } from "@/lib/sessionDetection";
 
 const ALL_SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
 const DETECTABLE_SESSIONS: TradingSession[] = ["Premarket", "Asia", "London", "New York"];
+
+interface Playbook { id: string; name: string; }
+interface PlaybookSetup { id: string; name: string; playbook_id: string; }
 
 interface CSVTradeUploadProps {
   open: boolean;
@@ -33,11 +35,11 @@ export const CSVTradeUpload = ({
   accountType,
   onSuccess 
 }: CSVTradeUploadProps) => {
-  const { strategies } = useStrategies();
   const { timezone } = useUserTimezone();
   const [csvText, setCsvText] = useState("");
   const [parsedTrades, setParsedTrades] = useState<ParsedTrade[]>([]);
-  const [tradeStrategies, setTradeStrategies] = useState<Record<number, string>>({});
+  const [tradePlaybooks, setTradePlaybooks] = useState<Record<number, string>>({});
+  const [tradeSetups, setTradeSetups] = useState<Record<number, string>>({});
   const [tradeSessions, setTradeSessions] = useState<Record<number, string>>({});
   const [selectedSessions, setSelectedSessions] = useState<TradingSession[]>(DETECTABLE_SESSIONS);
   const [errors, setErrors] = useState<string[]>([]);
@@ -45,11 +47,30 @@ export const CSVTradeUpload = ({
   const [step, setStep] = useState<'upload' | 'session-select' | 'preview' | 'importing'>('upload');
   const [importProgress, setImportProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
+  const [allSetups, setAllSetups] = useState<PlaybookSetup[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      const fetchData = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const [pbRes, setupRes] = await Promise.all([
+          supabase.from("playbooks").select("id, name").eq("user_id", user.id).eq("is_purchased", false),
+          supabase.from("playbook_setups").select("id, name, playbook_id").eq("user_id", user.id),
+        ]);
+        setPlaybooks(pbRes.data || []);
+        setAllSetups(setupRes.data || []);
+      };
+      fetchData();
+    }
+  }, [open]);
 
   const resetState = () => {
     setCsvText("");
     setParsedTrades([]);
-    setTradeStrategies({});
+    setTradePlaybooks({});
+    setTradeSetups({});
     setTradeSessions({});
     setSelectedSessions(DETECTABLE_SESSIONS);
     setErrors([]);
@@ -171,7 +192,8 @@ export const CSVTradeUpload = ({
           time_opened: trade.time_opened,
           time_closed: trade.time_closed,
           session: tradeSessions[index] || trade.session,
-          strategy_type: tradeStrategies[index] || trade.strategy_type,
+          strategy_type: tradePlaybooks[index] ? playbooks.find(p => p.id === tradePlaybooks[index])?.name || null : trade.strategy_type,
+          setup_id: tradeSetups[index] || null,
           entry_timeframe: trade.entry_timeframe,
           notes: trade.notes,
           pips,
@@ -396,7 +418,8 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                     <TableHead>Date</TableHead>
                     <TableHead>Symbol</TableHead>
                     <TableHead>Direction</TableHead>
-                    <TableHead>Strategy</TableHead>
+                    <TableHead>Playbook</TableHead>
+                    <TableHead>Setup</TableHead>
                     <TableHead>Session</TableHead>
                     <TableHead className="text-right">P&L</TableHead>
                     <TableHead>Outcome</TableHead>
@@ -417,23 +440,44 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                         </TableCell>
                         <TableCell>
                           <Select
-                            value={tradeStrategies[idx] || trade.strategy_type || "none"}
-                            onValueChange={(value) => 
-                              setTradeStrategies(prev => ({ ...prev, [idx]: value === "none" ? "" : value }))
-                            }
+                            value={tradePlaybooks[idx] || "none"}
+                            onValueChange={(value) => {
+                              setTradePlaybooks(prev => ({ ...prev, [idx]: value === "none" ? "" : value }));
+                              setTradeSetups(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                            }}
                           >
                             <SelectTrigger className="h-8 w-[140px] text-xs">
                               <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent className="bg-popover z-50">
                               <SelectItem value="none">None</SelectItem>
-                              {strategies.map((s) => (
-                                <SelectItem key={s.id} value={s.name}>
-                                  {s.name}
-                                </SelectItem>
+                              {playbooks.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell>
+                          {tradePlaybooks[idx] ? (
+                            <Select
+                              value={tradeSetups[idx] || "none"}
+                              onValueChange={(value) =>
+                                setTradeSetups(prev => ({ ...prev, [idx]: value === "none" ? "" : value }))
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-[130px] text-xs">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover z-50">
+                                <SelectItem value="none">None</SelectItem>
+                                {allSetups.filter(s => s.playbook_id === tradePlaybooks[idx]).map((s) => (
+                                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Select
@@ -475,8 +519,7 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
                             onClick={() => {
                               setParsedTrades(prev => prev.filter((_, i) => i !== idx));
-                              // Clean up strategies/sessions mappings
-                              setTradeStrategies(prev => {
+                              const reindex = (prev: Record<number, string>) => {
                                 const next: Record<number, string> = {};
                                 Object.entries(prev).forEach(([k, v]) => {
                                   const ki = Number(k);
@@ -484,16 +527,10 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                                   else if (ki > idx) next[ki - 1] = v;
                                 });
                                 return next;
-                              });
-                              setTradeSessions(prev => {
-                                const next: Record<number, string> = {};
-                                Object.entries(prev).forEach(([k, v]) => {
-                                  const ki = Number(k);
-                                  if (ki < idx) next[ki] = v;
-                                  else if (ki > idx) next[ki - 1] = v;
-                                });
-                                return next;
-                              });
+                              };
+                              setTradePlaybooks(reindex);
+                              setTradeSetups(reindex);
+                              setTradeSessions(reindex);
                             }}
                           >
                             <X className="h-4 w-4" />
