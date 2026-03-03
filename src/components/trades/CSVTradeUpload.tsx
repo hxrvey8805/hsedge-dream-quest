@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Info, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { Upload, FileText, Info, CheckCircle2, AlertTriangle, Loader2, X } from "lucide-react";
 import { parseTradesFromCSV, ParsedTrade, calculateTradePnL, TRADES_CSV_EXAMPLE } from "@/lib/tradesCsvParser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -400,6 +400,7 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                     <TableHead>Session</TableHead>
                     <TableHead className="text-right">P&L</TableHead>
                     <TableHead>Outcome</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -467,6 +468,37 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
                             {outcome}
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setParsedTrades(prev => prev.filter((_, i) => i !== idx));
+                              // Clean up strategies/sessions mappings
+                              setTradeStrategies(prev => {
+                                const next: Record<number, string> = {};
+                                Object.entries(prev).forEach(([k, v]) => {
+                                  const ki = Number(k);
+                                  if (ki < idx) next[ki] = v;
+                                  else if (ki > idx) next[ki - 1] = v;
+                                });
+                                return next;
+                              });
+                              setTradeSessions(prev => {
+                                const next: Record<number, string> = {};
+                                Object.entries(prev).forEach(([k, v]) => {
+                                  const ki = Number(k);
+                                  if (ki < idx) next[ki] = v;
+                                  else if (ki > idx) next[ki - 1] = v;
+                                });
+                                return next;
+                              });
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -478,7 +510,7 @@ trade_date,symbol,buy_sell,asset_class,entry_price,exit_price,size
               <Button variant="outline" onClick={() => setStep('session-select')}>
                 Back
               </Button>
-              <Button onClick={handleImport} className="gap-2">
+              <Button onClick={handleImport} className="gap-2" disabled={parsedTrades.length === 0}>
                 <CheckCircle2 className="w-4 h-4" />
                 Import {parsedTrades.length} Trades
               </Button>
