@@ -7,7 +7,7 @@ import { WeeklyConsistencyCard } from "@/components/goals/WeeklyConsistencyCard"
 import { GoalPerformanceChart } from "@/components/goals/GoalPerformanceChart";
 import { GoalsAnalyticsRow } from "@/components/goals/GoalsAnalyticsRow";
 import { DailyImprovementBanner } from "@/components/goals/DailyImprovementBanner";
-import { MilestoneGoals } from "@/components/goals/MilestoneGoals";
+
 import { motion } from "framer-motion";
 
 export interface Goal {
@@ -144,12 +144,7 @@ const Goals = () => {
             </div>
           </div>
 
-          {/* Row 3: Milestone Goals */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
-            <MilestoneGoals goals={goals} onToggle={toggleGoal} onAdd={addGoal} onDelete={deleteGoal} />
-          </motion.div>
-
-          {/* Row 4: Analytics Row */}
+          {/* Row 3: Analytics Row */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
             <GoalsAnalyticsRow goals={goals} habitLogs={habitLogs} />
           </motion.div>
