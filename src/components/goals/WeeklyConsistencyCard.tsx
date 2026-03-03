@@ -10,7 +10,7 @@ interface Props {
 
 export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props) => {
   // Track Implement and Avoid goals as daily boolean rules
-  const trackedGoals = goals;
+  const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
 
   // Get last 5 weekdays + today
   const days = useMemo(() => {
@@ -59,7 +59,7 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
 
       <div className="p-4">
         {trackedGoals.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Add goals to track consistency</p>
+          <p className="text-sm text-muted-foreground text-center py-6">Add Implement or Avoid goals to track consistency</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

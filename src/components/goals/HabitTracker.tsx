@@ -31,7 +31,7 @@ export const HabitTracker = ({ goals }: HabitTrackerProps) => {
 
   // Filter to only Implement and Avoid goals
   const trackedGoals = useMemo(
-    () => goals,
+    () => goals.filter(g => g.category === "Implement" || g.category === "Avoid"),
     [goals]
   );
 
