@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const GoalPerformanceChart = ({ goals, habitLogs }: Props) => {
-  const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
+  const trackedGoals = goals;
 
   // Daily Execution Score = rules followed that day ÷ total active rules
   const data = useMemo(() => {
