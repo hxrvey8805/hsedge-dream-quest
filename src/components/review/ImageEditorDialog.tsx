@@ -584,10 +584,12 @@ export const ImageEditorDialog = ({
       );
     }
 
-    // Arrow mode with rotation
-    const arrowHeight = baseSize * 1.4;
-    const arrowWidth = baseSize;
-    const rotation = marker.rotation ?? 180; // default pointing down (180deg from up)
+    // Arrow mode with rotation and dynamic length
+    const lengthMult = marker.arrowLength ?? 1;
+    const arrowH = baseSize * 1.4 * lengthMult;
+    const arrowW = baseSize;
+    const rotation = marker.rotation ?? 180;
+    const isBeingPlaced = placingMarkerId === marker.id && isPlacingArrow;
     return (
       <div
         key={marker.id}
@@ -596,23 +598,9 @@ export const ImageEditorDialog = ({
           left: `${marker.x}%`, 
           top: `${marker.y}%`,
           transform: 'translate(-50%, -50%)',
+          pointerEvents: isBeingPlaced ? 'none' : 'auto',
         }}
       >
-        {/* Rotate handle ring - visible when selected */}
-        {isSelected && (
-          <div
-            className="absolute rounded-full border-2 border-dashed border-white/40 cursor-crosshair"
-            style={{
-              width: arrowHeight * 2.2,
-              height: arrowHeight * 2.2,
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'rotate')}
-            title="Drag to rotate arrow direction"
-          />
-        )}
         {/* Arrow SVG */}
         <div
           className="cursor-move"
@@ -620,21 +608,33 @@ export const ImageEditorDialog = ({
             filter: isSelected ? `drop-shadow(0 0 6px ${config.lineColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
             transform: `rotate(${rotation}deg)`,
             transformOrigin: 'center center',
-            transition: isDraggingMarker && dragMode === 'rotate' ? 'none' : 'filter 0.15s',
+            transition: (isBeingPlaced || (isDraggingMarker && dragMode === 'rotate')) ? 'none' : 'filter 0.15s',
           }}
           onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
           onDoubleClick={(e) => removeMarker(marker.id, e)}
           title="Drag to move, double-click to remove"
         >
-          <svg width={arrowWidth} height={arrowHeight} viewBox="0 0 24 34" fill="none" style={{ display: 'block' }}>
-            {/* Arrow pointing up (rotation=0 means up, user rotates to desired direction) */}
+          <svg width={arrowW} height={arrowH} viewBox={`0 0 24 ${Math.round(34 * lengthMult)}`} fill="none" style={{ display: 'block' }}>
             <path 
-              d="M12 0 L20 12 L15 12 L15 32 C15 33.1 14.1 34 13 34 L11 34 C9.9 34 9 33.1 9 32 L9 12 L4 12 Z" 
+              d={`M12 0 L20 12 L15 12 L15 ${Math.round(34 * lengthMult) - 2} C15 ${Math.round(34 * lengthMult) - 0.9} 14.1 ${Math.round(34 * lengthMult)} 13 ${Math.round(34 * lengthMult)} L11 ${Math.round(34 * lengthMult)} C9.9 ${Math.round(34 * lengthMult)} 9 ${Math.round(34 * lengthMult) - 0.9} 9 ${Math.round(34 * lengthMult) - 2} L9 12 L4 12 Z`}
               fill={config.lineColor}
               stroke={isSelected ? 'white' : 'rgba(255,255,255,0.4)'}
               strokeWidth="1.5"
             />
           </svg>
+          {/* Label */}
+          <div 
+            className="absolute text-white text-center font-bold whitespace-nowrap pointer-events-none"
+            style={{
+              fontSize: Math.max(8, baseSize / 3),
+              top: 14,
+              left: '50%',
+              transform: `translateX(-50%) rotate(${-rotation}deg)`,
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+            }}
+          >
+            {config.label.substring(0, 2)}
+          </div>
         </div>
       </div>
     );
