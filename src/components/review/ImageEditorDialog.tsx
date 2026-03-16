@@ -28,6 +28,7 @@ export interface Marker {
   useLineMode?: boolean;
   markerSize?: number;
   labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
+  rotation?: number; // Arrow rotation in degrees (0 = pointing down, clockwise)
 }
 
 export interface TradeInfo {
@@ -183,16 +184,25 @@ export const ImageEditorDialog = ({
     }
   }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
 
-  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' = 'both') => {
+  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' | 'rotate' = 'both') => {
     e.stopPropagation();
     e.preventDefault();
     setSelectedMarkerId(markerId);
     setSelectedMarkerType(null);
     setDragMode(mode);
     setIsDraggingMarker(true);
+    
+    // Store initial mouse position for rotation calculation
+    if (mode === 'rotate' && imageRef.current) {
+      const coords = getImageRelativeCoords(e.clientX, e.clientY);
+      if (coords) {
+        rotateStartRef.current = coords;
+      }
+    }
   };
 
-  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical' | 'label'>('both');
+  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical' | 'label' | 'rotate'>('both');
+  const rotateStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
     if (!isDraggingMarker || !selectedMarkerId || !imageRef.current) return;
@@ -209,6 +219,13 @@ export const ImageEditorDialog = ({
         return { ...marker, y: Math.max(0, Math.min(100, coords.y)) };
       } else if (dragMode === 'label') {
         return { ...marker, labelX: Math.max(0, Math.min(100, coords.x)) };
+      } else if (dragMode === 'rotate') {
+        // Calculate angle from marker center to current mouse position
+        const dx = coords.x - marker.x;
+        const dy = coords.y - marker.y;
+        // atan2 gives angle from positive x-axis, we want 0 = down
+        const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI) - 90;
+        return { ...marker, rotation: angleDeg };
       } else {
         return { 
           ...marker, 
@@ -221,6 +238,7 @@ export const ImageEditorDialog = ({
 
   const handleMarkerMouseUp = () => {
     setIsDraggingMarker(false);
+    rotateStartRef.current = null;
   };
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -511,44 +529,57 @@ export const ImageEditorDialog = ({
       );
     }
 
-    // Arrow mode
+    // Arrow mode with rotation
     const arrowHeight = baseSize * 1.4;
     const arrowWidth = baseSize;
+    const rotation = marker.rotation ?? 180; // default pointing down (180deg from up)
     return (
       <div
         key={marker.id}
-        className={`absolute cursor-move transform -translate-x-1/2 z-10`}
+        className={`absolute z-10`}
         style={{ 
           left: `${marker.x}%`, 
           top: `${marker.y}%`,
-          filter: isSelected ? `drop-shadow(0 0 6px ${config.lineColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-          transition: 'filter 0.15s, transform 0.15s',
-          transform: `translate(-50%, -100%) ${isSelected ? 'scale(1.1)' : ''}`,
+          transform: 'translate(-50%, -50%)',
         }}
-        onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
-        onDoubleClick={(e) => removeMarker(marker.id, e)}
-        title="Drag to move, double-click to remove"
       >
-        <svg width={arrowWidth} height={arrowHeight} viewBox="0 0 24 34" fill="none">
-          {/* Arrow pointing down */}
-          <path 
-            d="M12 34 L4 22 L9 22 L9 2 C9 0.9 9.9 0 11 0 L13 0 C14.1 0 15 0.9 15 2 L15 22 L20 22 Z" 
-            fill={config.lineColor}
-            stroke={isSelected ? 'white' : 'rgba(255,255,255,0.4)'}
-            strokeWidth="1.5"
+        {/* Rotate handle ring - visible when selected */}
+        {isSelected && (
+          <div
+            className="absolute rounded-full border-2 border-dashed border-white/40 cursor-crosshair"
+            style={{
+              width: arrowHeight * 2.2,
+              height: arrowHeight * 2.2,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'rotate')}
+            title="Drag to rotate arrow direction"
           />
-        </svg>
-        <div 
-          className="absolute text-white text-center font-bold whitespace-nowrap"
+        )}
+        {/* Arrow SVG */}
+        <div
+          className="cursor-move"
           style={{
-            fontSize: Math.max(8, baseSize / 3),
-            top: 2,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+            filter: isSelected ? `drop-shadow(0 0 6px ${config.lineColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+            transform: `rotate(${rotation}deg)`,
+            transformOrigin: 'center center',
+            transition: isDraggingMarker && dragMode === 'rotate' ? 'none' : 'filter 0.15s',
           }}
+          onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
+          onDoubleClick={(e) => removeMarker(marker.id, e)}
+          title="Drag to move, double-click to remove"
         >
-          {config.label.charAt(0)}
+          <svg width={arrowWidth} height={arrowHeight} viewBox="0 0 24 34" fill="none" style={{ display: 'block' }}>
+            {/* Arrow pointing up (rotation=0 means up, user rotates to desired direction) */}
+            <path 
+              d="M12 0 L20 12 L15 12 L15 32 C15 33.1 14.1 34 13 34 L11 34 C9.9 34 9 33.1 9 32 L9 12 L4 12 Z" 
+              fill={config.lineColor}
+              stroke={isSelected ? 'white' : 'rgba(255,255,255,0.4)'}
+              strokeWidth="1.5"
+            />
+          </svg>
         </div>
       </div>
     );
