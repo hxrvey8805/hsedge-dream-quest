@@ -88,6 +88,8 @@ export const ImageEditorDialog = ({
   const [useLineMode, setUseLineMode] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [isDraggingMarker, setIsDraggingMarker] = useState(false);
+  const [isPlacingArrow, setIsPlacingArrow] = useState(false);
+  const [placingMarkerId, setPlacingMarkerId] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
