@@ -276,6 +276,12 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle arrow placement via drag
+    if (selectedMarkerType && !isCropping) {
+      handleImageMouseDown(e);
+      return;
+    }
+
     if (!isCropping || !containerRef.current) return;
     e.preventDefault();
     e.stopPropagation();
