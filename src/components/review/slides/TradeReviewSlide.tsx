@@ -307,6 +307,45 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
     }
   };
 
+  const getMarkerHexColor = (type: string) => {
+    switch (type) {
+      case 'entry': return '#3b82f6';
+      case 'stop_loss': return '#ef4444';
+      case 'take_profit': return '#10b981';
+      case 'time': return '#a855f7';
+      default: return '#3b82f6';
+    }
+  };
+
+  const renderArrowMarker = (marker: Marker, size: number) => {
+    const color = getMarkerHexColor(marker.type);
+    const rotation = marker.rotation ?? 180;
+    const lengthMult = marker.arrowLength ?? 1;
+    const lm = Math.round(34 * lengthMult);
+    return (
+      <div
+        key={marker.id}
+        className="absolute pointer-events-none"
+        style={{
+          left: `${marker.x}%`,
+          top: `${marker.y}%`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <div style={{ transform: `rotate(${rotation}deg)`, transformOrigin: 'center center' }}>
+          <svg width={size} height={Math.round(size * 1.4 * lengthMult)} viewBox={`0 0 24 ${lm}`} fill="none" style={{ display: 'block' }}>
+            <path
+              d={`M12 0 L20 12 L15 12 L15 ${lm - 2} C15 ${lm - 0.9} 14.1 ${lm} 13 ${lm} L11 ${lm} C9.9 ${lm} 9 ${lm - 0.9} 9 ${lm - 2} L9 12 L4 12 Z`}
+              fill={color}
+              stroke="rgba(255,255,255,0.6)"
+              strokeWidth="1.5"
+            />
+          </svg>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Slot tabs */}
