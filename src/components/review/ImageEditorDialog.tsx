@@ -184,16 +184,25 @@ export const ImageEditorDialog = ({
     }
   }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
 
-  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' = 'both') => {
+  const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' | 'rotate' = 'both') => {
     e.stopPropagation();
     e.preventDefault();
     setSelectedMarkerId(markerId);
     setSelectedMarkerType(null);
     setDragMode(mode);
     setIsDraggingMarker(true);
+    
+    // Store initial mouse position for rotation calculation
+    if (mode === 'rotate' && imageRef.current) {
+      const coords = getImageRelativeCoords(e.clientX, e.clientY);
+      if (coords) {
+        rotateStartRef.current = coords;
+      }
+    }
   };
 
-  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical' | 'label'>('both');
+  const [dragMode, setDragMode] = useState<'both' | 'horizontal' | 'vertical' | 'label' | 'rotate'>('both');
+  const rotateStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleMarkerDrag = useCallback((e: React.MouseEvent) => {
     if (!isDraggingMarker || !selectedMarkerId || !imageRef.current) return;
@@ -210,6 +219,13 @@ export const ImageEditorDialog = ({
         return { ...marker, y: Math.max(0, Math.min(100, coords.y)) };
       } else if (dragMode === 'label') {
         return { ...marker, labelX: Math.max(0, Math.min(100, coords.x)) };
+      } else if (dragMode === 'rotate') {
+        // Calculate angle from marker center to current mouse position
+        const dx = coords.x - marker.x;
+        const dy = coords.y - marker.y;
+        // atan2 gives angle from positive x-axis, we want 0 = down
+        const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI) - 90;
+        return { ...marker, rotation: angleDeg };
       } else {
         return { 
           ...marker, 
@@ -222,6 +238,7 @@ export const ImageEditorDialog = ({
 
   const handleMarkerMouseUp = () => {
     setIsDraggingMarker(false);
+    rotateStartRef.current = null;
   };
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
