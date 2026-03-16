@@ -27,8 +27,9 @@ export interface Marker {
   y: number;
   useLineMode?: boolean;
   markerSize?: number;
-  labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
-  rotation?: number; // Arrow rotation in degrees (0 = pointing down, clockwise)
+  labelX?: number;
+  rotation?: number; // Arrow rotation in degrees (0 = pointing up)
+  arrowLength?: number; // Arrow length multiplier (1 = default)
 }
 
 export interface TradeInfo {
@@ -87,6 +88,8 @@ export const ImageEditorDialog = ({
   const [useLineMode, setUseLineMode] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [isDraggingMarker, setIsDraggingMarker] = useState(false);
+  const [isPlacingArrow, setIsPlacingArrow] = useState(false);
+  const [placingMarkerId, setPlacingMarkerId] = useState<string | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -151,38 +154,69 @@ export const ImageEditorDialog = ({
   }, []);
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current || isCropping || isDraggingMarker) return;
+    // This is now only used for deselecting markers when no type is selected
+    if (!imageRef.current || isCropping || isDraggingMarker || isPlacingArrow) return;
+    if (selectedMarkerType) return; // mousedown handles placement now
 
     const coords = getImageRelativeCoords(e.clientX, e.clientY);
     if (!coords) return;
-    
     const { x, y } = coords;
-    
-    // Ignore clicks outside image bounds
     if (x < 0 || x > 100 || y < 0 || y > 100) return;
 
-    // If clicking on empty space while a marker is selected, deselect it
     if (selectedMarkerId && !selectedMarkerType) {
       setSelectedMarkerId(null);
       return;
     }
+  }, [selectedMarkerType, isCropping, selectedMarkerId, isDraggingMarker, isPlacingArrow, getImageRelativeCoords]);
 
-    if (selectedMarkerType) {
-      // Remove existing marker of same type (unless multiple allowed) and add new one
+  // Mousedown on image to start placing an arrow by dragging
+  const handleImageMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current || isCropping || !selectedMarkerType) return;
+
+    const coords = getImageRelativeCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    const { x, y } = coords;
+    if (x < 0 || x > 100 || y < 0 || y > 100) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const newId = `${selectedMarkerType}-${Date.now()}`;
+    const isLineType = selectedMarkerType === 'time' || useLineMode;
+    
+    if (isLineType) {
+      // Line mode markers are placed instantly (existing behavior)
       const newMarkers = allowMultiplePerType
         ? [...markers]
         : markers.filter(m => m.type !== selectedMarkerType);
       newMarkers.push({
-        id: `${selectedMarkerType}-${Date.now()}`,
+        id: newId,
         type: selectedMarkerType,
-        x,
-        y,
-        useLineMode,
+        x, y,
+        useLineMode: true,
         markerSize,
       });
       setMarkers(newMarkers);
+      return;
     }
-  }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
+
+    // Arrow mode: start drag-to-place
+    const newMarkers = allowMultiplePerType
+      ? [...markers]
+      : markers.filter(m => m.type !== selectedMarkerType);
+    newMarkers.push({
+      id: newId,
+      type: selectedMarkerType,
+      x, y,
+      useLineMode: false,
+      markerSize,
+      rotation: 180, // default pointing down
+      arrowLength: 1,
+    });
+    setMarkers(newMarkers);
+    setPlacingMarkerId(newId);
+    setIsPlacingArrow(true);
+  }, [selectedMarkerType, markers, isCropping, getImageRelativeCoords, allowMultiplePerType, useLineMode, markerSize]);
 
   const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' | 'rotate' = 'both') => {
     e.stopPropagation();
@@ -242,6 +276,12 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle arrow placement via drag
+    if (selectedMarkerType && !isCropping) {
+      handleImageMouseDown(e);
+      return;
+    }
+
     if (!isCropping || !containerRef.current) return;
     e.preventDefault();
     e.stopPropagation();
@@ -256,6 +296,21 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle arrow placement drag
+    if (isPlacingArrow && placingMarkerId) {
+      const coords = getImageRelativeCoords(e.clientX, e.clientY);
+      if (!coords) return;
+      setMarkers(prev => prev.map(m => {
+        if (m.id !== placingMarkerId) return m;
+        const dx = coords.x - m.x;
+        const dy = coords.y - m.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI) + 90; // 0 = up
+        return { ...m, rotation: angleDeg, arrowLength: Math.max(0.5, dist / 8) };
+      }));
+      return;
+    }
+
     // Handle marker dragging
     if (isDraggingMarker) {
       handleMarkerDrag(e);
@@ -273,6 +328,12 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isPlacingArrow) {
+      setIsPlacingArrow(false);
+      setPlacingMarkerId(null);
+      return;
+    }
+
     if (isDraggingMarker) {
       handleMarkerMouseUp();
       return;
@@ -529,10 +590,12 @@ export const ImageEditorDialog = ({
       );
     }
 
-    // Arrow mode with rotation
-    const arrowHeight = baseSize * 1.4;
-    const arrowWidth = baseSize;
-    const rotation = marker.rotation ?? 180; // default pointing down (180deg from up)
+    // Arrow mode with rotation and dynamic length
+    const lengthMult = marker.arrowLength ?? 1;
+    const arrowH = baseSize * 1.4 * lengthMult;
+    const arrowW = baseSize;
+    const rotation = marker.rotation ?? 180;
+    const isBeingPlaced = placingMarkerId === marker.id && isPlacingArrow;
     return (
       <div
         key={marker.id}
@@ -541,23 +604,9 @@ export const ImageEditorDialog = ({
           left: `${marker.x}%`, 
           top: `${marker.y}%`,
           transform: 'translate(-50%, -50%)',
+          pointerEvents: isBeingPlaced ? 'none' : 'auto',
         }}
       >
-        {/* Rotate handle ring - visible when selected */}
-        {isSelected && (
-          <div
-            className="absolute rounded-full border-2 border-dashed border-white/40 cursor-crosshair"
-            style={{
-              width: arrowHeight * 2.2,
-              height: arrowHeight * 2.2,
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-            onMouseDown={(e) => handleMarkerMouseDown(e, marker.id, 'rotate')}
-            title="Drag to rotate arrow direction"
-          />
-        )}
         {/* Arrow SVG */}
         <div
           className="cursor-move"
@@ -565,21 +614,33 @@ export const ImageEditorDialog = ({
             filter: isSelected ? `drop-shadow(0 0 6px ${config.lineColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
             transform: `rotate(${rotation}deg)`,
             transformOrigin: 'center center',
-            transition: isDraggingMarker && dragMode === 'rotate' ? 'none' : 'filter 0.15s',
+            transition: (isBeingPlaced || (isDraggingMarker && dragMode === 'rotate')) ? 'none' : 'filter 0.15s',
           }}
           onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
           onDoubleClick={(e) => removeMarker(marker.id, e)}
           title="Drag to move, double-click to remove"
         >
-          <svg width={arrowWidth} height={arrowHeight} viewBox="0 0 24 34" fill="none" style={{ display: 'block' }}>
-            {/* Arrow pointing up (rotation=0 means up, user rotates to desired direction) */}
+          <svg width={arrowW} height={arrowH} viewBox={`0 0 24 ${Math.round(34 * lengthMult)}`} fill="none" style={{ display: 'block' }}>
             <path 
-              d="M12 0 L20 12 L15 12 L15 32 C15 33.1 14.1 34 13 34 L11 34 C9.9 34 9 33.1 9 32 L9 12 L4 12 Z" 
+              d={`M12 0 L20 12 L15 12 L15 ${Math.round(34 * lengthMult) - 2} C15 ${Math.round(34 * lengthMult) - 0.9} 14.1 ${Math.round(34 * lengthMult)} 13 ${Math.round(34 * lengthMult)} L11 ${Math.round(34 * lengthMult)} C9.9 ${Math.round(34 * lengthMult)} 9 ${Math.round(34 * lengthMult) - 0.9} 9 ${Math.round(34 * lengthMult) - 2} L9 12 L4 12 Z`}
               fill={config.lineColor}
               stroke={isSelected ? 'white' : 'rgba(255,255,255,0.4)'}
               strokeWidth="1.5"
             />
           </svg>
+          {/* Label */}
+          <div 
+            className="absolute text-white text-center font-bold whitespace-nowrap pointer-events-none"
+            style={{
+              fontSize: Math.max(8, baseSize / 3),
+              top: 14,
+              left: '50%',
+              transform: `translateX(-50%) rotate(${-rotation}deg)`,
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+            }}
+          >
+            {config.label.substring(0, 2)}
+          </div>
         </div>
       </div>
     );
@@ -830,7 +891,7 @@ export const ImageEditorDialog = ({
                 onMouseDown={handleCropMouseDown}
                 onMouseMove={handleCropMouseMove}
                 onMouseUp={handleCropMouseUp}
-                onMouseLeave={handleMarkerMouseUp}
+                onMouseLeave={() => { handleMarkerMouseUp(); if (isPlacingArrow) { setIsPlacingArrow(false); setPlacingMarkerId(null); } }}
                 style={{ maxWidth: '100%', maxHeight: '100%' }}
               >
                 <img
