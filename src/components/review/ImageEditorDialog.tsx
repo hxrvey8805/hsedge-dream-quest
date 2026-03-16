@@ -290,6 +290,21 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Handle arrow placement drag
+    if (isPlacingArrow && placingMarkerId) {
+      const coords = getImageRelativeCoords(e.clientX, e.clientY);
+      if (!coords) return;
+      setMarkers(prev => prev.map(m => {
+        if (m.id !== placingMarkerId) return m;
+        const dx = coords.x - m.x;
+        const dy = coords.y - m.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angleDeg = (Math.atan2(dy, dx) * 180 / Math.PI) + 90; // 0 = up
+        return { ...m, rotation: angleDeg, arrowLength: Math.max(0.5, dist / 8) };
+      }));
+      return;
+    }
+
     // Handle marker dragging
     if (isDraggingMarker) {
       handleMarkerDrag(e);
@@ -307,6 +322,12 @@ export const ImageEditorDialog = ({
   };
 
   const handleCropMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isPlacingArrow) {
+      setIsPlacingArrow(false);
+      setPlacingMarkerId(null);
+      return;
+    }
+
     if (isDraggingMarker) {
       handleMarkerMouseUp();
       return;
