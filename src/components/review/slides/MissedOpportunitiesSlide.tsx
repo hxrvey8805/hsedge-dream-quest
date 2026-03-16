@@ -262,17 +262,30 @@ export const MissedOpportunitiesSlide = ({
                     );
                   }
 
+                  const rotation = marker.rotation ?? 180;
+                  const lengthMult = marker.arrowLength ?? 1;
+                  const lm = Math.round(34 * lengthMult);
                   return (
                     <div
                       key={marker.id}
-                      className="absolute w-3 h-3 rounded-full border border-white"
+                      className="absolute pointer-events-none"
                       style={{
                         left: `${marker.x}%`,
                         top: `${marker.y}%`,
                         transform: 'translate(-50%, -50%)',
-                        backgroundColor: lineColor,
                       }}
-                    />
+                    >
+                      <div style={{ transform: `rotate(${rotation}deg)`, transformOrigin: 'center center' }}>
+                        <svg width={12} height={Math.round(12 * 1.4 * lengthMult)} viewBox={`0 0 24 ${lm}`} fill="none" style={{ display: 'block' }}>
+                          <path
+                            d={`M12 0 L20 12 L15 12 L15 ${lm - 2} C15 ${lm - 0.9} 14.1 ${lm} 13 ${lm} L11 ${lm} C9.9 ${lm} 9 ${lm - 0.9} 9 ${lm - 2} L9 12 L4 12 Z`}
+                            fill={lineColor}
+                            stroke="rgba(255,255,255,0.6)"
+                            strokeWidth="1.5"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   );
                 })}
 
@@ -378,17 +391,30 @@ export const MissedOpportunitiesSlide = ({
                     </div>
                   );
                 }
+                const rotation = marker.rotation ?? 180;
+                const lengthMult = marker.arrowLength ?? 1;
+                const lm = Math.round(34 * lengthMult);
                 return (
                   <div
                     key={marker.id}
-                    className="absolute w-4 h-4 rounded-full border-2 border-white"
+                    className="absolute pointer-events-none"
                     style={{
                       left: `${marker.x}%`,
                       top: `${marker.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      backgroundColor: lineColor,
                     }}
-                  />
+                  >
+                    <div style={{ transform: `rotate(${rotation}deg)`, transformOrigin: 'center center' }}>
+                      <svg width={16} height={Math.round(16 * 1.4 * lengthMult)} viewBox={`0 0 24 ${lm}`} fill="none" style={{ display: 'block' }}>
+                        <path
+                          d={`M12 0 L20 12 L15 12 L15 ${lm - 2} C15 ${lm - 0.9} 14.1 ${lm} 13 ${lm} L11 ${lm} C9.9 ${lm} 9 ${lm - 0.9} 9 ${lm - 2} L9 12 L4 12 Z`}
+                          fill={lineColor}
+                          stroke="rgba(255,255,255,0.6)"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 );
               })}
             </div>
