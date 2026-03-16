@@ -28,6 +28,7 @@ export interface Marker {
   useLineMode?: boolean;
   markerSize?: number;
   labelX?: number; // Separate x position for label (for time markers, allows label and vertical indicator to be at different positions)
+  rotation?: number; // Arrow rotation in degrees (0 = pointing down, clockwise)
 }
 
 export interface TradeInfo {
