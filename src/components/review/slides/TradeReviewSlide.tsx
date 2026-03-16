@@ -522,22 +522,8 @@ export const TradeReviewSlide = ({ trade, slideData, onUpdate }: TradeReviewSlid
                       );
                     }
                     
-                    // Icon mode (default)
-                    return (
-                      <div
-                        key={marker.id}
-                        className={`absolute rounded-full ${getMarkerColor(marker.type)} border-2 flex items-center justify-center text-white shadow-lg pointer-events-none`}
-                        style={{ 
-                          left: `${marker.x}%`, 
-                          top: `${marker.y}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: markerSizeValue,
-                          height: markerSizeValue
-                        }}
-                      >
-                        {getMarkerIcon(marker.type, 'sm')}
-                      </div>
-                    );
+                    // Arrow mode (default)
+                    return renderArrowMarker(marker, 12);
                   })}
                 </div>
 
