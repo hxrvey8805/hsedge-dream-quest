@@ -891,7 +891,7 @@ export const ImageEditorDialog = ({
                 onMouseDown={handleCropMouseDown}
                 onMouseMove={handleCropMouseMove}
                 onMouseUp={handleCropMouseUp}
-                onMouseLeave={handleMarkerMouseUp}
+                onMouseLeave={() => { handleMarkerMouseUp(); if (isPlacingArrow) { setIsPlacingArrow(false); setPlacingMarkerId(null); } }}
                 style={{ maxWidth: '100%', maxHeight: '100%' }}
               >
                 <img
