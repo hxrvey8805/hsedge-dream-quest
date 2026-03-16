@@ -154,38 +154,69 @@ export const ImageEditorDialog = ({
   }, []);
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current || isCropping || isDraggingMarker) return;
+    // This is now only used for deselecting markers when no type is selected
+    if (!imageRef.current || isCropping || isDraggingMarker || isPlacingArrow) return;
+    if (selectedMarkerType) return; // mousedown handles placement now
 
     const coords = getImageRelativeCoords(e.clientX, e.clientY);
     if (!coords) return;
-    
     const { x, y } = coords;
-    
-    // Ignore clicks outside image bounds
     if (x < 0 || x > 100 || y < 0 || y > 100) return;
 
-    // If clicking on empty space while a marker is selected, deselect it
     if (selectedMarkerId && !selectedMarkerType) {
       setSelectedMarkerId(null);
       return;
     }
+  }, [selectedMarkerType, isCropping, selectedMarkerId, isDraggingMarker, isPlacingArrow, getImageRelativeCoords]);
 
-    if (selectedMarkerType) {
-      // Remove existing marker of same type (unless multiple allowed) and add new one
+  // Mousedown on image to start placing an arrow by dragging
+  const handleImageMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current || isCropping || !selectedMarkerType) return;
+
+    const coords = getImageRelativeCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    const { x, y } = coords;
+    if (x < 0 || x > 100 || y < 0 || y > 100) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const newId = `${selectedMarkerType}-${Date.now()}`;
+    const isLineType = selectedMarkerType === 'time' || useLineMode;
+    
+    if (isLineType) {
+      // Line mode markers are placed instantly (existing behavior)
       const newMarkers = allowMultiplePerType
         ? [...markers]
         : markers.filter(m => m.type !== selectedMarkerType);
       newMarkers.push({
-        id: `${selectedMarkerType}-${Date.now()}`,
+        id: newId,
         type: selectedMarkerType,
-        x,
-        y,
-        useLineMode,
+        x, y,
+        useLineMode: true,
         markerSize,
       });
       setMarkers(newMarkers);
+      return;
     }
-  }, [selectedMarkerType, markers, isCropping, selectedMarkerId, isDraggingMarker, getImageRelativeCoords]);
+
+    // Arrow mode: start drag-to-place
+    const newMarkers = allowMultiplePerType
+      ? [...markers]
+      : markers.filter(m => m.type !== selectedMarkerType);
+    newMarkers.push({
+      id: newId,
+      type: selectedMarkerType,
+      x, y,
+      useLineMode: false,
+      markerSize,
+      rotation: 180, // default pointing down
+      arrowLength: 1,
+    });
+    setMarkers(newMarkers);
+    setPlacingMarkerId(newId);
+    setIsPlacingArrow(true);
+  }, [selectedMarkerType, markers, isCropping, getImageRelativeCoords, allowMultiplePerType, useLineMode, markerSize]);
 
   const handleMarkerMouseDown = (e: React.MouseEvent, markerId: string, mode: 'both' | 'horizontal' | 'vertical' | 'label' | 'rotate' = 'both') => {
     e.stopPropagation();
