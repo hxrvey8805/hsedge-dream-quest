@@ -511,22 +511,45 @@ export const ImageEditorDialog = ({
       );
     }
 
-    // Icon mode
+    // Arrow mode
+    const arrowHeight = baseSize * 1.4;
+    const arrowWidth = baseSize;
     return (
       <div
         key={marker.id}
-        className={`absolute rounded-full ${config.color} ${config.borderColor} border-2 flex items-center justify-center text-white cursor-move transform -translate-x-1/2 -translate-y-1/2 shadow-lg transition-all ${isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-black/50 scale-110' : 'hover:scale-105'} z-10`}
+        className={`absolute cursor-move transform -translate-x-1/2 z-10`}
         style={{ 
           left: `${marker.x}%`, 
           top: `${marker.y}%`,
-          width: baseSize,
-          height: baseSize
+          filter: isSelected ? `drop-shadow(0 0 6px ${config.lineColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+          transition: 'filter 0.15s, transform 0.15s',
+          transform: `translate(-50%, -100%) ${isSelected ? 'scale(1.1)' : ''}`,
         }}
         onMouseDown={(e) => handleMarkerMouseDown(e, marker.id)}
         onDoubleClick={(e) => removeMarker(marker.id, e)}
         title="Drag to move, double-click to remove"
       >
-        {getMarkerIcon(marker.type, baseSize)}
+        <svg width={arrowWidth} height={arrowHeight} viewBox="0 0 24 34" fill="none">
+          {/* Arrow pointing down */}
+          <path 
+            d="M12 34 L4 22 L9 22 L9 2 C9 0.9 9.9 0 11 0 L13 0 C14.1 0 15 0.9 15 2 L15 22 L20 22 Z" 
+            fill={config.lineColor}
+            stroke={isSelected ? 'white' : 'rgba(255,255,255,0.4)'}
+            strokeWidth="1.5"
+          />
+        </svg>
+        <div 
+          className="absolute text-white text-center font-bold whitespace-nowrap"
+          style={{
+            fontSize: Math.max(8, baseSize / 3),
+            top: 2,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          }}
+        >
+          {config.label.charAt(0)}
+        </div>
       </div>
     );
   };
