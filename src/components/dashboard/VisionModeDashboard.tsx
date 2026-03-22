@@ -1,9 +1,66 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
-import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock } from "lucide-react";
+import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock, Timer } from "lucide-react";
+
+const parseDeadline = (timescale: string | null, createdAt: string): Date | null => {
+  if (!timescale) return null;
+  const lower = timescale.toLowerCase().trim();
+  
+  // "By 2026", "By December 2026", "By Dec 2026"
+  const byYearMatch = lower.match(/by\s+(\w+\s+)?(\d{4})/);
+  if (byYearMatch) {
+    const monthStr = byYearMatch[1]?.trim();
+    const year = parseInt(byYearMatch[2]);
+    if (monthStr) {
+      const d = new Date(`${monthStr} 1, ${year}`);
+      if (!isNaN(d.getTime())) return new Date(year, d.getMonth() + 1, 0); // end of that month
+    }
+    return new Date(year, 11, 31);
+  }
+
+  // "Within X years", "Next X years", "X years", "In X years"
+  const yearsMatch = lower.match(/(\d+)\s*years?/);
+  if (yearsMatch) {
+    const years = parseInt(yearsMatch[1]);
+    const base = new Date(createdAt);
+    return new Date(base.getFullYear() + years, base.getMonth(), base.getDate());
+  }
+
+  // "Within X months", "X months"
+  const monthsMatch = lower.match(/(\d+)\s*months?/);
+  if (monthsMatch) {
+    const months = parseInt(monthsMatch[1]);
+    const base = new Date(createdAt);
+    return new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
+  }
+
+  return null;
+};
+
+const useCountdown = (deadline: Date | null) => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (!deadline) return;
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (!deadline) return null;
+
+  const diff = deadline.getTime() - now.getTime();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  return { days, hours, minutes, seconds, expired: false };
+};
 
 interface VisionModeDashboardProps {
   onClose: () => void;
