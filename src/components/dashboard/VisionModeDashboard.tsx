@@ -90,12 +90,61 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
 
   const fetchDreamData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-...
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("primary_dream_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!profile?.primary_dream_id) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: dreamProfile } = await supabase
+      .from("dream_profiles")
+      .select("*")
+      .eq("id", profile.primary_dream_id)
+      .single();
+
+    const { data: purchases } = await supabase
+      .from("dream_purchases")
+      .select("*")
+      .eq("dream_profile_id", profile.primary_dream_id);
+
+    const { data: incomeSources } = await supabase
+      .from("trading_income_sources")
+      .select("*")
+      .eq("dream_profile_id", profile.primary_dream_id);
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: trades } = await supabase
+      .from("trades")
+      .select("profit, trade_date")
+      .eq("user_id", user.id)
+      .gte("trade_date", thirtyDaysAgo.toISOString().split("T")[0]);
+
+    const monthlyProfit = trades?.reduce((sum, t) => sum + (t.profit || 0), 0) || 0;
+
+    setDreamData({
+      profile: dreamProfile,
+      purchases: purchases || [],
+      incomeSources: incomeSources || [],
+      monthlyProfit,
+    });
     setLoading(false);
   };
 
   const calculateMonthlyCost = (purchase: any) => {
-...
+    const downPayment = purchase.down_payment || 0;
+    const taxBuffer = purchase.tax_interest_buffer || 0;
+    const years = purchase.payment_period_years || 1;
+    const remaining = purchase.price - downPayment;
+    const withBuffer = remaining * (1 + taxBuffer / 100);
     return withBuffer / (years * 12);
   };
 
