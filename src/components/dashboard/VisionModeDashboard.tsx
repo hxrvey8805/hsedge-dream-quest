@@ -1,9 +1,66 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
-import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock } from "lucide-react";
+import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock, Timer } from "lucide-react";
+
+const parseDeadline = (timescale: string | null, createdAt: string): Date | null => {
+  if (!timescale) return null;
+  const lower = timescale.toLowerCase().trim();
+  
+  // "By 2026", "By December 2026", "By Dec 2026"
+  const byYearMatch = lower.match(/by\s+(\w+\s+)?(\d{4})/);
+  if (byYearMatch) {
+    const monthStr = byYearMatch[1]?.trim();
+    const year = parseInt(byYearMatch[2]);
+    if (monthStr) {
+      const d = new Date(`${monthStr} 1, ${year}`);
+      if (!isNaN(d.getTime())) return new Date(year, d.getMonth() + 1, 0); // end of that month
+    }
+    return new Date(year, 11, 31);
+  }
+
+  // "Within X years", "Next X years", "X years", "In X years"
+  const yearsMatch = lower.match(/(\d+)\s*years?/);
+  if (yearsMatch) {
+    const years = parseInt(yearsMatch[1]);
+    const base = new Date(createdAt);
+    return new Date(base.getFullYear() + years, base.getMonth(), base.getDate());
+  }
+
+  // "Within X months", "X months"
+  const monthsMatch = lower.match(/(\d+)\s*months?/);
+  if (monthsMatch) {
+    const months = parseInt(monthsMatch[1]);
+    const base = new Date(createdAt);
+    return new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
+  }
+
+  return null;
+};
+
+const useCountdown = (deadline: Date | null) => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (!deadline) return;
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (!deadline) return null;
+
+  const diff = deadline.getTime() - now.getTime();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  return { days, hours, minutes, seconds, expired: false };
+};
 
 interface VisionModeDashboardProps {
   onClose: () => void;
@@ -20,6 +77,13 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
   const [dreamData, setDreamData] = useState<DreamData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const deadline = useMemo(() => {
+    if (!dreamData?.profile) return null;
+    return parseDeadline(dreamData.profile.timescale, dreamData.profile.created_at);
+  }, [dreamData?.profile]);
+
+  const countdown = useCountdown(deadline);
+
   useEffect(() => {
     fetchDreamData();
   }, []);
@@ -28,7 +92,6 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Get user profile with primary dream
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("primary_dream_id")
@@ -40,26 +103,22 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
       return;
     }
 
-    // Get dream profile
     const { data: dreamProfile } = await supabase
       .from("dream_profiles")
       .select("*")
       .eq("id", profile.primary_dream_id)
       .single();
 
-    // Get dream purchases
     const { data: purchases } = await supabase
       .from("dream_purchases")
       .select("*")
       .eq("dream_profile_id", profile.primary_dream_id);
 
-    // Get trading income sources
     const { data: incomeSources } = await supabase
       .from("trading_income_sources")
       .select("*")
       .eq("dream_profile_id", profile.primary_dream_id);
 
-    // Calculate actual monthly profit from trades (last 30 days average * 30)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
@@ -160,12 +219,50 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
                 {dreamData.profile.timescale || "Your dream life"}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Back to Trading
-            </button>
+
+            <div className="flex items-center gap-6">
+              {/* Countdown Timer */}
+              {countdown && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-3"
+                >
+                  <Timer className={`w-5 h-5 ${countdown.expired ? "text-destructive" : "text-primary"}`} />
+                  {countdown.expired ? (
+                    <span className="text-destructive font-bold text-sm">DEADLINE PASSED</span>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        { value: countdown.days, label: "D" },
+                        { value: countdown.hours, label: "H" },
+                        { value: countdown.minutes, label: "M" },
+                        { value: countdown.seconds, label: "S" },
+                      ].map((unit) => (
+                        <div key={unit.label} className="flex flex-col items-center">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-mono text-lg font-bold ${
+                            countdown.days < 30 ? "bg-destructive/20 text-destructive" : 
+                            countdown.days < 90 ? "bg-amber-500/20 text-amber-400" : 
+                            "bg-primary/20 text-primary"
+                          }`}>
+                            {String(unit.value).padStart(2, "0")}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground mt-0.5">{unit.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Trading
+              </button>
+            </div>
           </motion.div>
 
           {/* Main Progress */}
