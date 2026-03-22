@@ -77,72 +77,25 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
   const [dreamData, setDreamData] = useState<DreamData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const deadline = useMemo(() => {
+    if (!dreamData?.profile) return null;
+    return parseDeadline(dreamData.profile.timescale, dreamData.profile.created_at);
+  }, [dreamData?.profile]);
+
+  const countdown = useCountdown(deadline);
+
   useEffect(() => {
     fetchDreamData();
   }, []);
 
   const fetchDreamData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Get user profile with primary dream
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("primary_dream_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!profile?.primary_dream_id) {
-      setLoading(false);
-      return;
-    }
-
-    // Get dream profile
-    const { data: dreamProfile } = await supabase
-      .from("dream_profiles")
-      .select("*")
-      .eq("id", profile.primary_dream_id)
-      .single();
-
-    // Get dream purchases
-    const { data: purchases } = await supabase
-      .from("dream_purchases")
-      .select("*")
-      .eq("dream_profile_id", profile.primary_dream_id);
-
-    // Get trading income sources
-    const { data: incomeSources } = await supabase
-      .from("trading_income_sources")
-      .select("*")
-      .eq("dream_profile_id", profile.primary_dream_id);
-
-    // Calculate actual monthly profit from trades (last 30 days average * 30)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const { data: trades } = await supabase
-      .from("trades")
-      .select("profit, trade_date")
-      .eq("user_id", user.id)
-      .gte("trade_date", thirtyDaysAgo.toISOString().split("T")[0]);
-
-    const monthlyProfit = trades?.reduce((sum, t) => sum + (t.profit || 0), 0) || 0;
-
-    setDreamData({
-      profile: dreamProfile,
-      purchases: purchases || [],
-      incomeSources: incomeSources || [],
-      monthlyProfit,
-    });
+...
     setLoading(false);
   };
 
   const calculateMonthlyCost = (purchase: any) => {
-    const downPayment = purchase.down_payment || 0;
-    const taxBuffer = purchase.tax_interest_buffer || 0;
-    const years = purchase.payment_period_years || 1;
-    const remaining = purchase.price - downPayment;
-    const withBuffer = remaining * (1 + taxBuffer / 100);
+...
     return withBuffer / (years * 12);
   };
 
@@ -217,12 +170,50 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
                 {dreamData.profile.timescale || "Your dream life"}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Back to Trading
-            </button>
+
+            <div className="flex items-center gap-6">
+              {/* Countdown Timer */}
+              {countdown && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-3"
+                >
+                  <Timer className={`w-5 h-5 ${countdown.expired ? "text-destructive" : "text-primary"}`} />
+                  {countdown.expired ? (
+                    <span className="text-destructive font-bold text-sm">DEADLINE PASSED</span>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        { value: countdown.days, label: "D" },
+                        { value: countdown.hours, label: "H" },
+                        { value: countdown.minutes, label: "M" },
+                        { value: countdown.seconds, label: "S" },
+                      ].map((unit) => (
+                        <div key={unit.label} className="flex flex-col items-center">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-mono text-lg font-bold ${
+                            countdown.days < 30 ? "bg-destructive/20 text-destructive" : 
+                            countdown.days < 90 ? "bg-amber-500/20 text-amber-400" : 
+                            "bg-primary/20 text-primary"
+                          }`}>
+                            {String(unit.value).padStart(2, "0")}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground mt-0.5">{unit.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Trading
+              </button>
+            </div>
           </motion.div>
 
           {/* Main Progress */}
