@@ -154,7 +154,7 @@ const Goals = () => {
 
             <div className="flex flex-col gap-6">
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                <WeeklyConsistencyCard goals={goals} habitLogs={habitLogs} onToggleHabit={toggleHabit} />
+                <WeeklyConsistencyCard goals={goals} habitLogs={habitLogs} onToggleHabit={toggleHabit} skippedDays={skippedDays} onSkipDay={skipDay} onRestoreDay={restoreDay} />
               </motion.div>
 
               {/* Daily Execution Score Chart */}
