@@ -21,6 +21,43 @@ export default function Index() {
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio("/audio/ambient.mp3");
+    audio.loop = true;
+    audio.volume = 0.4;
+    audioRef.current = audio;
+    
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked — play on first user interaction
+        const handleInteraction = () => {
+          audio.play().catch(() => {});
+          document.removeEventListener("click", handleInteraction);
+          document.removeEventListener("keydown", handleInteraction);
+        };
+        document.addEventListener("click", handleInteraction);
+        document.addEventListener("keydown", handleInteraction);
+      });
+    }
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    };
+  }, []);
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      const next = !isMuted;
+      audioRef.current.muted = next;
+      setIsMuted(next);
+    }
+  };
 
   const particles = useMemo(() => {
     return Array.from({ length: 40 }, (_, i) => ({
