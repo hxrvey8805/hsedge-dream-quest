@@ -276,7 +276,8 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 Back to Trading
-            </button>
+              </button>
+            </div>
           </motion.div>
 
           {/* Main Progress */}
