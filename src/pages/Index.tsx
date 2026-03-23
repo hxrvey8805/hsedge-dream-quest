@@ -121,46 +121,46 @@ export default function Index() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Massive stacked headline */}
-              <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8.5rem] font-black leading-[0.9] tracking-tight text-center mb-16">
-                <span className="block text-foreground">WELCOME TO</span>
-                <span className="block bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent" style={{ WebkitTextStroke: '0px' }}>
-                  TRADE PEAKS
-                </span>
+              {/* Massive single-line headline */}
+              <h1
+                className="text-4xl md:text-5xl lg:text-7xl xl:text-[5.5rem] font-black mb-16 leading-[1.08] tracking-tight text-center whitespace-nowrap"
+                style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)' }}
+              >
+                WELCOME TO TRADE PEAKS
               </h1>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
                 {/* Left column */}
-                <div className="lg:col-span-7">
-
-                  <p className="text-xl md:text-2xl lg:text-3xl font-semibold text-foreground mb-8 leading-tight">
-                    Define your summit. Trade with direction.
+                <div>
+                  <p className="text-2xl md:text-3xl lg:text-4xl font-black text-foreground mb-8 leading-tight tracking-tight">
+                    Define your summit.{" "}
+                    <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Trade with direction.</span>
                   </p>
 
-                  <div className="space-y-4 mb-10">
-                    <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                  <div className="space-y-5 mb-10">
+                    <p className="text-muted-foreground text-lg leading-relaxed">
                       Most traders don't fail because they lack data.
                       <br />
-                      <span className="text-foreground font-medium">They fail because they lack focus.</span>
+                      <span className="text-foreground font-semibold">They fail because they lack focus.</span>
                     </p>
-                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                    <p className="text-muted-foreground text-base leading-relaxed">
                       TradePeaks is a structured daily performance system designed to help you identify what truly matters, improve it deliberately, and see your progress over time.
                     </p>
-                    <p className="text-primary/80 text-sm md:text-base font-medium italic">
+                    <p className="text-primary text-base font-semibold">
                       This is where traders stop reacting — and start climbing.
                     </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg font-semibold shadow-[var(--shadow-glow)] hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg font-semibold shadow-glow hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300 rounded-xl"
                       onClick={openWaitlist}
                     >
                       Start Climbing <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                     <Button
                       variant="outline"
-                      className="border-border text-foreground hover:bg-secondary px-10 py-6 text-lg font-medium"
+                      className="border-border text-foreground hover:bg-secondary px-10 py-6 text-lg font-medium rounded-xl"
                       onClick={() => document.getElementById('system')?.scrollIntoView({ behavior: 'smooth' })}
                     >
                       See How It Works
@@ -169,7 +169,11 @@ export default function Index() {
 
                   {/* Waitlist inline */}
                   {waitlistOpen && (
-                    <div className="mt-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6"
+                    >
                       <Card className="bg-card/50 border-border/50 p-6 backdrop-blur-sm max-w-md">
                         <h3 className="text-lg font-semibold text-foreground mb-3">Join the Waitlist</h3>
                         <div className="flex gap-2">
@@ -185,26 +189,33 @@ export default function Index() {
                           </Button>
                         </div>
                       </Card>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
 
                 {/* Right column – proof cards */}
-                <div className="lg:col-span-5 flex flex-col gap-4">
-                  {proofCards.map((card) => {
+                <div className="flex flex-col gap-4">
+                  {proofCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
-                      <Card key={card.title} className="bg-card/30 border-border/40 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors duration-300">
-                        <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                            <Icon className="h-5 w-5 text-primary" />
+                      <motion.div
+                        key={card.title}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
+                      >
+                        <Card className="bg-card/30 border-border/40 backdrop-blur-sm p-6 hover:border-primary/30 transition-all duration-300 group">
+                          <div className="flex items-start gap-4">
+                            <div className="w-11 h-11 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                              <Icon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-foreground mb-1">{card.title}</h3>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="text-base font-semibold text-foreground mb-1">{card.title}</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
-                          </div>
-                        </div>
-                      </Card>
+                        </Card>
+                      </motion.div>
                     );
                   })}
                 </div>
