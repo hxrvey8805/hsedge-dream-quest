@@ -728,6 +728,27 @@ export type Database = {
           },
         ]
       }
+      skipped_trading_days: {
+        Row: {
+          created_at: string
+          id: string
+          skip_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          skip_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          skip_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       strategies: {
         Row: {
           created_at: string
