@@ -219,7 +219,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 bg-[#030712]">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 text-center text-white/30 py-8 text-sm">
+        <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center text-white/30 py-8 text-sm">
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>

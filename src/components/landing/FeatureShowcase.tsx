@@ -26,8 +26,8 @@ import { AnalyticsPreview } from "./previews/AnalyticsPreview";
 import { PlaybookPreview } from "./previews/PlaybookPreview";
 import { ReviewPreview } from "./previews/ReviewPreview";
 
-const cx = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"; // consistent container
-const cxNarrow = "mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8";
+const cx = "mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16"; // consistent container
+const cxNarrow = "mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-10 xl:px-16";
 
 const sectionAnim = {
   initial: { opacity: 0, y: 30 },
