@@ -141,6 +141,13 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
     return withBuffer / (years * 12);
   };
 
+  const deadlineMs = useMemo(() => {
+    if (!dreamData?.profile) return null;
+    return parseTimescaleToMs(dreamData.profile.timescale, dreamData.profile.created_at);
+  }, [dreamData?.profile]);
+
+  const countdown = useCountdown(deadlineMs);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -183,6 +190,20 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
     if (lower.includes("car") || lower.includes("vehicle")) return Car;
     if (lower.includes("travel") || lower.includes("trip") || lower.includes("vacation")) return Plane;
     return Sparkles;
+  };
+
+  const getTimerColor = () => {
+    if (!countdown || countdown.expired) return "text-destructive";
+    if (countdown.totalDays < 30) return "text-destructive";
+    if (countdown.totalDays < 90) return "text-amber-400";
+    return "text-primary";
+  };
+
+  const getTimerBgColor = () => {
+    if (!countdown || countdown.expired) return "bg-destructive/10 border-destructive/30";
+    if (countdown.totalDays < 30) return "bg-destructive/10 border-destructive/30";
+    if (countdown.totalDays < 90) return "bg-amber-400/10 border-amber-400/30";
+    return "bg-primary/10 border-primary/30";
   };
 
   return (
