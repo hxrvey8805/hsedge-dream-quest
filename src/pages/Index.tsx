@@ -22,32 +22,25 @@ export default function Index() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [entered, setEntered] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
+  const handleEnter = () => {
     const audio = new Audio("/audio/ambient.mp3");
     audio.loop = true;
     audio.volume = 0.4;
     audioRef.current = audio;
-    
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Autoplay blocked — play on first user interaction
-        const handleInteraction = () => {
-          audio.play().catch(() => {});
-          document.removeEventListener("click", handleInteraction);
-          document.removeEventListener("keydown", handleInteraction);
-        };
-        document.addEventListener("click", handleInteraction);
-        document.addEventListener("keydown", handleInteraction);
-      });
-    }
+    audio.play().catch(() => {});
+    setEntered(true);
+  };
 
+  useEffect(() => {
     return () => {
-      audio.pause();
-      audio.src = "";
-      audioRef.current = null;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
     };
   }, []);
 
