@@ -1,22 +1,22 @@
 import { useMemo } from "react";
 import { format, subDays } from "date-fns";
+import { X, RotateCcw } from "lucide-react";
 import type { Goal, HabitLog } from "@/pages/Goals";
 
 interface Props {
   goals: Goal[];
   habitLogs: HabitLog[];
   onToggleHabit: (goalId: string, dateStr: string) => void;
+  skippedDays: string[];
+  onSkipDay: (dateStr: string) => void;
+  onRestoreDay: (dateStr: string) => void;
 }
 
-export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props) => {
-  // Track Implement and Avoid goals as daily boolean rules
+export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit, skippedDays, onSkipDay, onRestoreDay }: Props) => {
   const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
 
-  // Get last 5 weekdays + today
-  const days = useMemo(() => {
+  const allDays = useMemo(() => {
     const result = [];
-    let d = new Date();
-    // Go back to find 5 weekdays
     for (let i = 5; i >= 0; i--) {
       result.push(subDays(new Date(), i));
     }
@@ -25,27 +25,30 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
+  // Active days = days not skipped
+  const activeDays = allDays.filter(day => !skippedDays.includes(format(day, "yyyy-MM-dd")));
+
   const isChecked = (goalId: string, date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return habitLogs.some(l => l.goal_id === goalId && l.log_date === dateStr && l.is_completed);
   };
 
-  // Weekly % = total rules followed ÷ total rule opportunities
-  const dailyRates = days.map(day => {
+  const dailyRates = allDays.map(day => {
     const dateStr = format(day, "yyyy-MM-dd");
+    if (skippedDays.includes(dateStr)) return null;
     const followed = trackedGoals.filter(g =>
       habitLogs.some(l => l.goal_id === g.id && l.log_date === dateStr && l.is_completed)
     ).length;
     return trackedGoals.length > 0 ? Math.round((followed / trackedGoals.length) * 100) : 0;
   });
 
-  const totalFollowed = days.reduce((sum, day) => {
+  const totalFollowed = activeDays.reduce((sum, day) => {
     const dateStr = format(day, "yyyy-MM-dd");
     return sum + trackedGoals.filter(g =>
       habitLogs.some(l => l.goal_id === g.id && l.log_date === dateStr && l.is_completed)
     ).length;
   }, 0);
-  const totalOpportunities = days.length * trackedGoals.length;
+  const totalOpportunities = activeDays.length * trackedGoals.length;
   const avgRate = totalOpportunities > 0 ? Math.round((totalFollowed / totalOpportunities) * 100) : 0;
 
   return (
@@ -66,13 +69,34 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
               <thead>
                 <tr>
                   <th className="text-left text-[10px] uppercase tracking-wider text-muted-foreground font-medium pb-3 pr-3 min-w-[140px]" />
-                  {days.map((day, i) => {
-                    const isToday = format(day, "yyyy-MM-dd") === todayStr;
+                  {allDays.map((day, i) => {
+                    const dateStr = format(day, "yyyy-MM-dd");
+                    const isToday = dateStr === todayStr;
+                    const isSkipped = skippedDays.includes(dateStr);
                     return (
-                      <th key={i} className="text-center pb-3 px-1 min-w-[40px]">
-                        <span className={`text-[10px] uppercase tracking-wider font-medium ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                          {isToday ? "TODAY" : format(day, "EEE").toUpperCase()}
-                        </span>
+                      <th key={i} className="text-center pb-3 px-1 min-w-[40px] relative group">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className={`text-[10px] uppercase tracking-wider font-medium ${isSkipped ? "text-muted-foreground/40 line-through" : isToday ? "text-primary" : "text-muted-foreground"}`}>
+                            {isToday ? "TODAY" : format(day, "EEE").toUpperCase()}
+                          </span>
+                          {isSkipped ? (
+                            <button
+                              onClick={() => onRestoreDay(dateStr)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted/30"
+                              title="Restore day"
+                            >
+                              <RotateCcw className="w-2.5 h-2.5 text-muted-foreground/60" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onSkipDay(dateStr)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20"
+                              title="Skip day (no trading)"
+                            >
+                              <X className="w-2.5 h-2.5 text-destructive/60" />
+                            </button>
+                          )}
+                        </div>
                       </th>
                     );
                   })}
@@ -82,13 +106,24 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
                 {trackedGoals.map(goal => (
                   <tr key={goal.id} className="hover:bg-muted/10 transition-colors">
                     <td className="text-xs text-foreground/80 py-2.5 pr-3 truncate max-w-[160px]">{goal.text}</td>
-                    {days.map((day, i) => {
+                    {allDays.map((day, i) => {
+                      const dateStr = format(day, "yyyy-MM-dd");
+                      const isSkipped = skippedDays.includes(dateStr);
                       const checked = isChecked(goal.id, day);
-                      const isToday = format(day, "yyyy-MM-dd") === todayStr;
+                      const isToday = dateStr === todayStr;
+
+                      if (isSkipped) {
+                        return (
+                          <td key={i} className="text-center py-2.5 px-1">
+                            <div className="w-3.5 h-3.5 mx-auto rounded-full bg-muted/10 border border-dashed border-muted-foreground/15" />
+                          </td>
+                        );
+                      }
+
                       return (
                         <td key={i} className="text-center py-2.5 px-1">
                           <button
-                            onClick={() => onToggleHabit(goal.id, format(day, "yyyy-MM-dd"))}
+                            onClick={() => onToggleHabit(goal.id, dateStr)}
                             className="mx-auto block"
                           >
                             <div className={`w-3.5 h-3.5 rounded-full mx-auto transition-all ${
@@ -112,9 +147,13 @@ export const WeeklyConsistencyCard = ({ goals, habitLogs, onToggleHabit }: Props
               <div className="min-w-[140px] pr-3" />
               {dailyRates.map((rate, i) => (
                 <div key={i} className="flex-1 text-center">
-                  <span className={`text-[10px] font-medium ${rate >= 70 ? "text-success" : rate >= 40 ? "text-warning" : "text-destructive"}`}>
-                    {rate}%
-                  </span>
+                  {rate === null ? (
+                    <span className="text-[10px] font-medium text-muted-foreground/30">—</span>
+                  ) : (
+                    <span className={`text-[10px] font-medium ${rate >= 70 ? "text-success" : rate >= 40 ? "text-warning" : "text-destructive"}`}>
+                      {rate}%
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
