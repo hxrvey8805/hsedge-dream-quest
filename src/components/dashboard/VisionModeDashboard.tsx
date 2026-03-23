@@ -233,11 +233,49 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
                 {dreamData.profile.timescale || "Your dream life"}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Back to Trading
+
+            <div className="flex items-center gap-4">
+              {countdown && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className={`flex items-center gap-3 px-5 py-3 rounded-xl border ${getTimerBgColor()}`}
+                >
+                  <Timer className={`w-5 h-5 ${getTimerColor()}`} />
+                  {countdown.expired ? (
+                    <span className="text-destructive font-bold text-lg">Deadline Passed</span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{countdown.days}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Days</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.hours).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Hrs</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.minutes).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Min</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.seconds).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Sec</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Trading
             </button>
           </motion.div>
 
