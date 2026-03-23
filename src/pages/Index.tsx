@@ -104,22 +104,18 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer px-6" onClick={handleEnter}>
+      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer" onClick={handleEnter}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center w-full"
+          className="text-center"
         >
           <h1
-            className="font-black tracking-tight mb-8 leading-[0.9] whitespace-nowrap w-full"
-            style={{
-              color: 'hsl(212 98% 62%)',
-              textShadow: '0 0 40px hsl(212 98% 62% / 0.5), 0 0 80px hsl(212 98% 62% / 0.2)',
-              fontSize: 'clamp(2rem, 11vw, 14rem)',
-            }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+            style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 40px hsl(212 98% 62% / 0.5), 0 0 80px hsl(212 98% 62% / 0.2)' }}
           >
-            WELCOME TO TRADE PEAKS
+            TRADE PEAKS
           </h1>
           <motion.p
             initial={{ opacity: 0 }}
