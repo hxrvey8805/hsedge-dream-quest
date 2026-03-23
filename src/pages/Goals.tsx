@@ -47,8 +47,27 @@ const Goals = () => {
     if (user) {
       fetchGoals();
       fetchHabitLogs();
+      fetchSkippedDays();
     }
   }, [user]);
+
+  const fetchSkippedDays = async () => {
+    const { data } = await supabase
+      .from("skipped_trading_days")
+      .select("skip_date")
+      .eq("user_id", user.id);
+    if (data) setSkippedDays(data.map((d: any) => d.skip_date));
+  };
+
+  const skipDay = async (dateStr: string) => {
+    await supabase.from("skipped_trading_days").insert({ user_id: user.id, skip_date: dateStr });
+    fetchSkippedDays();
+  };
+
+  const restoreDay = async (dateStr: string) => {
+    await supabase.from("skipped_trading_days").delete().eq("user_id", user.id).eq("skip_date", dateStr);
+    fetchSkippedDays();
+  };
 
   const fetchGoals = async () => {
     const { data } = await supabase
