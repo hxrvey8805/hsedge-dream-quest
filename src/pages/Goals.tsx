@@ -29,6 +29,7 @@ const Goals = () => {
   const [user, setUser] = useState<any>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
+  const [skippedDays, setSkippedDays] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,8 +47,27 @@ const Goals = () => {
     if (user) {
       fetchGoals();
       fetchHabitLogs();
+      fetchSkippedDays();
     }
   }, [user]);
+
+  const fetchSkippedDays = async () => {
+    const { data } = await supabase
+      .from("skipped_trading_days")
+      .select("skip_date")
+      .eq("user_id", user.id);
+    if (data) setSkippedDays(data.map((d: any) => d.skip_date));
+  };
+
+  const skipDay = async (dateStr: string) => {
+    await supabase.from("skipped_trading_days").insert({ user_id: user.id, skip_date: dateStr });
+    fetchSkippedDays();
+  };
+
+  const restoreDay = async (dateStr: string) => {
+    await supabase.from("skipped_trading_days").delete().eq("user_id", user.id).eq("skip_date", dateStr);
+    fetchSkippedDays();
+  };
 
   const fetchGoals = async () => {
     const { data } = await supabase
@@ -134,7 +154,7 @@ const Goals = () => {
 
             <div className="flex flex-col gap-6">
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                <WeeklyConsistencyCard goals={goals} habitLogs={habitLogs} onToggleHabit={toggleHabit} />
+                <WeeklyConsistencyCard goals={goals} habitLogs={habitLogs} onToggleHabit={toggleHabit} skippedDays={skippedDays} onSkipDay={skipDay} onRestoreDay={restoreDay} />
               </motion.div>
 
               {/* Daily Execution Score Chart */}
