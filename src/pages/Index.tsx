@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, ClipboardCheck, Gauge, Mountain } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX } from "lucide-react";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,43 @@ export default function Index() {
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio("/audio/ambient.mp3");
+    audio.loop = true;
+    audio.volume = 0.4;
+    audioRef.current = audio;
+    
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked — play on first user interaction
+        const handleInteraction = () => {
+          audio.play().catch(() => {});
+          document.removeEventListener("click", handleInteraction);
+          document.removeEventListener("keydown", handleInteraction);
+        };
+        document.addEventListener("click", handleInteraction);
+        document.addEventListener("keydown", handleInteraction);
+      });
+    }
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    };
+  }, []);
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      const next = !isMuted;
+      audioRef.current.muted = next;
+      setIsMuted(next);
+    }
+  };
 
   const particles = useMemo(() => {
     return Array.from({ length: 40 }, (_, i) => ({
@@ -74,6 +111,15 @@ export default function Index() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
+      {/* Sound toggle */}
+      <button
+        onClick={toggleMute}
+        className="fixed top-5 right-5 z-[60] p-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300"
+        title={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
