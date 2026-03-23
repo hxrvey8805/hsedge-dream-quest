@@ -6,9 +6,10 @@ import type { Goal, HabitLog } from "@/pages/Goals";
 interface Props {
   goals: Goal[];
   habitLogs: HabitLog[];
+  skippedDays?: string[];
 }
 
-export const GoalsAnalyticsRow = ({ goals, habitLogs }: Props) => {
+export const GoalsAnalyticsRow = ({ goals, habitLogs, skippedDays = [] }: Props) => {
   const analytics = useMemo(() => {
     const categories = ["Learn", "Implement", "Backtest", "Avoid"];
     const catStats = categories.map(cat => {
