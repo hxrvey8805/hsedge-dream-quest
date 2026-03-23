@@ -1,9 +1,61 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
-import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock } from "lucide-react";
+import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock, Timer } from "lucide-react";
+
+const parseTimescaleToMs = (timescale: string | null, createdAt: string): number | null => {
+  if (!timescale) return null;
+  const lower = timescale.toLowerCase();
+  
+  let years = 0;
+  let months = 0;
+  
+  const yearMatch = lower.match(/(\d+)\s*year/);
+  const monthMatch = lower.match(/(\d+)\s*month/);
+  
+  if (yearMatch) years = parseInt(yearMatch[1]);
+  if (monthMatch) months = parseInt(monthMatch[1]);
+  
+  if (years === 0 && months === 0) {
+    if (lower.includes("1") && lower.includes("year")) years = 1;
+    else if (lower.includes("2") && lower.includes("year")) years = 2;
+    else if (lower.includes("3") && lower.includes("year")) years = 3;
+    else if (lower.includes("5") && lower.includes("year")) years = 5;
+    else if (lower.includes("10") && lower.includes("year")) years = 10;
+    else return null;
+  }
+  
+  const created = new Date(createdAt);
+  const deadline = new Date(created);
+  deadline.setFullYear(deadline.getFullYear() + years);
+  deadline.setMonth(deadline.getMonth() + months);
+  
+  return deadline.getTime();
+};
+
+const useCountdown = (deadlineMs: number | null) => {
+  const [now, setNow] = useState(Date.now());
+  
+  useEffect(() => {
+    if (!deadlineMs) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [deadlineMs]);
+  
+  if (!deadlineMs) return null;
+  
+  const diff = deadlineMs - now;
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, totalDays: 0, expired: true };
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  return { days, hours, minutes, seconds, totalDays: days, expired: false };
+};
 
 interface VisionModeDashboardProps {
   onClose: () => void;
