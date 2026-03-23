@@ -29,6 +29,7 @@ const Goals = () => {
   const [user, setUser] = useState<any>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [habitLogs, setHabitLogs] = useState<HabitLog[]>([]);
+  const [skippedDays, setSkippedDays] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
