@@ -111,6 +111,15 @@ export default function Index() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
+      {/* Sound toggle */}
+      <button
+        onClick={toggleMute}
+        className="fixed top-5 right-5 z-[60] p-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300"
+        title={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
