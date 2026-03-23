@@ -26,7 +26,7 @@ import { AnalyticsPreview } from "./previews/AnalyticsPreview";
 import { PlaybookPreview } from "./previews/PlaybookPreview";
 import { ReviewPreview } from "./previews/ReviewPreview";
 
-const cx = "mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16"; // consistent container
+const cx = "mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16";
 const cxNarrow = "mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-10 xl:px-16";
 
 const sectionAnim = {
@@ -38,7 +38,9 @@ const sectionAnim = {
 
 const Divider = () => (
   <div className={cx}>
-    <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+    <div className="relative h-px">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+    </div>
   </div>
 );
 
@@ -72,28 +74,28 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
   return (
     <>
       {/* ── THE PROBLEM ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cxNarrow + " text-center"}>
           <motion.div {...sectionAnim}>
-            <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-3">The Problem</p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-6">
+            <p className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-4">The Problem</p>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground tracking-tight mb-8 leading-[1.05]">
               Trading without direction is{" "}
-              <span className="bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">expensive.</span>
+              <span className="bg-gradient-to-r from-destructive to-red-400 bg-clip-text text-transparent">expensive.</span>
             </h2>
 
-            <ul className="space-y-3 mb-8 text-left max-w-md mx-auto">
+            <ul className="space-y-4 mb-10 text-left max-w-md mx-auto">
               {problems.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-muted-foreground text-sm md:text-base">
-                  <AlertTriangle className="h-4 w-4 text-red-400/70 mt-1 shrink-0" />
+                <li key={p} className="flex items-start gap-3 text-muted-foreground text-base">
+                  <AlertTriangle className="h-4 w-4 text-destructive/70 mt-1 shrink-0" />
                   {p}
                 </li>
               ))}
             </ul>
 
-            <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-2">
+            <p className="text-muted-foreground text-base leading-relaxed mb-2">
               Without a defined focus and structured review, trading becomes random effort.
             </p>
-            <p className="text-foreground font-medium text-sm md:text-base">
+            <p className="text-foreground font-semibold text-lg">
               TradePeaks turns every session into <span className="text-primary">deliberate practice.</span>
             </p>
           </motion.div>
@@ -103,46 +105,52 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── THE SYSTEM ── */}
-      <section id="system" className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section id="system" className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx}>
-          <motion.div {...sectionAnim} className="text-center mb-14">
-            <p className="text-primary text-sm font-semibold uppercase tracking-[0.25em] mb-3">The TradePeaks System</p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
+          <motion.div {...sectionAnim} className="text-center mb-16">
+            <p className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-4">The TradePeaks System</p>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.05]">
               A performance framework{" "}
-              <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
                 disguised as software.
               </span>
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {systemSteps.map((step) => {
+            {systemSteps.map((step, index) => {
               const Icon = step.icon;
               return (
                 <motion.div
                   key={step.num}
-                  {...sectionAnim}
-                  className="rounded-xl border border-border/50 bg-card/30 p-6 hover:border-primary/30 hover:bg-card/50 transition-all duration-300"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="group rounded-xl border border-border/50 bg-card/30 p-7 hover:border-primary/40 hover:bg-card/50 transition-all duration-300 relative overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                      {step.num}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 0%, hsl(212 98% 62% / 0.08), transparent 60%)' }} />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-sm group-hover:bg-primary/20 transition-colors">
+                        {step.num}
+                      </div>
+                      <h3 className="text-lg font-bold text-foreground">{step.title}</h3>
                     </div>
-                    <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
-                  </div>
-                  <div className="space-y-1.5">
-                    {step.lines.map((l) => (
-                      <p key={l} className="text-sm text-muted-foreground leading-relaxed">{l}</p>
-                    ))}
+                    <div className="space-y-1.5">
+                      {step.lines.map((l) => (
+                        <p key={l} className="text-sm text-muted-foreground leading-relaxed">{l}</p>
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               );
             })}
           </div>
 
-          <motion.div {...sectionAnim} className="text-center mt-10 space-y-1">
-            <p className="text-muted-foreground text-sm">This is how traders adapt to market regimes.</p>
-            <p className="text-foreground font-medium text-sm">This is how growth <span className="text-primary">compounds.</span></p>
+          <motion.div {...sectionAnim} className="text-center mt-12 space-y-1">
+            <p className="text-muted-foreground text-base">This is how traders adapt to market regimes.</p>
+            <p className="text-foreground font-semibold text-lg">This is how growth <span className="text-primary">compounds.</span></p>
           </motion.div>
         </div>
       </section>
@@ -150,30 +158,30 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── CALENDAR SECTION ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-5">
                 <CalendarDays className="h-3.5 w-3.5" />
                 Journaling
               </span>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight tracking-tight">
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-5 leading-tight tracking-tight">
                 Your Trading Story — Visualised
               </h3>
-              <p className="text-muted-foreground text-base leading-relaxed mb-6">
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 Every day tells a story. TradePeaks makes it impossible to ignore the patterns.
               </p>
-              <ul className="space-y-2.5 mb-6">
+              <ul className="space-y-3 mb-6">
                 {["Colour-coded P&L", "Session breakdowns", "Annotated screenshots", "Missed opportunities", "Lessons learned"].map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-sm text-foreground/80">
+                  <li key={b} className="flex items-start gap-3 text-foreground/80">
                     <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {b}
                   </li>
                 ))}
               </ul>
               <p className="text-muted-foreground text-sm italic">
-                This isn't just a calendar. <span className="text-foreground font-medium not-italic">It's your climb, mapped out.</span>
+                This isn't just a calendar. <span className="text-foreground font-semibold not-italic">It's your climb, mapped out.</span>
               </p>
             </div>
             <div className="aspect-[4/3]">
@@ -186,29 +194,29 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── ANALYTICS ── */}
-      <section id="analytics" className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section id="analytics" className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:[direction:rtl]">
             <div className="lg:[direction:ltr]">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-5">
                 <BarChart3 className="h-3.5 w-3.5" />
                 Analytics
               </span>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight tracking-tight">
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-5 leading-tight tracking-tight">
                 Know what actually drives your edge.
               </h3>
-              <p className="text-muted-foreground text-base leading-relaxed mb-6">
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 Equity curves don't lie. Neither do heatmaps. TradePeaks shows you:
               </p>
-              <ul className="space-y-2.5 mb-6">
+              <ul className="space-y-3 mb-6">
                 {["Which sessions you dominate", "Which setups print money", "Where drawdowns begin", "How risk discipline affects outcomes"].map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-sm text-foreground/80">
+                  <li key={b} className="flex items-start gap-3 text-foreground/80">
                     <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {b}
                   </li>
                 ))}
               </ul>
-              <p className="text-foreground font-medium text-sm">
+              <p className="text-foreground font-semibold text-lg">
                 No guessing. No illusions. Just <span className="text-primary">clarity.</span>
               </p>
             </div>
@@ -222,27 +230,27 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── PLAYBOOKS ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-5">
                 <BookOpen className="h-3.5 w-3.5" />
                 Playbooks
               </span>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight tracking-tight">
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-5 leading-tight tracking-tight">
                 Build a living system of your A+ setups.
               </h3>
-              <ul className="space-y-2.5 mb-6">
+              <ul className="space-y-3 mb-6">
                 {["Tag every trade", "Track expectancy per setup", "Cut what doesn't work", "Double down on what does"].map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-sm text-foreground/80">
+                  <li key={b} className="flex items-start gap-3 text-foreground/80">
                     <Zap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {b}
                   </li>
                 ))}
               </ul>
               <p className="text-muted-foreground text-sm italic">
-                Over time, your playbook becomes sharper — <span className="text-foreground font-medium not-italic">and so do you.</span>
+                Over time, your playbook becomes sharper — <span className="text-foreground font-semibold not-italic">and so do you.</span>
               </p>
             </div>
             <div className="aspect-[4/3]">
@@ -255,30 +263,30 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── DAILY REVIEWS ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx}>
           <motion.div {...sectionAnim} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:[direction:rtl]">
             <div className="lg:[direction:ltr]">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-5">
                 <Eye className="h-3.5 w-3.5" />
                 Daily Reviews
               </span>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight tracking-tight">
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-5 leading-tight tracking-tight">
                 End every session with intention.
               </h3>
-              <p className="text-muted-foreground text-base leading-relaxed mb-6">
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 The Daily Report Card is where evolution happens.
               </p>
-              <ul className="space-y-2.5 mb-6">
+              <ul className="space-y-3 mb-6">
                 {["What was today's focus?", "Did you execute on it?", "What moved the needle?", "What must change tomorrow?"].map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-sm text-foreground/80">
+                  <li key={b} className="flex items-start gap-3 text-foreground/80">
                     <HelpCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {b}
                   </li>
                 ))}
               </ul>
-              <p className="text-muted-foreground text-sm mb-1">Without reflection, there is no growth.</p>
-              <p className="text-foreground font-medium text-sm">
+              <p className="text-muted-foreground text-base mb-1">Without reflection, there is no growth.</p>
+              <p className="text-foreground font-semibold text-lg">
                 With structure, progress becomes <span className="text-primary">visible.</span>
               </p>
             </div>
@@ -292,26 +300,26 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── DREAM BUILDER ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cxNarrow + " text-center"}>
           <motion.div {...sectionAnim}>
-            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-5">
               <Target className="h-3.5 w-3.5" />
               Dream Builder
             </span>
-            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 tracking-tight">
+            <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-5 tracking-tight">
               Trade for something real.
             </h3>
-            <p className="text-muted-foreground text-base leading-relaxed mb-6">Your vision is not abstract. Connect:</p>
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
+            <p className="text-muted-foreground text-lg leading-relaxed mb-8">Your vision is not abstract. Connect:</p>
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               {["Daily execution", "Monthly consistency", "Financial goals", "Life design"].map((item, i, arr) => (
-                <span key={item} className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground bg-card/40 border border-border/50 rounded-lg px-3 py-1.5">{item}</span>
-                  {i < arr.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-primary/60" />}
+                <span key={item} className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-foreground bg-card/40 border border-border/50 rounded-lg px-4 py-2">{item}</span>
+                  {i < arr.length - 1 && <ArrowRight className="h-4 w-4 text-primary/60" />}
                 </span>
               ))}
             </div>
-            <p className="text-foreground font-medium text-sm">
+            <p className="text-foreground font-semibold text-lg">
               When your purpose is clear, discipline becomes <span className="text-primary">easier.</span>
             </p>
           </motion.div>
@@ -321,25 +329,25 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── BUILT FOR THE LONG GAME ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
+      <section className="relative w-full py-20 lg:py-32 bg-background">
         <div className={cx + " text-center"}>
           <motion.div {...sectionAnim}>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-8">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-foreground tracking-tight mb-10">
               Built for the Long Game
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8 text-left max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10 text-left max-w-4xl mx-auto">
               {longGameFeatures.map((f) => {
                 const Icon = f.icon;
                 return (
-                  <div key={f.text} className="flex items-start gap-3 p-3 rounded-lg border border-border/30 bg-card/20">
-                    <Icon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <p className="text-sm text-foreground/80">{f.text}</p>
+                  <div key={f.text} className="flex items-start gap-3 p-4 rounded-xl border border-border/30 bg-card/20 hover:border-primary/30 transition-colors duration-300">
+                    <Icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <p className="text-foreground/80">{f.text}</p>
                   </div>
                 );
               })}
             </div>
-            <p className="text-muted-foreground text-sm mb-1">Everything supports one goal:</p>
-            <p className="text-foreground font-semibold text-base">
+            <p className="text-muted-foreground text-base mb-1">Everything supports one goal:</p>
+            <p className="text-foreground font-black text-xl">
               <span className="text-primary">Deliberate improvement.</span>
             </p>
           </motion.div>
@@ -349,34 +357,37 @@ export function FeatureShowcase({ onStartClimbing }: { onStartClimbing: () => vo
       <Divider />
 
       {/* ── FINAL CTA ── */}
-      <section className="relative w-full py-16 lg:py-24 bg-[hsl(var(--background))]">
-        <div className={cx + " flex items-center justify-center"}>
-          <Card className="max-w-3xl w-full bg-card/30 border border-border/50 rounded-2xl backdrop-blur-sm p-10 md:p-14 text-center">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Ready to climb?
-            </h2>
-            <div className="w-16 h-1 bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] rounded-full mb-6 mx-auto" />
+      <section className="relative w-full py-20 lg:py-32 bg-background overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 50%, hsl(212 98% 62% / 0.06), transparent 60%)' }} />
+        <div className={cx + " flex items-center justify-center relative z-10"}>
+          <div className="max-w-3xl w-full text-center">
+            <motion.div {...sectionAnim}>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground mb-6 tracking-tight">
+                Ready to climb?
+              </h2>
+              <div className="w-20 h-1.5 bg-gradient-to-r from-primary to-primary-glow rounded-full mb-8 mx-auto" />
 
-            <p className="text-muted-foreground text-sm mb-1">TradePeaks isn't for gamblers.</p>
-            <p className="text-muted-foreground text-base mb-6">It's for traders who want:</p>
+              <p className="text-muted-foreground text-base mb-1">TradePeaks isn't for gamblers.</p>
+              <p className="text-muted-foreground text-lg mb-8">It's for traders who want:</p>
 
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {["Direction", "Structure", "Deliberate progress", "A visible path to mastery"].map((item) => (
-                <span key={item} className="text-sm font-medium text-foreground bg-primary/5 border border-primary/20 rounded-full px-4 py-1.5">
-                  {item}
-                </span>
-              ))}
-            </div>
+              <div className="flex flex-wrap justify-center gap-3 mb-10">
+                {["Direction", "Structure", "Deliberate progress", "A visible path to mastery"].map((item) => (
+                  <span key={item} className="text-sm font-semibold text-foreground bg-primary/5 border border-primary/20 rounded-full px-5 py-2">
+                    {item}
+                  </span>
+                ))}
+              </div>
 
-            <p className="text-foreground font-semibold text-lg mb-8">Welcome to TradePeaks.</p>
+              <p className="text-foreground font-black text-2xl mb-10">Welcome to TradePeaks.</p>
 
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-base font-medium shadow-[var(--shadow-glow)] transition-all duration-300 hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)]"
-              onClick={onStartClimbing}
-            >
-              Start Free Trial
-            </Button>
-          </Card>
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-7 text-lg font-semibold shadow-glow transition-all duration-300 hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] rounded-xl"
+                onClick={onStartClimbing}
+              >
+                Start Free Trial
+              </Button>
+            </motion.div>
+          </div>
         </div>
       </section>
     </>
