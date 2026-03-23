@@ -102,6 +102,34 @@ export default function Index() {
 
   const openWaitlist = () => setWaitlistOpen(true);
 
+  if (!entered) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer" onClick={handleEnter}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <h1
+            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+            style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 40px hsl(212 98% 62% / 0.5), 0 0 80px hsl(212 98% 62% / 0.2)' }}
+          >
+            TRADE PEAKS
+          </h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-white/60 text-lg font-medium tracking-widest uppercase"
+          >
+            Click anywhere to enter
+          </motion.p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Sound toggle */}
