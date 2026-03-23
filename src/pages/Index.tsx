@@ -191,7 +191,7 @@ export default function Index() {
               {/* Massive single-line headline */}
               <h1
                 className="font-black mb-16 leading-[1.08] tracking-tight text-center mx-auto"
-                style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)', fontSize: 'clamp(1.8rem, 5vw, 6rem)' }}
+                style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)', fontSize: 'clamp(2rem, 6.5vw, 8rem)' }}
               >
                 WELCOME TO TRADE PEAKS
               </h1>
