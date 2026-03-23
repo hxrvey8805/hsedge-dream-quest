@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowRight, ClipboardCheck, Gauge, Mountain } from "lucide-react";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
+import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
 
 const proofCards = [
@@ -72,31 +73,29 @@ export default function Index() {
   const openWaitlist = () => setWaitlistOpen(true);
 
   return (
-    <div className="relative w-full min-h-screen bg-background overflow-x-hidden">
-      {/* Announcement Bar */}
-      <div className="relative z-50 w-full bg-primary/10 border-b border-primary/20 py-2.5 text-center">
-        <p className="text-sm font-medium text-primary tracking-wide">
-          Early access is live — <span className="text-foreground font-semibold">Join the waitlist today</span>
-        </p>
-      </div>
-
+    <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
           <nav className="flex items-center gap-8">
-            <a href="#system" className="text-base text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium tracking-wide">System</a>
-            <a href="#analytics" className="text-base text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium tracking-wide">Analytics</a>
-            <button type="button" onClick={() => navigate("/pricing")} className="text-base text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium tracking-wide">Pricing</button>
-            <button type="button" onClick={() => navigate("/playbooks")} className="text-base text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium tracking-wide">Playbooks</button>
+            <a href="#system" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
+            <a href="#analytics" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Playbooks</button>
           </nav>
-          <Button size="default" className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 rounded-full px-6 py-2.5 text-base font-semibold transition-all duration-300 shadow-glow hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)]" onClick={() => navigate("/auth")}>
-            Get Started
+          <Button size="default" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
+            Log in
           </Button>
         </div>
       </header>
 
       {/* Main content */}
       <main className="relative w-full">
+        {/* Hero Banner Image */}
+        <section className="w-full">
+          <img src={heroBanner} alt="" className="block w-full h-auto select-none" draggable={false} />
+        </section>
+
         {/* Floating particles */}
         <div className="absolute inset-0 overflow-visible pointer-events-none" style={{ zIndex: 1 }}>
           {particles.map(particle => (
@@ -114,120 +113,103 @@ export default function Index() {
           ))}
         </div>
 
-        {/* Hero Section — massive stacked headline */}
-        <section className="relative w-full pt-32 pb-20 lg:pt-40 lg:pb-32 bg-background overflow-hidden">
-          {/* Background glow orbs */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full opacity-15" style={{ background: 'radial-gradient(circle, hsl(212 98% 62%) 0%, transparent 70%)', filter: 'blur(100px)' }} />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-10" style={{ background: 'radial-gradient(circle, hsl(212 98% 70%) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-          </div>
-
+        {/* Hero Content */}
+        <section className="relative w-full py-20 lg:py-32 bg-[hsl(var(--background))]">
           <div className="relative z-10 mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-              {/* Left — Stacked headline */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-              >
-                <div className="mb-10">
-                  <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8.5rem] font-black leading-[0.9] tracking-tight">
-                    <span className="block text-foreground">Define.</span>
-                    <span className="block text-foreground">Trade.</span>
-                    <span className="block bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent" style={{ textShadow: 'none' }}>
-                      Improve.
-                    </span>
-                  </h1>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Massive stacked headline */}
+              <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] xl:text-[8.5rem] font-black leading-[0.9] tracking-tight text-center mb-16">
+                <span className="block text-foreground">WELCOME TO</span>
+                <span className="block bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent" style={{ WebkitTextStroke: '0px' }}>
+                  TRADE PEAKS
+                </span>
+              </h1>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+                {/* Left column */}
+                <div className="lg:col-span-7">
+
+                  <p className="text-xl md:text-2xl lg:text-3xl font-semibold text-foreground mb-8 leading-tight">
+                    Define your summit. Trade with direction.
+                  </p>
+
+                  <div className="space-y-4 mb-10">
+                    <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                      Most traders don't fail because they lack data.
+                      <br />
+                      <span className="text-foreground font-medium">They fail because they lack focus.</span>
+                    </p>
+                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                      TradePeaks is a structured daily performance system designed to help you identify what truly matters, improve it deliberately, and see your progress over time.
+                    </p>
+                    <p className="text-primary/80 text-sm md:text-base font-medium italic">
+                      This is where traders stop reacting — and start climbing.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg font-semibold shadow-[var(--shadow-glow)] hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300"
+                      onClick={openWaitlist}
+                    >
+                      Start Climbing <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-border text-foreground hover:bg-secondary px-10 py-6 text-lg font-medium"
+                      onClick={() => document.getElementById('system')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                      See How It Works
+                    </Button>
+                  </div>
+
+                  {/* Waitlist inline */}
+                  {waitlistOpen && (
+                    <div className="mt-6">
+                      <Card className="bg-card/50 border-border/50 p-6 backdrop-blur-sm max-w-md">
+                        <h3 className="text-lg font-semibold text-foreground mb-3">Join the Waitlist</h3>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="you@email.com"
+                            value={waitlistEmail}
+                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
+                            className="flex-1"
+                          />
+                          <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
+                            {waitlistLoading ? "..." : "Join"}
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                  <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-lg font-semibold shadow-glow hover:shadow-[0_0_50px_hsl(212_98%_62%/0.4)] transition-all duration-300 rounded-xl"
-                    onClick={openWaitlist}
-                  >
-                    Start Climbing <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-border text-foreground hover:bg-secondary px-10 py-6 text-lg font-medium rounded-xl"
-                    onClick={() => document.getElementById('system')?.scrollIntoView({ behavior: 'smooth' })}
-                  >
-                    See How It Works
-                  </Button>
-                </div>
-
-                {/* Waitlist inline */}
-                {waitlistOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-6"
-                  >
-                    <Card className="bg-card/50 border-border/50 p-6 backdrop-blur-sm max-w-md">
-                      <h3 className="text-lg font-semibold text-foreground mb-3">Join the Waitlist</h3>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="you@email.com"
-                          value={waitlistEmail}
-                          onChange={(e) => setWaitlistEmail(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
-                          className="flex-1"
-                        />
-                        <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
-                          {waitlistLoading ? "..." : "Join"}
-                        </Button>
-                      </div>
-                    </Card>
-                  </motion.div>
-                )}
-              </motion.div>
-
-              {/* Right — description + proof cards */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-                className="lg:pt-8"
-              >
-                <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-4">
-                  The performance system for traders who want{" "}
-                  <span className="text-foreground font-semibold">direction, not noise.</span>
-                </p>
-                <p className="text-muted-foreground text-base leading-relaxed mb-8">
-                  TradePeaks is a structured daily performance system designed to help you identify what truly matters, improve it deliberately, and see your progress over time.
-                </p>
-
-                <div className="flex flex-col gap-3">
-                  {proofCards.map((card, i) => {
+                {/* Right column – proof cards */}
+                <div className="lg:col-span-5 flex flex-col gap-4">
+                  {proofCards.map((card) => {
                     const Icon = card.icon;
                     return (
-                      <motion.div
-                        key={card.title}
-                        initial={{ opacity: 0, x: 30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
-                      >
-                        <Card className="bg-card/30 border-border/40 backdrop-blur-sm p-5 hover:border-primary/30 transition-all duration-300 group">
-                          <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                              <Icon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <h3 className="text-base font-semibold text-foreground mb-1">{card.title}</h3>
-                              <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
-                            </div>
+                      <Card key={card.title} className="bg-card/30 border-border/40 backdrop-blur-sm p-5 hover:border-primary/30 transition-colors duration-300">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                            <Icon className="h-5 w-5 text-primary" />
                           </div>
-                        </Card>
-                      </motion.div>
+                          <div>
+                            <h3 className="text-base font-semibold text-foreground mb-1">{card.title}</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                          </div>
+                        </div>
+                      </Card>
                     );
                   })}
                 </div>
-
-                <p className="text-primary/80 text-sm font-medium italic mt-6">
-                  This is where traders stop reacting — and start climbing.
-                </p>
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
           </div>
         </section>
 
@@ -236,8 +218,8 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center text-muted-foreground py-8 text-sm">
+      <footer className="border-t border-white/5 bg-[#030712]">
+        <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center text-white/30 py-8 text-sm">
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
