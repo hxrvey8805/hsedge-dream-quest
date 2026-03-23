@@ -1,9 +1,61 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
-import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock } from "lucide-react";
+import { Home, Car, Plane, Sparkles, TrendingUp, Target, Check, Clock, Timer } from "lucide-react";
+
+const parseTimescaleToMs = (timescale: string | null, createdAt: string): number | null => {
+  if (!timescale) return null;
+  const lower = timescale.toLowerCase();
+  
+  let years = 0;
+  let months = 0;
+  
+  const yearMatch = lower.match(/(\d+)\s*year/);
+  const monthMatch = lower.match(/(\d+)\s*month/);
+  
+  if (yearMatch) years = parseInt(yearMatch[1]);
+  if (monthMatch) months = parseInt(monthMatch[1]);
+  
+  if (years === 0 && months === 0) {
+    if (lower.includes("1") && lower.includes("year")) years = 1;
+    else if (lower.includes("2") && lower.includes("year")) years = 2;
+    else if (lower.includes("3") && lower.includes("year")) years = 3;
+    else if (lower.includes("5") && lower.includes("year")) years = 5;
+    else if (lower.includes("10") && lower.includes("year")) years = 10;
+    else return null;
+  }
+  
+  const created = new Date(createdAt);
+  const deadline = new Date(created);
+  deadline.setFullYear(deadline.getFullYear() + years);
+  deadline.setMonth(deadline.getMonth() + months);
+  
+  return deadline.getTime();
+};
+
+const useCountdown = (deadlineMs: number | null) => {
+  const [now, setNow] = useState(Date.now());
+  
+  useEffect(() => {
+    if (!deadlineMs) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [deadlineMs]);
+  
+  if (!deadlineMs) return null;
+  
+  const diff = deadlineMs - now;
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, totalDays: 0, expired: true };
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  return { days, hours, minutes, seconds, totalDays: days, expired: false };
+};
 
 interface VisionModeDashboardProps {
   onClose: () => void;
@@ -89,6 +141,13 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
     return withBuffer / (years * 12);
   };
 
+  const deadlineMs = useMemo(() => {
+    if (!dreamData?.profile) return null;
+    return parseTimescaleToMs(dreamData.profile.timescale, dreamData.profile.created_at);
+  }, [dreamData?.profile]);
+
+  const countdown = useCountdown(deadlineMs);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -133,6 +192,20 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
     return Sparkles;
   };
 
+  const getTimerColor = () => {
+    if (!countdown || countdown.expired) return "text-destructive";
+    if (countdown.totalDays < 30) return "text-destructive";
+    if (countdown.totalDays < 90) return "text-amber-400";
+    return "text-primary";
+  };
+
+  const getTimerBgColor = () => {
+    if (!countdown || countdown.expired) return "bg-destructive/10 border-destructive/30";
+    if (countdown.totalDays < 30) return "bg-destructive/10 border-destructive/30";
+    if (countdown.totalDays < 90) return "bg-amber-400/10 border-amber-400/30";
+    return "bg-primary/10 border-primary/30";
+  };
+
   return (
     <motion.div 
       className="min-h-screen bg-background"
@@ -160,12 +233,51 @@ export const VisionModeDashboard = ({ onClose }: VisionModeDashboardProps) => {
                 {dreamData.profile.timescale || "Your dream life"}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Back to Trading
-            </button>
+
+            <div className="flex items-center gap-4">
+              {countdown && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className={`flex items-center gap-3 px-5 py-3 rounded-xl border ${getTimerBgColor()}`}
+                >
+                  <Timer className={`w-5 h-5 ${getTimerColor()}`} />
+                  {countdown.expired ? (
+                    <span className="text-destructive font-bold text-lg">Deadline Passed</span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{countdown.days}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Days</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.hours).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Hrs</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.minutes).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Min</p>
+                      </div>
+                      <span className={`text-xl font-light ${getTimerColor()}`}>:</span>
+                      <div className="text-center">
+                        <span className={`text-2xl font-bold tabular-nums ${getTimerColor()}`}>{String(countdown.seconds).padStart(2, '0')}</span>
+                        <p className="text-[10px] uppercase text-muted-foreground tracking-wider">Sec</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Trading
+              </button>
+            </div>
           </motion.div>
 
           {/* Main Progress */}
