@@ -6,22 +6,24 @@ import type { Goal, HabitLog } from "@/pages/Goals";
 interface Props {
   goals: Goal[];
   habitLogs: HabitLog[];
+  skippedDays?: string[];
 }
 
-export const GoalPerformanceChart = ({ goals, habitLogs }: Props) => {
+export const GoalPerformanceChart = ({ goals, habitLogs, skippedDays = [] }: Props) => {
   const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
 
-  // Daily Execution Score = rules followed that day ÷ total active rules
+  // Daily Execution Score = rules followed that day ÷ total active rules (skip days excluded)
   const data = useMemo(() => {
     const points = [];
     for (let i = 13; i >= 0; i--) {
       const date = format(subDays(new Date(), i), "yyyy-MM-dd");
+      if (skippedDays.includes(date)) continue;
       const followed = habitLogs.filter(l => l.log_date === date && l.is_completed && trackedGoals.some(g => g.id === l.goal_id)).length;
       const score = trackedGoals.length > 0 ? Math.round((followed / trackedGoals.length) * 100) : 0;
       points.push({ day: format(subDays(new Date(), i), "MMM d"), score });
     }
     return points;
-  }, [habitLogs, trackedGoals]);
+  }, [habitLogs, trackedGoals, skippedDays]);
 
   const currentScore = data.length > 0 ? data[data.length - 1].score : 0;
 

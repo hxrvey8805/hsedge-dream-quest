@@ -159,14 +159,14 @@ const Goals = () => {
 
               {/* Daily Execution Score Chart */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <GoalPerformanceChart goals={goals} habitLogs={habitLogs} />
+                <GoalPerformanceChart goals={goals} habitLogs={habitLogs} skippedDays={skippedDays} />
               </motion.div>
             </div>
           </div>
 
           {/* Row 3: Analytics Row */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-            <GoalsAnalyticsRow goals={goals} habitLogs={habitLogs} />
+            <GoalsAnalyticsRow goals={goals} habitLogs={habitLogs} skippedDays={skippedDays} />
           </motion.div>
         </div>
       </main>

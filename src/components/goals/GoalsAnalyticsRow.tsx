@@ -6,9 +6,10 @@ import type { Goal, HabitLog } from "@/pages/Goals";
 interface Props {
   goals: Goal[];
   habitLogs: HabitLog[];
+  skippedDays?: string[];
 }
 
-export const GoalsAnalyticsRow = ({ goals, habitLogs }: Props) => {
+export const GoalsAnalyticsRow = ({ goals, habitLogs, skippedDays = [] }: Props) => {
   const analytics = useMemo(() => {
     const categories = ["Learn", "Implement", "Backtest", "Avoid"];
     const catStats = categories.map(cat => {
@@ -34,14 +35,16 @@ export const GoalsAnalyticsRow = ({ goals, habitLogs }: Props) => {
       if (worst) mostBroken = { text: worst.text, count: worst.incomplete };
     }
 
-    // 30-day heatmap
-    const heatmap = Array.from({ length: 30 }, (_, i) => {
+    // 30-day heatmap (skip non-trading days)
+    const heatmapRaw = Array.from({ length: 30 }, (_, i) => {
       const date = format(subDays(new Date(), 29 - i), "yyyy-MM-dd");
+      if (skippedDays.includes(date)) return null;
       const trackedGoals = goals.filter(g => g.category === "Implement" || g.category === "Avoid");
       const dayLogs = habitLogs.filter(l => l.log_date === date && l.is_completed);
       const rate = trackedGoals.length > 0 ? Math.round((dayLogs.length / trackedGoals.length) * 100) : 0;
       return rate;
     });
+    const heatmap = heatmapRaw.filter((v): v is number => v !== null);
 
     const avgTrend = heatmap.length > 0 ? Math.round(heatmap.reduce((s, v) => s + v, 0) / heatmap.length) : 0;
 
