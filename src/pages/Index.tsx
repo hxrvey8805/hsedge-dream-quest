@@ -115,7 +115,7 @@ export default function Index() {
 
         {/* Hero Content */}
         <section className="relative w-full py-20 lg:py-32 bg-[hsl(var(--background))]">
-          <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
