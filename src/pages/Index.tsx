@@ -112,8 +112,8 @@ export default function Index() {
           className="text-center"
         >
           <h1
-            className="text-6xl md:text-8xl lg:text-[10rem] font-black tracking-tight mb-6 whitespace-nowrap"
-            style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 40px hsl(212 98% 62% / 0.5), 0 0 80px hsl(212 98% 62% / 0.2)' }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+            style={{ color: 'hsl(212 98% 62%)', textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)' }}
           >
             TRADE PEAKS
           </h1>
