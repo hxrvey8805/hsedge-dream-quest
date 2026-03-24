@@ -23,6 +23,7 @@ export default function Index() {
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [lightMode, setLightMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleEnter = () => {
