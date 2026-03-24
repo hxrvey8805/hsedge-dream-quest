@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX, Sun, Moon } from "lucide-react";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
