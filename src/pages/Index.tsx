@@ -320,8 +320,8 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-[#030712]">
-        <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center text-white/30 py-8 text-sm">
+      <footer className={`border-t transition-colors duration-500 ${lightMode ? 'border-gray-200 bg-[#f8fafc]' : 'border-white/5 bg-[#030712]'}`}>
+        <div className={`mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center py-8 text-sm ${lightMode ? 'text-gray-400' : 'text-white/30'}`}>
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
