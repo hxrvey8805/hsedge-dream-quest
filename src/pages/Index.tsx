@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX, Sun, Moon } from "lucide-react";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ export default function Index() {
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [lightMode, setLightMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleEnter = () => {
@@ -131,26 +132,43 @@ export default function Index() {
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-[#030712] overflow-x-hidden">
-      {/* Sound toggle */}
-      <button
-        onClick={toggleMute}
-        className="fixed top-5 right-5 z-[60] p-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300"
-        title={isMuted ? "Unmute" : "Mute"}
-      >
-        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-      </button>
+    <div className={`relative w-full min-h-screen overflow-x-hidden transition-colors duration-500 ${lightMode ? 'landing-light' : ''}`} style={{ backgroundColor: lightMode ? '#f8fafc' : '#030712' }}>
+      {/* Controls: Light mode + Sound toggle */}
+      <div className="fixed top-5 right-5 z-[60] flex items-center gap-2">
+        <button
+          onClick={() => setLightMode(!lightMode)}
+          className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+            lightMode
+              ? 'bg-gray-900/10 border-gray-900/20 text-gray-700 hover:bg-gray-900/20'
+              : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
+          }`}
+          title={lightMode ? "Dark mode" : "Light mode"}
+        >
+          {lightMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        </button>
+        <button
+          onClick={toggleMute}
+          className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+            lightMode
+              ? 'bg-gray-900/10 border-gray-900/20 text-gray-700 hover:bg-gray-900/20'
+              : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
+          }`}
+          title={isMuted ? "Unmute" : "Mute"}
+        >
+          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        </button>
+      </div>
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
           <nav className="flex items-center gap-8">
-            <a href="#system" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">System</a>
-            <a href="#analytics" className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Analytics</a>
-            <button type="button" onClick={() => navigate("/pricing")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Pricing</button>
-            <button type="button" onClick={() => navigate("/playbooks")} className="text-base text-white/60 hover:text-white transition-colors duration-300 font-medium tracking-wide">Playbooks</button>
+            <a href="#system" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>System</a>
+            <a href="#analytics" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Playbooks</button>
           </nav>
-          <Button size="default" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 hover:border-white/40" onClick={() => navigate("/auth")}>
+          <Button size="default" className={`backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-gray-900/10 hover:bg-gray-900/20 text-gray-900 border border-gray-900/20 hover:border-gray-900/40' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
             Log in
           </Button>
         </div>
@@ -302,8 +320,8 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-[#030712]">
-        <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center text-white/30 py-8 text-sm">
+      <footer className={`border-t transition-colors duration-500 ${lightMode ? 'border-gray-200 bg-[#f8fafc]' : 'border-white/5 bg-[#030712]'}`}>
+        <div className={`mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 text-center py-8 text-sm ${lightMode ? 'text-gray-400' : 'text-white/30'}`}>
           © {new Date().getFullYear()} TradePeaks. All rights reserved.
         </div>
       </footer>
