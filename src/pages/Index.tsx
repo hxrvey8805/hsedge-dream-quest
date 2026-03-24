@@ -261,26 +261,32 @@ export default function Index() {
                 </div>
 
                 {/* Right column – proof cards */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   {proofCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
                       <motion.div
                         key={card.title}
-                        initial={{ opacity: 0, x: 20 }}
+                        initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
+                        transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
                       >
-                        <Card className="bg-card/30 border-border/40 backdrop-blur-sm p-6 hover:border-primary/30 transition-all duration-300 group">
-                          <div className="flex items-start gap-4">
-                            <div className="w-11 h-11 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                              <Icon className="h-5 w-5 text-primary" />
+                        <Card className="relative overflow-hidden bg-card/40 border-border/30 backdrop-blur-md p-0 hover:border-primary/40 transition-all duration-500 group hover:shadow-[0_0_40px_hsl(212_98%_62%/0.15)]">
+                          {/* Gradient accent bar */}
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary/60 to-transparent group-hover:w-1.5 transition-all duration-500" />
+                          
+                          <div className="flex items-start gap-5 p-7 pl-8">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shrink-0 group-hover:from-primary/30 group-hover:to-primary/10 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_hsl(212_98%_62%/0.2)] transition-all duration-500">
+                              <Icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300" />
                             </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-foreground mb-1">{card.title}</h3>
-                              <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">{card.title}</h3>
+                              <p className="text-base text-muted-foreground leading-relaxed">{card.desc}</p>
                             </div>
                           </div>
+                          
+                          {/* Subtle hover glow overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/[0.03] group-hover:via-primary/[0.02] group-hover:to-transparent transition-all duration-500 pointer-events-none" />
                         </Card>
                       </motion.div>
                     );
