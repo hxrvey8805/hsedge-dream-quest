@@ -345,13 +345,6 @@ const Dashboard = () => {
                 <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                   Trading Calendar
                 </h2>
-                {/* Weekend Review button - only on Sat/Sun */}
-                {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
-                  <WeekendReviewCard
-                    selectedAccountId={selectedAccount}
-                    refreshTrigger={refreshTrigger}
-                  />
-                )}
                 <Button 
                   variant="outline" 
                   size="sm" 
