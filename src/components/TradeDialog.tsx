@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeframeSelect } from "@/components/ui/timeframe-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -866,16 +867,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
-                    <Select value={timeframe} onValueChange={setTimeframe}>
-                      <SelectTrigger className="bg-secondary/50 border-border/50">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIMEFRAMES.map(tf => (
-                          <SelectItem key={tf} value={tf}>{tf}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <TimeframeSelect value={timeframe} onValueChange={setTimeframe} />
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>

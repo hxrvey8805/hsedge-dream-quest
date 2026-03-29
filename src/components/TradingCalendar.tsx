@@ -8,6 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeframeSelect } from "@/components/ui/timeframe-select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
@@ -887,16 +888,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
-                        <Select value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})}>
-                          <SelectTrigger className="bg-secondary/50">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIMEFRAMES.map(tf => (
-                              <SelectItem key={tf} value={tf}>{tf}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <TimeframeSelect value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})} />
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>
