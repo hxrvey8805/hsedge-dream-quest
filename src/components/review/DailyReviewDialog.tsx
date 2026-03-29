@@ -403,13 +403,26 @@ export const DailyReviewDialog = ({
     }
   };
 
+  const swapTradeSlide = (direction: 'left' | 'right') => {
+    const tradeSlideIndex = currentSlide - 2; // position within trade slides
+    const swapWith = direction === 'left' ? tradeSlideIndex - 1 : tradeSlideIndex + 1;
+    if (swapWith < 0 || swapWith >= trades.length) return;
+    setTradeOrder(prev => {
+      const next = [...prev];
+      [next[tradeSlideIndex], next[swapWith]] = [next[swapWith], next[tradeSlideIndex]];
+      return next;
+    });
+    // Move current slide to follow the swapped trade
+    setCurrentSlide(2 + swapWith);
+  };
+
   const getSlideTitle = () => {
     if (currentSlide === 0) return "Day Summary";
     if (currentSlide === 1) return "Trades Overview";
     if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
-      const tradeIndex = currentSlide - 2;
+      const tradeIndex = tradeOrder[currentSlide - 2];
       const trade = trades[tradeIndex];
-      return `Trade ${tradeIndex + 1}: ${trade.symbol || trade.pair || 'Unknown'}`;
+      return `Trade ${currentSlide - 1}: ${trade?.symbol || trade?.pair || 'Unknown'}`;
     }
     if (currentSlide === 2 + trades.length) return "Missed Opportunities";
     if (currentSlide === 3 + trades.length) return "What Went Well";
