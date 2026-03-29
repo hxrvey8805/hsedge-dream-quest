@@ -201,6 +201,21 @@ export const DailyReviewDialog = ({
         .order("slide_order");
 
       if (slides && slides.length > 0) {
+        // Restore saved order: slides are ordered by slide_order, map trade_id to position
+        const savedOrder: number[] = [];
+        const orderMap = new Map(slides.map((s, i) => [s.trade_id, i]));
+        
+        // Build tradeOrder from saved slide_order
+        const orderedTradeIds = slides.map(s => s.trade_id);
+        const newTradeOrder = trades.map((_, i) => i);
+        // Sort newTradeOrder based on saved slide positions
+        newTradeOrder.sort((a, b) => {
+          const posA = orderMap.get(trades[a].id) ?? a;
+          const posB = orderMap.get(trades[b].id) ?? b;
+          return posA - posB;
+        });
+        setTradeOrder(newTradeOrder);
+
         setTradeSlides(trades.map(trade => {
           const existingSlide = slides.find(s => s.trade_id === trade.id);
           const markersData = existingSlide?.markers;
