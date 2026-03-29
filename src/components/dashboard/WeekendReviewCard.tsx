@@ -55,6 +55,8 @@ interface WeeklyReview {
   id: string;
   week_start_date: string;
   week_stats: WeekStats;
+  best_trade_id?: string | null;
+  worst_trade_id?: string | null;
   best_trade_analysis: string;
   worst_trade_analysis: string;
   patterns_insights: string;
