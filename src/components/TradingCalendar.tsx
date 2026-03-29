@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TradeChartDialog } from "@/components/TradeChartDialog";
 import { DailyReviewDialog } from "@/components/review/DailyReviewDialog";
-import { TimeframeSelect } from "@/components/TimeframeSelect";
 
 interface Trade {
   id: string;
@@ -80,6 +79,7 @@ const ASSET_CLASSES = [
 ];
 
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const { accounts } = useAccounts();
@@ -887,7 +887,16 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
-                        <TimeframeSelect value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})} triggerClassName="bg-secondary/50" />
+                        <Select value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})}>
+                          <SelectTrigger className="bg-secondary/50">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIMEFRAMES.map(tf => (
+                              <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>

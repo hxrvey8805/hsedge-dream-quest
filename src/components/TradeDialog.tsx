@@ -34,7 +34,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { detectSession } from "@/lib/sessionDetection";
-import { TimeframeSelect } from "@/components/TimeframeSelect";
 
 interface PlaybookSetup {
   id: string;
@@ -65,6 +64,7 @@ const ASSET_CLASSES = [
 
 
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
+const TIMEFRAMES = ["10S", "1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
   const { accounts } = useAccounts();
@@ -866,7 +866,16 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
-                    <TimeframeSelect value={timeframe} onValueChange={setTimeframe} triggerClassName="bg-secondary/50 border-border/50" />
+                    <Select value={timeframe} onValueChange={setTimeframe}>
+                      <SelectTrigger className="bg-secondary/50 border-border/50">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIMEFRAMES.map(tf => (
+                          <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>
