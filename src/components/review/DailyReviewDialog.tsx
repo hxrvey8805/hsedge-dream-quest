@@ -594,11 +594,11 @@ export const DailyReviewDialog = ({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={isSaving}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Review"}
+              {isSaving ? "Saving..." : lastSavedAt ? `Saved ${format(lastSavedAt, 'HH:mm')}` : "Save Review"}
             </Button>
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-4 h-4" />
