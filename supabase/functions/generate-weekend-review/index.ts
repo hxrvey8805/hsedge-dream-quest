@@ -95,10 +95,13 @@ serve(async (req) => {
       );
     }
 
-    // Build slide lookup by trade_id
-    const slidesByTradeId: Record<string, any> = {};
+    // Build slide lookup by trade_id - aggregate ALL slides per trade
+    const slidesByTradeId: Record<string, any[]> = {};
     for (const s of allSlides) {
-      if (s.trade_id) slidesByTradeId[s.trade_id] = s;
+      if (s.trade_id) {
+        if (!slidesByTradeId[s.trade_id]) slidesByTradeId[s.trade_id] = [];
+        slidesByTradeId[s.trade_id].push(s);
+      }
     }
 
     // Stats
@@ -121,38 +124,58 @@ serve(async (req) => {
     }
     const days = Object.entries(dayMap).sort((a, b) => b[1].pips - a[1].pips);
 
-    // Get screenshot data for best/worst trades
-    const bestSlide = bestTrade ? slidesByTradeId[bestTrade.id] : null;
-    const worstSlide = worstTrade ? slidesByTradeId[worstTrade.id] : null;
+    // Get screenshot data for best/worst trades - collect from all slides
+    const bestSlides = bestTrade ? (slidesByTradeId[bestTrade.id] || []) : [];
+    const worstSlides = worstTrade ? (slidesByTradeId[worstTrade.id] || []) : [];
+
+    // Aggregate all screenshot slots and reflections from all slides for a trade
+    const aggregateSlideData = (slides: any[]) => {
+      const allSlots: any[] = [];
+      const allMarkers: any[] = [];
+      const reflections: string[] = [];
+      let mainScreenshot: string | null = null;
+
+      for (const slide of slides) {
+        if (slide.screenshot_url) mainScreenshot = slide.screenshot_url;
+        if (slide.markers) allMarkers.push(...(Array.isArray(slide.markers) ? slide.markers : []));
+        if (slide.reflection) reflections.push(slide.reflection);
+        if (slide.screenshot_slots && Array.isArray(slide.screenshot_slots)) {
+          allSlots.push(...slide.screenshot_slots);
+        }
+      }
+
+      return {
+        screenshot_slots: allSlots,
+        markers: allMarkers,
+        screenshot_url: mainScreenshot,
+        reflection: reflections.join("\n\n") || null,
+      };
+    };
+
+    const bestData = aggregateSlideData(bestSlides);
+    const worstData = aggregateSlideData(worstSlides);
+
+    // Also include trade screenshots from the trades table itself
+    const buildTradeDetail = (trade: any, slideData: any) => ({
+      id: trade.id, symbol: trade.symbol || trade.pair, pips: trade.pips,
+      profit: trade.profit, outcome: trade.outcome, buy_sell: trade.buy_sell,
+      risk_reward_ratio: trade.risk_reward_ratio, trade_date: trade.trade_date,
+      entry_price: trade.entry_price, exit_price: trade.exit_price,
+      time_opened: trade.time_opened, time_closed: trade.time_closed,
+      session: trade.session, notes: trade.notes,
+      screenshots: trade.screenshots || [],
+      screenshot_slots: slideData.screenshot_slots,
+      markers: slideData.markers,
+      screenshot_url: slideData.screenshot_url,
+      reflection: slideData.reflection,
+    });
 
     const weekStats = {
       totalPips, totalProfit, winRate, totalTrades: trades.length, wins, losses,
       bestDay: days[0] ? { date: days[0][0], pips: days[0][1].pips, profit: days[0][1].profit } : null,
       worstDay: days.length > 1 ? { date: days[days.length-1][0], pips: days[days.length-1][1].pips, profit: days[days.length-1][1].profit } : null,
-      bestTrade: bestTrade ? {
-        id: bestTrade.id, symbol: bestTrade.symbol || bestTrade.pair, pips: bestTrade.pips,
-        profit: bestTrade.profit, outcome: bestTrade.outcome, buy_sell: bestTrade.buy_sell,
-        risk_reward_ratio: bestTrade.risk_reward_ratio, trade_date: bestTrade.trade_date,
-        entry_price: bestTrade.entry_price, exit_price: bestTrade.exit_price,
-        time_opened: bestTrade.time_opened, time_closed: bestTrade.time_closed,
-        session: bestTrade.session, notes: bestTrade.notes,
-        screenshot_slots: bestSlide?.screenshot_slots || [],
-        markers: bestSlide?.markers || [],
-        screenshot_url: bestSlide?.screenshot_url || null,
-        reflection: bestSlide?.reflection || null,
-      } : null,
-      worstTrade: worstTrade ? {
-        id: worstTrade.id, symbol: worstTrade.symbol || worstTrade.pair, pips: worstTrade.pips,
-        profit: worstTrade.profit, outcome: worstTrade.outcome, buy_sell: worstTrade.buy_sell,
-        risk_reward_ratio: worstTrade.risk_reward_ratio, trade_date: worstTrade.trade_date,
-        entry_price: worstTrade.entry_price, exit_price: worstTrade.exit_price,
-        time_opened: worstTrade.time_opened, time_closed: worstTrade.time_closed,
-        session: worstTrade.session, notes: worstTrade.notes,
-        screenshot_slots: worstSlide?.screenshot_slots || [],
-        markers: worstSlide?.markers || [],
-        screenshot_url: worstSlide?.screenshot_url || null,
-        reflection: worstSlide?.reflection || null,
-      } : null,
+      bestTrade: bestTrade ? buildTradeDetail(bestTrade, bestData) : null,
+      worstTrade: worstTrade ? buildTradeDetail(worstTrade, worstData) : null,
     };
 
     // Build prompt
