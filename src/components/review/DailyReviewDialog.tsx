@@ -269,11 +269,12 @@ export const DailyReviewDialog = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
+    if (isSaving) return;
     setIsSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error("You must be logged in");
+      if (!silent) toast.error("You must be logged in");
       setIsSaving(false);
       return;
     }
@@ -353,9 +354,17 @@ export const DailyReviewDialog = ({
           }, { onConflict: 'user_id,review_date' });
       }
 
-      toast.success("Review saved successfully!");
+      if (silent) {
+        setLastAutoSaved(new Date().toLocaleTimeString());
+      } else {
+        toast.success("Review saved successfully!");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save review");
+      if (!silent) {
+        toast.error(error.message || "Failed to save review");
+      } else {
+        console.error("Auto-save failed:", error);
+      }
     } finally {
       setIsSaving(false);
     }
