@@ -507,11 +507,38 @@ export const DailyReviewDialog = ({
       <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <div>
-            <h2 className="text-xl font-bold">{getSlideTitle()}</h2>
-            <p className="text-sm text-muted-foreground">
-              Slide {currentSlide + 1} of {totalSlides}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-xl font-bold">{getSlideTitle()}</h2>
+              <p className="text-sm text-muted-foreground">
+                Slide {currentSlide + 1} of {totalSlides}
+              </p>
+            </div>
+            {/* Reorder buttons for trade slides */}
+            {currentSlide >= 2 && currentSlide < 2 + trades.length && trades.length > 1 && (
+              <div className="flex items-center gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => swapTradeSlide('left')}
+                  disabled={currentSlide - 2 === 0}
+                  title="Move trade left"
+                >
+                  <MoveLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => swapTradeSlide('right')}
+                  disabled={currentSlide - 2 === trades.length - 1}
+                  title="Move trade right"
+                >
+                  <MoveRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button 
