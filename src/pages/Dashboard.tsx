@@ -438,17 +438,13 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-
-            {/* Weekend Review - only on Sat/Sun, below header */}
+            {/* Weekend Review - only on Sat/Sun, tight below header */}
             {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
-              <div className="mb-2">
-                <WeekendReviewCard
-                  selectedAccountId={selectedAccount}
-                  refreshTrigger={refreshTrigger}
-                />
-              </div>
+              <WeekendReviewCard
+                selectedAccountId={selectedAccount}
+                refreshTrigger={refreshTrigger}
+              />
             )}
-
             <TradingCalendar
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
