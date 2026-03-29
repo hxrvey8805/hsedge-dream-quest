@@ -438,6 +438,14 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+
+            {/* Weekend Review - only shows on Sat/Sun */}
+            {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
+              <WeekendReviewCard
+                selectedAccountId={selectedAccount}
+                refreshTrigger={refreshTrigger}
+              />
+            )}
             
             <TradingCalendar 
               onDaySelect={handleDaySelect} 
@@ -455,11 +463,6 @@ const Dashboard = () => {
               selectedAccountId={selectedAccount}
             />
           </Card>
-
-          <WeekendReviewCard
-            selectedAccountId={selectedAccount}
-            refreshTrigger={refreshTrigger}
-          />
 
           {/* Right Column - 2x2 Stats + Equity Curve, match calendar height */}
           <div className="flex flex-col h-full min-h-0">
