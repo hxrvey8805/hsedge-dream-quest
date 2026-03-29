@@ -88,6 +88,10 @@ export const DailyReviewDialog = ({
   const [reviewId, setReviewId] = useState<string | null>(null);
   // Reorderable trade indices
   const [tradeOrder, setTradeOrder] = useState<number[]>([]);
+  // Track whether initial load is done (to avoid auto-saving on load)
+  const hasLoadedRef = useRef(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lastAutoSaved, setLastAutoSaved] = useState<string | null>(null);
 
   // 1% Focus state
   const [previousFocus, setPreviousFocus] = useState<{ id: string; focus_text: string; review_date: string } | null>(null);
@@ -96,13 +100,31 @@ export const DailyReviewDialog = ({
   const [newFocusText, setNewFocusText] = useState("");
 
   // Calculate slide count dynamically
-  // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
 
   // Initialize trade order when trades change
   useEffect(() => {
     setTradeOrder(trades.map((_, i) => i));
   }, [trades.length]);
+
+  // Auto-save with debounce when data changes
+  useEffect(() => {
+    if (!open || !hasLoadedRef.current) return;
+    
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSave(true);
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [reviewData, tradeSlides, missedScreenshots, tradeOrder, executionRating, executionNotes, newFocusText]);
 
   useEffect(() => {
     if (open && date) {
