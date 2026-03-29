@@ -79,7 +79,6 @@ const ASSET_CLASSES = [
 ];
 
 const SESSIONS = ["Premarket", "Asia", "London", "New York", "NYSE", "FOMC/News"] as const;
-const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const { accounts } = useAccounts();
