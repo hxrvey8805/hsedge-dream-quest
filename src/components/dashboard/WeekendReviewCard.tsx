@@ -218,8 +218,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         if (data) {
           const parsed = { ...data, week_stats: data.week_stats as unknown as WeekStats } as WeeklyReview;
           setReview(parsed);
-          // Fetch live screenshots for best/worst trades
-          fetchLiveScreenshots(parsed.week_stats);
+          fetchLiveScreenshots(parsed);
         }
       } catch (err) {
         console.error(err);
