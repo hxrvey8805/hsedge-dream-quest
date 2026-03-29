@@ -8,16 +8,13 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -72,7 +69,7 @@ serve(async (req) => {
       tradesQuery = tradesQuery.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
     }
 
-    const [tradesRes, reviewsRes, focusRes, gamePlansRes] = await Promise.all([
+    const [tradesRes, reviewsRes, focusRes, gamePlansRes, slidesRes] = await Promise.all([
       tradesQuery,
       supabase.from("daily_reviews").select("*").eq("user_id", user.id)
         .gte("review_date", startStr).lte("review_date", endStr),
@@ -80,18 +77,28 @@ serve(async (req) => {
         .gte("review_date", startStr).lte("review_date", endStr),
       supabase.from("daily_game_plans").select("*").eq("user_id", user.id)
         .gte("plan_date", startStr).lte("plan_date", endStr),
+      // Fetch trade review slides for screenshots
+      supabase.from("trade_review_slides").select("trade_id, screenshot_url, screenshot_slots, markers, reflection")
+        .eq("user_id", user.id),
     ]);
 
     const trades = tradesRes.data || [];
     const reviews = reviewsRes.data || [];
     const focuses = focusRes.data || [];
     const gamePlans = gamePlansRes.data || [];
+    const allSlides = slidesRes.data || [];
 
     if (trades.length === 0) {
       return new Response(
         JSON.stringify({ error: "No trades found for this week." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Build slide lookup by trade_id
+    const slidesByTradeId: Record<string, any> = {};
+    for (const s of allSlides) {
+      if (s.trade_id) slidesByTradeId[s.trade_id] = s;
     }
 
     // Stats
@@ -105,7 +112,6 @@ serve(async (req) => {
     const bestTrade = sortedByPips[0];
     const worstTrade = sortedByPips[sortedByPips.length - 1];
 
-    // Day breakdown
     const dayMap: Record<string, { pips: number; profit: number; count: number }> = {};
     for (const t of trades) {
       if (!dayMap[t.trade_date]) dayMap[t.trade_date] = { pips: 0, profit: 0, count: 0 };
@@ -115,12 +121,38 @@ serve(async (req) => {
     }
     const days = Object.entries(dayMap).sort((a, b) => b[1].pips - a[1].pips);
 
+    // Get screenshot data for best/worst trades
+    const bestSlide = bestTrade ? slidesByTradeId[bestTrade.id] : null;
+    const worstSlide = worstTrade ? slidesByTradeId[worstTrade.id] : null;
+
     const weekStats = {
       totalPips, totalProfit, winRate, totalTrades: trades.length, wins, losses,
       bestDay: days[0] ? { date: days[0][0], pips: days[0][1].pips, profit: days[0][1].profit } : null,
       worstDay: days.length > 1 ? { date: days[days.length-1][0], pips: days[days.length-1][1].pips, profit: days[days.length-1][1].profit } : null,
-      bestTrade: bestTrade ? { id: bestTrade.id, symbol: bestTrade.symbol || bestTrade.pair, pips: bestTrade.pips, profit: bestTrade.profit, outcome: bestTrade.outcome, buy_sell: bestTrade.buy_sell, risk_reward_ratio: bestTrade.risk_reward_ratio } : null,
-      worstTrade: worstTrade ? { id: worstTrade.id, symbol: worstTrade.symbol || worstTrade.pair, pips: worstTrade.pips, profit: worstTrade.profit, outcome: worstTrade.outcome, buy_sell: worstTrade.buy_sell, risk_reward_ratio: worstTrade.risk_reward_ratio } : null,
+      bestTrade: bestTrade ? {
+        id: bestTrade.id, symbol: bestTrade.symbol || bestTrade.pair, pips: bestTrade.pips,
+        profit: bestTrade.profit, outcome: bestTrade.outcome, buy_sell: bestTrade.buy_sell,
+        risk_reward_ratio: bestTrade.risk_reward_ratio, trade_date: bestTrade.trade_date,
+        entry_price: bestTrade.entry_price, exit_price: bestTrade.exit_price,
+        time_opened: bestTrade.time_opened, time_closed: bestTrade.time_closed,
+        session: bestTrade.session, notes: bestTrade.notes,
+        screenshot_slots: bestSlide?.screenshot_slots || [],
+        markers: bestSlide?.markers || [],
+        screenshot_url: bestSlide?.screenshot_url || null,
+        reflection: bestSlide?.reflection || null,
+      } : null,
+      worstTrade: worstTrade ? {
+        id: worstTrade.id, symbol: worstTrade.symbol || worstTrade.pair, pips: worstTrade.pips,
+        profit: worstTrade.profit, outcome: worstTrade.outcome, buy_sell: worstTrade.buy_sell,
+        risk_reward_ratio: worstTrade.risk_reward_ratio, trade_date: worstTrade.trade_date,
+        entry_price: worstTrade.entry_price, exit_price: worstTrade.exit_price,
+        time_opened: worstTrade.time_opened, time_closed: worstTrade.time_closed,
+        session: worstTrade.session, notes: worstTrade.notes,
+        screenshot_slots: worstSlide?.screenshot_slots || [],
+        markers: worstSlide?.markers || [],
+        screenshot_url: worstSlide?.screenshot_url || null,
+        reflection: worstSlide?.reflection || null,
+      } : null,
     };
 
     // Build prompt
@@ -136,28 +168,33 @@ serve(async (req) => {
       `- ${f.review_date}: Focus: ${f.focus_text} | Rating: ${f.execution_rating ?? "N/A"}/5 | Notes: ${f.execution_notes || "N/A"}`
     ).join("\n");
 
-    const gamePlansStr = gamePlans.map(g =>
-      `- ${g.plan_date}: Bias: ${g.market_bias || "N/A"} | Watchlist: ${g.watchlist || "N/A"} | Levels: ${g.key_levels || "N/A"}`
-    ).join("\n");
+    // Include reflections from trade slides
+    const reflectionsStr = trades.map(t => {
+      const slide = slidesByTradeId[t.id];
+      if (slide?.reflection) {
+        return `- ${t.trade_date} ${t.symbol || t.pair}: "${slide.reflection}"`;
+      }
+      return null;
+    }).filter(Boolean).join("\n");
 
-    const prompt = `You are an elite trading performance coach. Analyze this trader's week and create a weekend review.
+    const prompt = `You are an elite trading performance coach. Analyze this trader's week.
 
 WEEK: ${startStr} to ${endStr}
 STATS: ${trades.length} trades, ${wins}W/${losses}L, ${winRate}% win rate, ${totalPips.toFixed(1)} pips, $${totalProfit.toFixed(2)} profit
 
 TRADES:
-${tradesStr || "No trades"}
+${tradesStr}
 
 DAILY REVIEWS:
-${reviewsStr || "No reviews logged"}
+${reviewsStr || "None"}
 
 1% IMPROVEMENT FOCUS:
-${focusStr || "No focus entries"}
+${focusStr || "None"}
 
-GAME PLANS:
-${gamePlansStr || "No game plans"}
+TRADE REFLECTIONS (from review slides):
+${reflectionsStr || "None"}
 
-Provide analysis for each section. Be specific, reference actual trade data, and be constructive. Keep each section 2-4 sentences max.`;
+Provide analysis for each section. Be specific, reference actual trades and reflections. Keep each section 2-4 sentences. Be constructive and actionable.`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -175,21 +212,21 @@ Provide analysis for each section. Be specific, reference actual trade data, and
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are an expert trading coach. Provide clear, actionable insights. Be concise." },
+          { role: "system", content: "You are an expert trading coach. Concise, actionable insights." },
           { role: "user", content: prompt },
         ],
         tools: [{
           type: "function",
           function: {
             name: "weekend_review",
-            description: "Structure the weekend review into slides",
+            description: "Structure the weekend review",
             parameters: {
               type: "object",
               properties: {
-                best_trade_analysis: { type: "string", description: "Why this was the best trade of the week (2-4 sentences)" },
-                worst_trade_analysis: { type: "string", description: "What went wrong and the lesson (2-4 sentences)" },
-                patterns_insights: { type: "string", description: "2-3 recurring patterns observed (2-4 sentences)" },
-                next_week_plan: { type: "string", description: "3-4 specific action items for next week (bullet-style)" },
+                best_trade_analysis: { type: "string" },
+                worst_trade_analysis: { type: "string" },
+                patterns_insights: { type: "string" },
+                next_week_plan: { type: "string" },
               },
               required: ["best_trade_analysis", "worst_trade_analysis", "patterns_insights", "next_week_plan"],
               additionalProperties: false,
@@ -201,20 +238,11 @@ Provide analysis for each section. Be specific, reference actual trade data, and
     });
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      console.error("AI error:", aiResponse.status, await aiResponse.text());
-      return new Response(JSON.stringify({ error: "AI analysis failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const status = aiResponse.status;
+      if (status === 429) return new Response(JSON.stringify({ error: "Rate limited. Try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("AI error:", status, await aiResponse.text());
+      return new Response(JSON.stringify({ error: "AI analysis failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const aiData = await aiResponse.json();
@@ -232,7 +260,7 @@ Provide analysis for each section. Be specific, reference actual trade data, and
       };
     }
 
-    const { data: upsertData, error: upsertError } = await supabase
+    const { data: insertData, error: insertError } = await supabase
       .from("weekly_reviews")
       .insert({
         user_id: user.id,
@@ -248,14 +276,14 @@ Provide analysis for each section. Be specific, reference actual trade data, and
       .select()
       .single();
 
-    if (upsertError) {
-      console.error("Insert error:", upsertError);
+    if (insertError) {
+      console.error("Insert error:", insertError);
       return new Response(JSON.stringify({ error: "Failed to save review" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify(upsertData), {
+    return new Response(JSON.stringify(insertData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
