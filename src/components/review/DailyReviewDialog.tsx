@@ -269,17 +269,20 @@ export const DailyReviewDialog = ({
         .delete()
         .eq("daily_review_id", review.id);
 
-      // Insert trade slides
-      const slidesToInsert = tradeSlides.map((slide, index) => ({
-        daily_review_id: review.id,
-        trade_id: slide.trade_id,
-        user_id: user.id,
-        screenshot_url: slide.screenshot_url,
-        markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
-        reflection: slide.reflection,
-        screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) : null,
-        slide_order: index,
-      } as any));
+      // Insert trade slides in reordered sequence
+      const slidesToInsert = tradeOrder.map((originalIndex, position) => {
+        const slide = tradeSlides[originalIndex];
+        return {
+          daily_review_id: review.id,
+          trade_id: slide.trade_id,
+          user_id: user.id,
+          screenshot_url: slide.screenshot_url,
+          markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
+          reflection: slide.reflection,
+          screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) : null,
+          slide_order: position,
+        } as any;
+      });
 
       if (slidesToInsert.length > 0) {
         const { error: slidesError } = await supabase
