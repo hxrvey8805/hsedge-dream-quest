@@ -99,6 +99,7 @@ export const DailyReviewDialog = ({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(true);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const handleSaveRef = useRef<() => void>(() => {});
 
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
