@@ -19,6 +19,7 @@ import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { NetPLCard, FourStatsGrid } from "@/components/dashboard/DashboardStats";
 import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
+import { WeekendReviewCard } from "@/components/dashboard/WeekendReviewCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
