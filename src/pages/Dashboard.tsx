@@ -345,6 +345,13 @@ const Dashboard = () => {
                 <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                   Trading Calendar
                 </h2>
+                {/* Weekend Review - only on Sat/Sun, inline with title */}
+                {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
+                  <WeekendReviewCard
+                    selectedAccountId={selectedAccount}
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -438,13 +445,6 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-            {/* Weekend Review - only on Sat/Sun, tight below header */}
-            {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
-              <WeekendReviewCard
-                selectedAccountId={selectedAccount}
-                refreshTrigger={refreshTrigger}
-              />
-            )}
             <TradingCalendar
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
