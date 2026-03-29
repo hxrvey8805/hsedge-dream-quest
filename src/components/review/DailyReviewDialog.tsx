@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Save, ArrowLeftRight, MoveLeft, MoveRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -86,6 +86,8 @@ export const DailyReviewDialog = ({
   const [missedScreenshots, setMissedScreenshots] = useState<MissedOpportunityScreenshot[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [reviewId, setReviewId] = useState<string | null>(null);
+  // Reorderable trade indices
+  const [tradeOrder, setTradeOrder] = useState<number[]>([]);
 
   // 1% Focus state
   const [previousFocus, setPreviousFocus] = useState<{ id: string; focus_text: string; review_date: string } | null>(null);
@@ -96,6 +98,11 @@ export const DailyReviewDialog = ({
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
+
+  // Initialize trade order when trades change
+  useEffect(() => {
+    setTradeOrder(trades.map((_, i) => i));
+  }, [trades.length]);
 
   useEffect(() => {
     if (open && date) {
@@ -194,6 +201,21 @@ export const DailyReviewDialog = ({
         .order("slide_order");
 
       if (slides && slides.length > 0) {
+        // Restore saved order: slides are ordered by slide_order, map trade_id to position
+        const savedOrder: number[] = [];
+        const orderMap = new Map(slides.map((s, i) => [s.trade_id, i]));
+        
+        // Build tradeOrder from saved slide_order
+        const orderedTradeIds = slides.map(s => s.trade_id);
+        const newTradeOrder = trades.map((_, i) => i);
+        // Sort newTradeOrder based on saved slide positions
+        newTradeOrder.sort((a, b) => {
+          const posA = orderMap.get(trades[a].id) ?? a;
+          const posB = orderMap.get(trades[b].id) ?? b;
+          return posA - posB;
+        });
+        setTradeOrder(newTradeOrder);
+
         setTradeSlides(trades.map(trade => {
           const existingSlide = slides.find(s => s.trade_id === trade.id);
           const markersData = existingSlide?.markers;
@@ -262,17 +284,20 @@ export const DailyReviewDialog = ({
         .delete()
         .eq("daily_review_id", review.id);
 
-      // Insert trade slides
-      const slidesToInsert = tradeSlides.map((slide, index) => ({
-        daily_review_id: review.id,
-        trade_id: slide.trade_id,
-        user_id: user.id,
-        screenshot_url: slide.screenshot_url,
-        markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
-        reflection: slide.reflection,
-        screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) : null,
-        slide_order: index,
-      } as any));
+      // Insert trade slides in reordered sequence
+      const slidesToInsert = tradeOrder.map((originalIndex, position) => {
+        const slide = tradeSlides[originalIndex];
+        return {
+          daily_review_id: review.id,
+          trade_id: slide.trade_id,
+          user_id: user.id,
+          screenshot_url: slide.screenshot_url,
+          markers: JSON.parse(JSON.stringify(slide.markers)) as Json,
+          reflection: slide.reflection,
+          screenshot_slots: slide.screenshot_slots ? JSON.parse(JSON.stringify(slide.screenshot_slots)) : null,
+          slide_order: position,
+        } as any;
+      });
 
       if (slidesToInsert.length > 0) {
         const { error: slidesError } = await supabase
@@ -396,13 +421,26 @@ export const DailyReviewDialog = ({
     }
   };
 
+  const swapTradeSlide = (direction: 'left' | 'right') => {
+    const tradeSlideIndex = currentSlide - 2; // position within trade slides
+    const swapWith = direction === 'left' ? tradeSlideIndex - 1 : tradeSlideIndex + 1;
+    if (swapWith < 0 || swapWith >= trades.length) return;
+    setTradeOrder(prev => {
+      const next = [...prev];
+      [next[tradeSlideIndex], next[swapWith]] = [next[swapWith], next[tradeSlideIndex]];
+      return next;
+    });
+    // Move current slide to follow the swapped trade
+    setCurrentSlide(2 + swapWith);
+  };
+
   const getSlideTitle = () => {
     if (currentSlide === 0) return "Day Summary";
     if (currentSlide === 1) return "Trades Overview";
     if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
-      const tradeIndex = currentSlide - 2;
+      const tradeIndex = tradeOrder[currentSlide - 2];
       const trade = trades[tradeIndex];
-      return `Trade ${tradeIndex + 1}: ${trade.symbol || trade.pair || 'Unknown'}`;
+      return `Trade ${currentSlide - 1}: ${trade?.symbol || trade?.pair || 'Unknown'}`;
     }
     if (currentSlide === 2 + trades.length) return "Missed Opportunities";
     if (currentSlide === 3 + trades.length) return "What Went Well";
@@ -423,9 +461,9 @@ export const DailyReviewDialog = ({
     
     // Trade slides
     if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
-      const tradeIndex = currentSlide - 2;
-      const trade = trades[tradeIndex];
-      const slideData = tradeSlides[tradeIndex];
+      const orderedIndex = tradeOrder[currentSlide - 2];
+      const trade = trades[orderedIndex];
+      const slideData = tradeSlides[orderedIndex];
       
       return (
         <TradeReviewSlide 
@@ -487,11 +525,38 @@ export const DailyReviewDialog = ({
       <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <div>
-            <h2 className="text-xl font-bold">{getSlideTitle()}</h2>
-            <p className="text-sm text-muted-foreground">
-              Slide {currentSlide + 1} of {totalSlides}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-xl font-bold">{getSlideTitle()}</h2>
+              <p className="text-sm text-muted-foreground">
+                Slide {currentSlide + 1} of {totalSlides}
+              </p>
+            </div>
+            {/* Reorder buttons for trade slides */}
+            {currentSlide >= 2 && currentSlide < 2 + trades.length && trades.length > 1 && (
+              <div className="flex items-center gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => swapTradeSlide('left')}
+                  disabled={currentSlide - 2 === 0}
+                  title="Move trade left"
+                >
+                  <MoveLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => swapTradeSlide('right')}
+                  disabled={currentSlide - 2 === trades.length - 1}
+                  title="Move trade right"
+                >
+                  <MoveRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button 
