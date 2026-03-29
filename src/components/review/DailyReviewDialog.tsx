@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Save, ArrowLeftRight, MoveLeft, MoveRight } from "lucide-react";
@@ -95,6 +95,12 @@ export const DailyReviewDialog = ({
   const [executionNotes, setExecutionNotes] = useState("");
   const [newFocusText, setNewFocusText] = useState("");
 
+  // Auto-save debounce
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLoadingRef = useRef(true);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const handleSaveRef = useRef<() => void>(() => {});
+
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
@@ -104,9 +110,28 @@ export const DailyReviewDialog = ({
     setTradeOrder(trades.map((_, i) => i));
   }, [trades.length]);
 
+  // Auto-save trigger
+  const triggerAutoSave = useCallback(() => {
+    if (isLoadingRef.current) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      handleSaveRef.current();
+    }, 2000);
+  }, []);
+
+  // Cleanup auto-save timer
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (open && date) {
-      loadExistingReview();
+      isLoadingRef.current = true;
+      loadExistingReview().then(() => {
+        setTimeout(() => { isLoadingRef.current = false; }, 500);
+      });
       initializeTradeSlides();
       loadPreviousFocus();
     }
@@ -247,7 +272,7 @@ export const DailyReviewDialog = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
     setIsSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -331,13 +356,20 @@ export const DailyReviewDialog = ({
           }, { onConflict: 'user_id,review_date' });
       }
 
-      toast.success("Review saved successfully!");
+      setLastSavedAt(new Date());
+      if (!silent) toast.success("Review saved successfully!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to save review");
+      if (!silent) toast.error(error.message || "Failed to save review");
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Keep handleSaveRef in sync
+  handleSaveRef.current = () => handleSave(true);
+
+  // Auto-save when review data, trade slides, missed screenshots, or focus data changes
+  useEffect(() => { triggerAutoSave(); }, [reviewData, tradeSlides, missedScreenshots, executionRating, executionNotes, newFocusText, tradeOrder]);
 
   const updateTradeSlide = (tradeId: string, updates: Partial<TradeSlideData>) => {
     // Find the symbol of the trade being updated
@@ -562,11 +594,11 @@ export const DailyReviewDialog = ({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={isSaving}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Review"}
+              {isSaving ? "Saving..." : lastSavedAt ? `Saved ${format(lastSavedAt, 'HH:mm')}` : "Save Review"}
             </Button>
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-4 h-4" />
