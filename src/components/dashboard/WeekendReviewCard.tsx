@@ -55,6 +55,8 @@ interface WeeklyReview {
   id: string;
   week_start_date: string;
   week_stats: WeekStats;
+  best_trade_id?: string | null;
+  worst_trade_id?: string | null;
   best_trade_analysis: string;
   worst_trade_analysis: string;
   patterns_insights: string;
@@ -132,9 +134,14 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
   const totalSlides = 5;
 
-  // Fetch live screenshot data for best/worst trades directly from DB
-  const fetchLiveScreenshots = async (stats: WeekStats) => {
-    const tradeIds = [stats.bestTrade?.id, stats.worstTrade?.id].filter(Boolean) as string[];
+  // Fetch live trade + screenshot data for best/worst trades directly from DB
+  const fetchLiveScreenshots = async (reviewData: WeeklyReview) => {
+    const stats = reviewData.week_stats;
+    const tradeIds = [
+      stats.bestTrade?.id || reviewData.best_trade_id,
+      stats.worstTrade?.id || reviewData.worst_trade_id,
+    ].filter(Boolean) as string[];
+
     if (tradeIds.length === 0) return;
 
     try {
@@ -145,18 +152,18 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
           .in("trade_id", tradeIds),
         supabase
           .from("trades")
-          .select("id, screenshots")
+          .select("id, symbol, pair, pips, profit, outcome, buy_sell, risk_reward_ratio, trade_date, time_opened, time_closed, session, notes, screenshots")
           .in("id", tradeIds),
       ]);
 
       const slides = slidesRes.data || [];
       const trades = tradesRes.data || [];
-
       const result: Record<string, TradeDetail> = {};
 
       for (const tradeId of tradeIds) {
-        const tradeSlides = slides.filter(s => s.trade_id === tradeId);
-        const trade = trades.find(t => t.id === tradeId);
+        const tradeSlides = slides.filter((s) => s.trade_id === tradeId);
+        const trade = trades.find((t) => t.id === tradeId);
+        if (!trade) continue;
 
         const allSlots: ScreenshotSlot[] = [];
         const allMarkers: any[] = [];
@@ -173,18 +180,23 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         }
 
         result[tradeId] = {
-          id: tradeId,
-          symbol: "",
-          pips: 0,
-          profit: 0,
-          outcome: "",
-          buy_sell: "",
-          risk_reward_ratio: "",
+          id: trade.id,
+          symbol: trade.symbol || trade.pair || "N/A",
+          pips: Number(trade.pips || 0),
+          profit: Number(trade.profit || 0),
+          outcome: trade.outcome,
+          buy_sell: trade.buy_sell,
+          risk_reward_ratio: trade.risk_reward_ratio || "",
+          trade_date: trade.trade_date,
+          time_opened: trade.time_opened || undefined,
+          time_closed: trade.time_closed || undefined,
+          session: trade.session || undefined,
+          notes: trade.notes || undefined,
           screenshot_slots: allSlots,
           markers: allMarkers,
           screenshot_url: mainScreenshot,
           reflection: reflections.join("\n\n") || null,
-          screenshots: (trade?.screenshots as string[]) || [],
+          screenshots: (trade.screenshots as string[]) || [],
         };
       }
 
@@ -206,8 +218,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         if (data) {
           const parsed = { ...data, week_stats: data.week_stats as unknown as WeekStats } as WeeklyReview;
           setReview(parsed);
-          // Fetch live screenshots for best/worst trades
-          fetchLiveScreenshots(parsed.week_stats);
+          fetchLiveScreenshots(parsed);
         }
       } catch (err) {
         console.error(err);
