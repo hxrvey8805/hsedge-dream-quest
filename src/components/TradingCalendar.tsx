@@ -887,16 +887,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Timeframe</Label>
-                        <Select value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})}>
-                          <SelectTrigger className="bg-secondary/50">
-                            <SelectValue placeholder="Select" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIMEFRAMES.map(tf => (
-                              <SelectItem key={tf} value={tf}>{tf}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <TimeframeSelect value={editForm.entry_timeframe} onValueChange={(v) => setEditForm({...editForm, entry_timeframe: v})} />
                       </div>
                       <div>
                         <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Playbook</Label>
