@@ -96,7 +96,7 @@ export const DailyReviewDialog = ({
   const [newFocusText, setNewFocusText] = useState("");
 
   // Auto-save debounce
-  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(true);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
