@@ -456,6 +456,11 @@ const Dashboard = () => {
             />
           </Card>
 
+          <WeekendReviewCard
+            selectedAccountId={selectedAccount}
+            refreshTrigger={refreshTrigger}
+          />
+
           {/* Right Column - 2x2 Stats + Equity Curve, match calendar height */}
           <div className="flex flex-col h-full min-h-0">
             <div className="flex-1 min-h-0">
