@@ -237,7 +237,9 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
       });
       if (error) throw error;
       if (data?.error) { toast.error(data.error); return; }
-      setReview({ ...data, week_stats: data.week_stats as WeekStats });
+      const parsedReview = { ...data, week_stats: data.week_stats as WeekStats } as WeeklyReview;
+      setReview(parsedReview);
+      fetchLiveScreenshots(parsedReview);
       setCurrentSlide(0);
       setDialogOpen(true);
       toast.success("Weekend review ready!");
@@ -273,6 +275,9 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
   const renderSlide = () => {
     if (!review || !stats) return null;
+
+    const resolvedBestTrade = stats.bestTrade || (review.best_trade_id ? liveScreenshots[review.best_trade_id] : null);
+    const resolvedWorstTrade = stats.worstTrade || (review.worst_trade_id ? liveScreenshots[review.worst_trade_id] : null);
 
     switch (currentSlide) {
       case 0:
@@ -313,7 +318,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         );
 
       case 1: {
-        const best = stats.bestTrade;
+        const best = resolvedBestTrade;
         const bestLive = best?.id ? liveScreenshots[best.id] : null;
         const bestWithScreenshots = best ? {
           ...best,
@@ -374,7 +379,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
       }
 
       case 2: {
-        const worst = stats.worstTrade;
+        const worst = resolvedWorstTrade;
         const worstLive = worst?.id ? liveScreenshots[worst.id] : null;
         const worstWithScreenshots = worst ? {
           ...worst,
