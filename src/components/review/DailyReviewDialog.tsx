@@ -272,7 +272,7 @@ export const DailyReviewDialog = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
     setIsSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
