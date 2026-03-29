@@ -95,6 +95,11 @@ export const DailyReviewDialog = ({
   const [executionNotes, setExecutionNotes] = useState("");
   const [newFocusText, setNewFocusText] = useState("");
 
+  // Auto-save debounce
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingRef = useRef(true);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
