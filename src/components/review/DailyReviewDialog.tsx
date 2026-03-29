@@ -599,10 +599,13 @@ export const DailyReviewDialog = ({
             )}
           </div>
           <div className="flex items-center gap-2">
+            {lastAutoSaved && (
+              <span className="text-xs text-muted-foreground">Auto-saved {lastAutoSaved}</span>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={isSaving}
             >
               <Save className="w-4 h-4 mr-2" />
