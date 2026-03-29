@@ -122,6 +122,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
   const [generating, setGenerating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [liveScreenshots, setLiveScreenshots] = useState<Record<string, TradeDetail>>({});
 
   const weekStartDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const weekEnd = new Date(weekStartDate);
@@ -130,6 +131,68 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
   const weekStartFormatted = format(new Date(weekStartDate), "MMM d");
 
   const totalSlides = 5;
+
+  // Fetch live screenshot data for best/worst trades directly from DB
+  const fetchLiveScreenshots = async (stats: WeekStats) => {
+    const tradeIds = [stats.bestTrade?.id, stats.worstTrade?.id].filter(Boolean) as string[];
+    if (tradeIds.length === 0) return;
+
+    try {
+      const [slidesRes, tradesRes] = await Promise.all([
+        supabase
+          .from("trade_review_slides")
+          .select("trade_id, screenshot_url, screenshot_slots, markers, reflection")
+          .in("trade_id", tradeIds),
+        supabase
+          .from("trades")
+          .select("id, screenshots")
+          .in("id", tradeIds),
+      ]);
+
+      const slides = slidesRes.data || [];
+      const trades = tradesRes.data || [];
+
+      const result: Record<string, TradeDetail> = {};
+
+      for (const tradeId of tradeIds) {
+        const tradeSlides = slides.filter(s => s.trade_id === tradeId);
+        const trade = trades.find(t => t.id === tradeId);
+
+        const allSlots: ScreenshotSlot[] = [];
+        const allMarkers: any[] = [];
+        const reflections: string[] = [];
+        let mainScreenshot: string | null = null;
+
+        for (const slide of tradeSlides) {
+          if (slide.screenshot_url) mainScreenshot = slide.screenshot_url;
+          if (slide.markers && Array.isArray(slide.markers)) allMarkers.push(...slide.markers);
+          if (slide.reflection) reflections.push(slide.reflection);
+          if (slide.screenshot_slots && Array.isArray(slide.screenshot_slots)) {
+            allSlots.push(...(slide.screenshot_slots as ScreenshotSlot[]));
+          }
+        }
+
+        result[tradeId] = {
+          id: tradeId,
+          symbol: "",
+          pips: 0,
+          profit: 0,
+          outcome: "",
+          buy_sell: "",
+          risk_reward_ratio: "",
+          screenshot_slots: allSlots,
+          markers: allMarkers,
+          screenshot_url: mainScreenshot,
+          reflection: reflections.join("\n\n") || null,
+          screenshots: (trade?.screenshots as string[]) || [],
+        };
+      }
+
+      setLiveScreenshots(result);
+    } catch (err) {
+      console.error("Failed to fetch live screenshots:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchReview = async () => {
@@ -141,7 +204,10 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
           .eq("week_start_date", weekStartDate)
           .maybeSingle();
         if (data) {
-          setReview({ ...data, week_stats: data.week_stats as unknown as WeekStats } as WeeklyReview);
+          const parsed = { ...data, week_stats: data.week_stats as unknown as WeekStats } as WeeklyReview;
+          setReview(parsed);
+          // Fetch live screenshots for best/worst trades
+          fetchLiveScreenshots(parsed.week_stats);
         }
       } catch (err) {
         console.error(err);
