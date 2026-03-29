@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, Save, ArrowLeftRight, MoveLeft, MoveRight } from "lucide-react";
@@ -88,6 +88,10 @@ export const DailyReviewDialog = ({
   const [reviewId, setReviewId] = useState<string | null>(null);
   // Reorderable trade indices
   const [tradeOrder, setTradeOrder] = useState<number[]>([]);
+  // Track whether initial load is done (to avoid auto-saving on load)
+  const hasLoadedRef = useRef(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lastAutoSaved, setLastAutoSaved] = useState<string | null>(null);
 
   // 1% Focus state
   const [previousFocus, setPreviousFocus] = useState<{ id: string; focus_text: string; review_date: string } | null>(null);
@@ -96,7 +100,6 @@ export const DailyReviewDialog = ({
   const [newFocusText, setNewFocusText] = useState("");
 
   // Calculate slide count dynamically
-  // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
 
   // Initialize trade order when trades change
@@ -104,11 +107,39 @@ export const DailyReviewDialog = ({
     setTradeOrder(trades.map((_, i) => i));
   }, [trades.length]);
 
+  // Auto-save with debounce when data changes
+  useEffect(() => {
+    if (!open || !hasLoadedRef.current) return;
+    
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSave(true);
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [reviewData, tradeSlides, missedScreenshots, tradeOrder, executionRating, executionNotes, newFocusText]);
+
   useEffect(() => {
     if (open && date) {
-      loadExistingReview();
-      initializeTradeSlides();
-      loadPreviousFocus();
+      hasLoadedRef.current = false;
+      setLastAutoSaved(null);
+      const load = async () => {
+        await loadExistingReview();
+        initializeTradeSlides();
+        await loadPreviousFocus();
+        // Small delay to ensure state is settled before enabling auto-save
+        setTimeout(() => { hasLoadedRef.current = true; }, 500);
+      };
+      load();
+    } else {
+      hasLoadedRef.current = false;
     }
   }, [open, date, trades]);
 
@@ -247,11 +278,12 @@ export const DailyReviewDialog = ({
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
+    if (isSaving) return;
     setIsSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error("You must be logged in");
+      if (!silent) toast.error("You must be logged in");
       setIsSaving(false);
       return;
     }
@@ -331,9 +363,17 @@ export const DailyReviewDialog = ({
           }, { onConflict: 'user_id,review_date' });
       }
 
-      toast.success("Review saved successfully!");
+      if (silent) {
+        setLastAutoSaved(new Date().toLocaleTimeString());
+      } else {
+        toast.success("Review saved successfully!");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save review");
+      if (!silent) {
+        toast.error(error.message || "Failed to save review");
+      } else {
+        console.error("Auto-save failed:", error);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -559,10 +599,13 @@ export const DailyReviewDialog = ({
             )}
           </div>
           <div className="flex items-center gap-2">
+            {lastAutoSaved && (
+              <span className="text-xs text-muted-foreground">Auto-saved {lastAutoSaved}</span>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={isSaving}
             >
               <Save className="w-4 h-4 mr-2" />
