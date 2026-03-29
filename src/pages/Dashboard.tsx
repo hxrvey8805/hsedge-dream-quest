@@ -371,7 +371,81 @@ const Dashboard = () => {
                   Undo Last Import
                 </Button>
               </div>
-            
+              <div className="relative flex flex-col gap-2 transition-all duration-300">
+                {/* Pips / P&L Toggle */}
+                <button
+                  onClick={() => setViewMode(viewMode === 'pips' ? 'profit' : 'pips')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    viewMode === 'pips'
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-success/10 border-success/40 text-success'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">
+                    {viewMode === 'pips' ? 'PIPS' : 'P&L ($)'}
+                  </span>
+                  <div className={`w-2 h-2 rounded-full ${viewMode === 'pips' ? 'bg-primary' : 'bg-success'}`} />
+                </button>
+
+                {/* Month Toggle */}
+                <button
+                  onClick={() => setMonthSwitchEnabled(!monthSwitchEnabled)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    monthSwitchEnabled
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">MONTH</span>
+                  <div className={`w-2 h-2 rounded-full transition-colors ${monthSwitchEnabled ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                </button>
+
+                {/* Account Toggle */}
+                <button
+                  onClick={() => setAccountSwitchEnabled(!accountSwitchEnabled)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+                    accountSwitchEnabled
+                      ? 'bg-primary/10 border-primary/40 text-primary'
+                      : 'bg-muted/30 border-border text-muted-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span className="text-sm font-semibold tracking-wide">ACCOUNT</span>
+                  <div className={`w-2 h-2 rounded-full transition-colors ${accountSwitchEnabled ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                </button>
+
+                {accountSwitchEnabled && (
+                  <div className="absolute right-0 top-full mt-2 z-50">
+                    <Select value={selectedAccount || "all"} onValueChange={(value) => setSelectedAccount(value === "all" ? null : value)}>
+                      <SelectTrigger className="w-[220px] bg-secondary/50">
+                        <SelectValue placeholder="Select account" />
+                      </SelectTrigger>
+                      <SelectContent className="z-50">
+                        <SelectItem value="all">All Accounts</SelectItem>
+                        {accounts
+                          .filter(account => account.type === 'personal' || account.type === 'funded')
+                          .map((account) => (
+                            <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                          ))}
+                        {accounts.filter(account => account.type === 'evaluation' || account.type === 'backtesting').length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Evaluations & Backtests</div>
+                            {accounts
+                              .filter(account => account.type === 'evaluation' || account.type === 'backtesting')
+                              .map((account) => (
+                                <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                              ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <TradingCalendar 
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
