@@ -439,7 +439,17 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <TradingCalendar 
+            {/* Weekend Review - only on Sat/Sun, below header */}
+            {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
+              <div className="mb-2">
+                <WeekendReviewCard
+                  selectedAccountId={selectedAccount}
+                  refreshTrigger={refreshTrigger}
+                />
+              </div>
+            )}
+
+            <TradingCalendar
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
               viewMode={viewMode} 
