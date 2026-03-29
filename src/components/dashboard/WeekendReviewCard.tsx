@@ -168,7 +168,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
           if (slide.markers && Array.isArray(slide.markers)) allMarkers.push(...slide.markers);
           if (slide.reflection) reflections.push(slide.reflection);
           if (slide.screenshot_slots && Array.isArray(slide.screenshot_slots)) {
-            allSlots.push(...(slide.screenshot_slots as ScreenshotSlot[]));
+            allSlots.push(...(slide.screenshot_slots as unknown as ScreenshotSlot[]));
           }
         }
 
