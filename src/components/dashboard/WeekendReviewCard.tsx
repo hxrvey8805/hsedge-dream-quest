@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { startOfWeek, format } from "date-fns";
 import {
   Sparkles, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown,
-  Brain, Target, Trophy, AlertTriangle, CalendarDays, Loader2,
+  Brain, Target, Trophy, AlertTriangle, CalendarDays, Loader2, Zap,
 } from "lucide-react";
 
 interface ScreenshotSlot {
@@ -31,6 +31,7 @@ interface TradeDetail {
   time_closed?: string;
   session?: string;
   notes?: string;
+  screenshots?: string[];
   screenshot_slots?: ScreenshotSlot[];
   markers?: any[];
   screenshot_url?: string | null;
@@ -65,7 +66,6 @@ interface Props {
   refreshTrigger: number;
 }
 
-// Render markers on a screenshot
 const ScreenshotWithMarkers = ({ url, markers }: { url: string; markers?: any[] }) => (
   <div className="relative rounded-lg overflow-hidden border border-border">
     <img src={url} alt="Trade screenshot" className="w-full h-auto object-contain" />
@@ -87,22 +87,29 @@ const ScreenshotWithMarkers = ({ url, markers }: { url: string; markers?: any[] 
   </div>
 );
 
-// Trade screenshots gallery
 const TradeScreenshots = ({ trade }: { trade: TradeDetail }) => {
   const slots = trade.screenshot_slots?.filter(s => s.screenshot_url) || [];
   const hasMainScreenshot = trade.screenshot_url && slots.length === 0;
+  // Also check for screenshots array from the trades table
+  const tradeScreenshots = trade.screenshots?.filter(Boolean) || [];
 
-  if (slots.length === 0 && !hasMainScreenshot) return null;
+  if (slots.length === 0 && !hasMainScreenshot && tradeScreenshots.length === 0) return null;
 
   return (
     <div className="space-y-3 w-full max-w-3xl">
       {hasMainScreenshot && (
         <ScreenshotWithMarkers url={trade.screenshot_url!} markers={trade.markers} />
       )}
-      {slots.map((slot) => (
-        <div key={slot.id}>
-          <div className="text-xs text-muted-foreground mb-1 font-medium">{slot.label}</div>
+      {slots.map((slot, idx) => (
+        <div key={slot.id || idx}>
+          {slot.label && <div className="text-xs text-muted-foreground mb-1 font-medium">{slot.label}</div>}
           <ScreenshotWithMarkers url={slot.screenshot_url!} markers={slot.markers} />
+        </div>
+      ))}
+      {/* Fallback: show trade screenshots from the trades table if no review slides */}
+      {slots.length === 0 && !hasMainScreenshot && tradeScreenshots.map((url, idx) => (
+        <div key={idx} className="relative rounded-lg overflow-hidden border border-border">
+          <img src={url} alt="Trade screenshot" className="w-full h-auto object-contain" />
         </div>
       ))}
     </div>
@@ -125,7 +132,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
   const totalSlides = 5;
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchReview = async () => {
       setLoading(true);
       try {
         const { data } = await supabase
@@ -142,7 +149,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         setLoading(false);
       }
     };
-    fetch();
+    fetchReview();
   }, [weekStartDate, refreshTrigger]);
 
   const handleGenerate = async () => {
@@ -177,22 +184,20 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
   const stats = review?.week_stats;
 
-  const getSlideTitle = () => {
-    switch (currentSlide) {
-      case 0: return "Week Summary";
-      case 1: return "Best Trade";
-      case 2: return "Worst Trade";
-      case 3: return "Patterns & Insights";
-      case 4: return "Next Week Game Plan";
-      default: return "";
-    }
-  };
+  const slideIcons = [
+    <CalendarDays className="w-5 h-5" />,
+    <Trophy className="w-5 h-5" />,
+    <AlertTriangle className="w-5 h-5" />,
+    <Brain className="w-5 h-5" />,
+    <Target className="w-5 h-5" />,
+  ];
+
+  const slideTitles = ["Week Summary", "Best Trade", "Worst Trade", "Patterns & Insights", "Next Week Game Plan"];
 
   const renderSlide = () => {
     if (!review || !stats) return null;
 
     switch (currentSlide) {
-      // SLIDE 0: Week Summary
       case 0:
         return (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-8">
@@ -221,7 +226,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                 { label: "Win Rate", value: `${stats.winRate}%`, color: "text-primary" },
                 { label: "W / L", value: `${stats.wins} / ${stats.losses}`, color: "text-foreground" },
               ].map(s => (
-                <div key={s.label} className="bg-card border rounded-xl p-5 min-w-[120px]">
+                <div key={s.label} className="bg-card border border-border rounded-xl p-5 min-w-[120px]">
                   <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
                   <div className="text-muted-foreground text-sm">{s.label}</div>
                 </div>
@@ -230,7 +235,6 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
           </div>
         );
 
-      // SLIDE 1: Best Trade with screenshots
       case 1: {
         const best = stats.bestTrade;
         return (
@@ -239,7 +243,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
               <Trophy className="w-10 h-10 text-success" />
               <h2 className="text-3xl font-bold text-success">Best Trade</h2>
             </div>
-            {best && (
+            {best ? (
               <>
                 <div className="bg-success/10 border border-success/20 rounded-xl p-5 max-w-lg text-center space-y-1">
                   <div className="text-2xl font-bold">{best.symbol || "N/A"}</div>
@@ -258,16 +262,20 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                       {best.trade_date} · {best.time_opened || "?"} → {best.time_closed || "?"} · {best.session || ""}
                     </div>
                   )}
+                  {best.notes && (
+                    <div className="text-xs text-muted-foreground/80 mt-1 italic">"{best.notes}"</div>
+                  )}
                 </div>
-                {/* Trade screenshots with markers */}
                 <TradeScreenshots trade={best} />
                 {best.reflection && (
-                  <div className="bg-muted/30 border rounded-lg p-4 max-w-2xl w-full">
+                  <div className="bg-muted/30 border border-border rounded-lg p-4 max-w-2xl w-full">
                     <div className="text-xs font-semibold text-muted-foreground mb-1">Your Reflection</div>
-                    <p className="text-sm text-foreground/80">{best.reflection}</p>
+                    <p className="text-sm text-foreground/80 whitespace-pre-line">{best.reflection}</p>
                   </div>
                 )}
               </>
+            ) : (
+              <p className="text-muted-foreground">No trade data available</p>
             )}
             <div className="max-w-2xl text-center">
               <div className="text-xs font-semibold text-success mb-2">AI Analysis</div>
@@ -279,7 +287,6 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         );
       }
 
-      // SLIDE 2: Worst Trade with screenshots
       case 2: {
         const worst = stats.worstTrade;
         return (
@@ -288,7 +295,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
               <AlertTriangle className="w-10 h-10 text-destructive" />
               <h2 className="text-3xl font-bold text-destructive">Worst Trade</h2>
             </div>
-            {worst && (
+            {worst ? (
               <>
                 <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-5 max-w-lg text-center space-y-1">
                   <div className="text-2xl font-bold">{worst.symbol || "N/A"}</div>
@@ -307,16 +314,20 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                       {worst.trade_date} · {worst.time_opened || "?"} → {worst.time_closed || "?"} · {worst.session || ""}
                     </div>
                   )}
+                  {worst.notes && (
+                    <div className="text-xs text-muted-foreground/80 mt-1 italic">"{worst.notes}"</div>
+                  )}
                 </div>
-                {/* Trade screenshots with markers */}
                 <TradeScreenshots trade={worst} />
                 {worst.reflection && (
-                  <div className="bg-muted/30 border rounded-lg p-4 max-w-2xl w-full">
+                  <div className="bg-muted/30 border border-border rounded-lg p-4 max-w-2xl w-full">
                     <div className="text-xs font-semibold text-muted-foreground mb-1">Your Reflection</div>
-                    <p className="text-sm text-foreground/80">{worst.reflection}</p>
+                    <p className="text-sm text-foreground/80 whitespace-pre-line">{worst.reflection}</p>
                   </div>
                 )}
               </>
+            ) : (
+              <p className="text-muted-foreground">No trade data available</p>
             )}
             <div className="max-w-2xl text-center">
               <div className="text-xs font-semibold text-destructive mb-2">AI Analysis</div>
@@ -328,7 +339,6 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
         );
       }
 
-      // SLIDE 3: Patterns
       case 3:
         return (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
@@ -344,7 +354,6 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
           </div>
         );
 
-      // SLIDE 4: Next Week
       case 4:
         return (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
@@ -367,39 +376,53 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
   return (
     <>
-      {/* Small vertical card trigger - centered between title and calendar */}
-      <div className="flex justify-start my-1.5">
-        <button
-          onClick={handleClick}
-          disabled={generating}
-          className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg bg-primary/8 border border-primary/25 hover:bg-primary/15 hover:border-primary/40 transition-all disabled:opacity-50 cursor-pointer w-[160px]"
-        >
+      {/* Sleek weekend review trigger */}
+      <button
+        onClick={handleClick}
+        disabled={generating}
+        className="group relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-primary/10 hover:border-primary/40 hover:from-primary/10 hover:to-primary/15 transition-all duration-300 disabled:opacity-50 cursor-pointer px-4 py-2.5 flex items-center gap-3"
+      >
+        {/* Animated glow accent */}
+        <div className="absolute -top-8 -right-8 w-20 h-20 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-all duration-500" />
+        
+        <div className="relative flex items-center gap-2">
           {generating ? (
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
           ) : (
-            <Sparkles className="w-4 h-4 text-primary" />
+            <div className="relative">
+              <Zap className="w-4 h-4 text-primary" />
+              {review && (
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-success animate-pulse" />
+              )}
+            </div>
           )}
-          <span className="text-xs font-semibold text-primary">
-            {generating ? "Generating..." : "Weekend Review"}
+        </div>
+
+        <div className="relative flex flex-col items-start">
+          <span className="text-xs font-bold text-primary tracking-wide">
+            {generating ? "GENERATING..." : "WEEKEND REVIEW"}
           </span>
           <span className="text-[10px] text-muted-foreground leading-tight">
             {weekStartFormatted} – {weekEndFormatted}
+            {review && <span className="text-success ml-1.5 font-medium">• Ready</span>}
           </span>
-          {review && (
-            <span className="text-[10px] text-success font-medium">✓ Ready to view</span>
-          )}
-        </button>
-      </div>
+        </div>
+      </button>
 
       {/* Full slide presentation */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-6xl h-[85vh] flex flex-col p-0 gap-0">
-          <div className="flex items-center justify-between p-4 border-b">
-            <div>
-              <h2 className="text-xl font-bold">{getSlideTitle()}</h2>
-              <p className="text-sm text-muted-foreground">
-                Slide {currentSlide + 1} of {totalSlides} · Week of {weekStartFormatted} – {weekEndFormatted}
-              </p>
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                {slideIcons[currentSlide]}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">{slideTitles[currentSlide]}</h2>
+                <p className="text-sm text-muted-foreground">
+                  Slide {currentSlide + 1} of {totalSlides} · Week of {weekStartFormatted} – {weekEndFormatted}
+                </p>
+              </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setDialogOpen(false)}>
               <X className="w-4 h-4" />
@@ -410,7 +433,7 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
             {renderSlide()}
           </div>
 
-          <div className="flex items-center justify-between p-4 border-t bg-muted/30">
+          <div className="flex items-center justify-between p-4 border-t border-border bg-muted/30">
             <Button variant="outline" onClick={() => setCurrentSlide(p => p - 1)} disabled={currentSlide === 0}>
               <ChevronLeft className="w-4 h-4 mr-2" /> Previous
             </Button>
@@ -419,8 +442,8 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                 <button
                   key={i}
                   onClick={() => setCurrentSlide(i)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i === currentSlide ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    i === currentSlide ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                   }`}
                 />
               ))}
