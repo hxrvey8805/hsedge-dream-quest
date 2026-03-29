@@ -128,9 +128,18 @@ export const DailyReviewDialog = ({
 
   useEffect(() => {
     if (open && date) {
-      loadExistingReview();
-      initializeTradeSlides();
-      loadPreviousFocus();
+      hasLoadedRef.current = false;
+      setLastAutoSaved(null);
+      const load = async () => {
+        await loadExistingReview();
+        initializeTradeSlides();
+        await loadPreviousFocus();
+        // Small delay to ensure state is settled before enabling auto-save
+        setTimeout(() => { hasLoadedRef.current = true; }, 500);
+      };
+      load();
+    } else {
+      hasLoadedRef.current = false;
     }
   }, [open, date, trades]);
 
