@@ -109,9 +109,28 @@ export const DailyReviewDialog = ({
     setTradeOrder(trades.map((_, i) => i));
   }, [trades.length]);
 
+  // Auto-save trigger
+  const triggerAutoSave = useCallback(() => {
+    if (isLoadingRef.current) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      handleSaveRef.current();
+    }, 2000);
+  }, []);
+
+  // Cleanup auto-save timer
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (open && date) {
-      loadExistingReview();
+      isLoadingRef.current = true;
+      loadExistingReview().then(() => {
+        setTimeout(() => { isLoadingRef.current = false; }, 500);
+      });
       initializeTradeSlides();
       loadPreviousFocus();
     }
