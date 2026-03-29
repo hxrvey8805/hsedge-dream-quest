@@ -444,6 +444,7 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+            </div>
             <TradingCalendar
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
