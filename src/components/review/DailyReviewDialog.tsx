@@ -443,9 +443,9 @@ export const DailyReviewDialog = ({
     
     // Trade slides
     if (currentSlide >= 2 && currentSlide < 2 + trades.length) {
-      const tradeIndex = currentSlide - 2;
-      const trade = trades[tradeIndex];
-      const slideData = tradeSlides[tradeIndex];
+      const orderedIndex = tradeOrder[currentSlide - 2];
+      const trade = trades[orderedIndex];
+      const slideData = tradeSlides[orderedIndex];
       
       return (
         <TradeReviewSlide 
