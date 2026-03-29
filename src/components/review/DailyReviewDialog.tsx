@@ -356,13 +356,20 @@ export const DailyReviewDialog = ({
           }, { onConflict: 'user_id,review_date' });
       }
 
-      toast.success("Review saved successfully!");
+      setLastSavedAt(new Date());
+      if (!silent) toast.success("Review saved successfully!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to save review");
+      if (!silent) toast.error(error.message || "Failed to save review");
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Keep handleSaveRef in sync
+  handleSaveRef.current = () => handleSave(true);
+
+  // Auto-save when review data, trade slides, missed screenshots, or focus data changes
+  useEffect(() => { triggerAutoSave(); }, [reviewData, tradeSlides, missedScreenshots, executionRating, executionNotes, newFocusText, tradeOrder]);
 
   const updateTradeSlide = (tradeId: string, updates: Partial<TradeSlideData>) => {
     // Find the symbol of the trade being updated
