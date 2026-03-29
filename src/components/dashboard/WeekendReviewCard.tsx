@@ -303,6 +303,15 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
       case 1: {
         const best = stats.bestTrade;
+        const bestLive = best?.id ? liveScreenshots[best.id] : null;
+        const bestWithScreenshots = best ? {
+          ...best,
+          screenshot_slots: bestLive?.screenshot_slots || best.screenshot_slots,
+          markers: bestLive?.markers || best.markers,
+          screenshot_url: bestLive?.screenshot_url || best.screenshot_url,
+          reflection: bestLive?.reflection || best.reflection,
+          screenshots: bestLive?.screenshots || best.screenshots,
+        } : null;
         return (
           <div className="flex flex-col items-center h-full min-h-[400px] space-y-6 overflow-y-auto">
             <div className="flex items-center gap-3">
