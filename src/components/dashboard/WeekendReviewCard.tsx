@@ -341,11 +341,11 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                     <div className="text-xs text-muted-foreground/80 mt-1 italic">"{best.notes}"</div>
                   )}
                 </div>
-                <TradeScreenshots trade={best} />
-                {best.reflection && (
+                <TradeScreenshots trade={bestWithScreenshots} />
+                {bestWithScreenshots.reflection && (
                   <div className="bg-muted/30 border border-border rounded-lg p-4 max-w-2xl w-full">
                     <div className="text-xs font-semibold text-muted-foreground mb-1">Your Reflection</div>
-                    <p className="text-sm text-foreground/80 whitespace-pre-line">{best.reflection}</p>
+                    <p className="text-sm text-foreground/80 whitespace-pre-line">{bestWithScreenshots.reflection}</p>
                   </div>
                 )}
               </>
@@ -364,6 +364,15 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
 
       case 2: {
         const worst = stats.worstTrade;
+        const worstLive = worst?.id ? liveScreenshots[worst.id] : null;
+        const worstWithScreenshots = worst ? {
+          ...worst,
+          screenshot_slots: worstLive?.screenshot_slots || worst.screenshot_slots,
+          markers: worstLive?.markers || worst.markers,
+          screenshot_url: worstLive?.screenshot_url || worst.screenshot_url,
+          reflection: worstLive?.reflection || worst.reflection,
+          screenshots: worstLive?.screenshots || worst.screenshots,
+        } : null;
         return (
           <div className="flex flex-col items-center h-full min-h-[400px] space-y-6 overflow-y-auto">
             <div className="flex items-center gap-3">
@@ -393,11 +402,11 @@ export const WeekendReviewCard = ({ selectedAccountId, refreshTrigger }: Props) 
                     <div className="text-xs text-muted-foreground/80 mt-1 italic">"{worst.notes}"</div>
                   )}
                 </div>
-                <TradeScreenshots trade={worst} />
-                {worst.reflection && (
+                <TradeScreenshots trade={worstWithScreenshots!} />
+                {worstWithScreenshots?.reflection && (
                   <div className="bg-muted/30 border border-border rounded-lg p-4 max-w-2xl w-full">
                     <div className="text-xs font-semibold text-muted-foreground mb-1">Your Reflection</div>
-                    <p className="text-sm text-foreground/80 whitespace-pre-line">{worst.reflection}</p>
+                    <p className="text-sm text-foreground/80 whitespace-pre-line">{worstWithScreenshots.reflection}</p>
                   </div>
                 )}
               </>
