@@ -86,6 +86,8 @@ export const DailyReviewDialog = ({
   const [missedScreenshots, setMissedScreenshots] = useState<MissedOpportunityScreenshot[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [reviewId, setReviewId] = useState<string | null>(null);
+  // Reorderable trade indices
+  const [tradeOrder, setTradeOrder] = useState<number[]>([]);
 
   // 1% Focus state
   const [previousFocus, setPreviousFocus] = useState<{ id: string; focus_text: string; review_date: string } | null>(null);
@@ -96,6 +98,11 @@ export const DailyReviewDialog = ({
   // Calculate slide count dynamically
   // Slides: 1 (Day Summary) + 1 (Trades Overview) + trades.length + 1 (Missed) + 1 (What Went Well) + 1 (Lessons) + 1 (1% Focus)
   const totalSlides = 2 + trades.length + 4;
+
+  // Initialize trade order when trades change
+  useEffect(() => {
+    setTradeOrder(trades.map((_, i) => i));
+  }, [trades.length]);
 
   useEffect(() => {
     if (open && date) {
