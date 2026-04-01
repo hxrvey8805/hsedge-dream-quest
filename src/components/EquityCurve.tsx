@@ -33,7 +33,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
 
   const chartConfig = {
     cumulative: {
-      label: viewMode === 'pips' ? "Cumulative Pips" : "Cumulative P&L",
+      label: viewMode === 'rMultiple' ? "Cumulative R Multiple" : "Cumulative P&L",
       color: "hsl(var(--primary))",
     },
   };
