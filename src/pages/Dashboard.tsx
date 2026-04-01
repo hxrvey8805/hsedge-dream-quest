@@ -364,20 +364,20 @@ const Dashboard = () => {
                 </Button>
               </div>
               <div className="relative flex flex-col gap-2 transition-all duration-300">
-                {/* Pips / P&L Toggle */}
+                {/* R Multiple / P&L Toggle */}
                 <button
-                  onClick={() => setViewMode(viewMode === 'pips' ? 'profit' : 'pips')}
+                  onClick={() => setViewMode(viewMode === 'rMultiple' ? 'profit' : 'rMultiple')}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
-                    viewMode === 'pips'
+                    viewMode === 'rMultiple'
                       ? 'bg-primary/10 border-primary/40 text-primary'
                       : 'bg-success/10 border-success/40 text-success'
                   }`}
                 >
                   <BarChart3 className="w-4 h-4" />
                   <span className="text-sm font-semibold tracking-wide">
-                    {viewMode === 'pips' ? 'PIPS' : 'P&L ($)'}
+                    {viewMode === 'rMultiple' ? 'R MULT' : 'P&L ($)'}
                   </span>
-                  <div className={`w-2 h-2 rounded-full ${viewMode === 'pips' ? 'bg-primary' : 'bg-success'}`} />
+                  <div className={`w-2 h-2 rounded-full ${viewMode === 'rMultiple' ? 'bg-primary' : 'bg-success'}`} />
                 </button>
 
                 {/* Month Toggle */}
