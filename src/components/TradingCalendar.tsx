@@ -167,13 +167,19 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const dayTrades = trades.filter(t => isSameDay(new Date(t.trade_date), date));
     const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const totalProfit = dayTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const totalRMultiple = dayTrades.reduce((sum, t) => {
+      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
+        return sum + (t.profit / t.risk_to_pay);
+      }
+      return sum;
+    }, 0);
     
-    const value = viewMode === 'pips' ? totalPips : totalProfit;
+    const value = viewMode === 'rMultiple' ? totalRMultiple : totalProfit;
     let outcome: 'profit' | 'loss' | 'neutral' = 'neutral';
     if (value > 0) outcome = 'profit';
     else if (value < 0) outcome = 'loss';
     
-    return { date, trades: dayTrades, totalPips, totalProfit, outcome };
+    return { date, trades: dayTrades, totalPips, totalProfit, totalRMultiple, outcome };
   };
 
   const handleDayClick = (day: Date, dayStats: DayStats) => {
