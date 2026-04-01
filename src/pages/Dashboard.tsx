@@ -45,7 +45,7 @@ const Dashboard = () => {
         accountSwitchEnabled: savedAccountSwitch === 'true',
         selectedAccount: savedSelectedAccount || null,
         currentMonth: savedCurrentMonth ? new Date(savedCurrentMonth) : new Date(),
-        viewMode: (savedViewMode as 'pips' | 'profit') || 'pips',
+        viewMode: (savedViewMode as 'rMultiple' | 'profit') || 'rMultiple',
       };
     } catch (error) {
       return {
@@ -53,7 +53,7 @@ const Dashboard = () => {
         accountSwitchEnabled: false,
         selectedAccount: null,
         currentMonth: new Date(),
-        viewMode: 'pips' as const,
+        viewMode: 'rMultiple' as const,
       };
     }
   };
