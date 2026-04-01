@@ -192,8 +192,8 @@ function cdf(x: number): number {
   return 0.5 * (1.0 + sign * y);
 }
 
-export const formatCurrency = (v: number, isPips: boolean): string => {
-  if (isPips) return `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+export const formatCurrency = (v: number, isRMultiple: boolean): string => {
+  if (isRMultiple) return `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}R`;
   return `${v >= 0 ? '+' : '-'}$${Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 

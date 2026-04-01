@@ -209,7 +209,7 @@ const Statistics = () => {
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Win Rate</span><span className="font-bold text-sm">{s.winRate.toFixed(1)}%</span></div>
-                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
+                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'R Mult' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
                       <div className="flex justify-between text-[10px] pt-1 border-t border-border/30">
                         <span className="text-success">{s.wins}W</span><span className="text-muted-foreground">{s.breakeven}BE</span><span className="text-destructive">{s.losses}L</span>
                       </div>
