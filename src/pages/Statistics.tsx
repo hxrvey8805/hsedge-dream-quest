@@ -85,7 +85,7 @@ const Statistics = () => {
 
   const filterLabel = useMemo(() => {
     const parts: string[] = [];
-    if (isPips) parts.push('Pips mode');
+    if (isPips) parts.push('R Multiple mode');
     if (filters.monthSwitchEnabled) parts.push(format(filters.currentMonth, 'MMMM yyyy'));
     if (filters.selectedAccountId) {
       const acct = accounts.find(a => a.id === filters.selectedAccountId);
