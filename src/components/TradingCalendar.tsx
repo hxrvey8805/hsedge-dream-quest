@@ -602,8 +602,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                           dayStats.outcome === 'loss' ? 'text-rose-500' :
                           'text-foreground'
                         }`}>
-                          {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(viewMode === 'pips' ? 1 : 2)}
-                          {viewMode === 'profit' && '$'}
+                          {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(2)}
+                          {viewMode === 'rMultiple' ? 'R' : '$'}
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground/80 font-medium">
