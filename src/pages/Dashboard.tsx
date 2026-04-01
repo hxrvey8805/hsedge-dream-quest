@@ -59,7 +59,7 @@ const Dashboard = () => {
   };
 
   const persistedState = loadPersistedState();
-  const [viewMode, setViewMode] = useState<'pips' | 'profit'>(persistedState.viewMode);
+  const [viewMode, setViewMode] = useState<'rMultiple' | 'profit'>(persistedState.viewMode);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionPickerOpen, setActionPickerOpen] = useState(false);
