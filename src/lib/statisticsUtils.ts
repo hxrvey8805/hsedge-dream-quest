@@ -73,9 +73,11 @@ const getHoldTimeMinutes = (t: Trade): number | null => {
 
 const avgOrNull = (arr: number[]): number | null => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
-export const calculateFullStats = (trades: Trade[], viewMode: 'pips' | 'profit'): FullStats => {
-  const isPips = viewMode === 'pips';
-  const getValue = (t: Trade) => isPips ? (t.pips || 0) : (t.profit || 0);
+export const calculateFullStats = (trades: Trade[], viewMode: 'rMultiple' | 'profit'): FullStats => {
+  const isRMultiple = viewMode === 'rMultiple';
+  const getValue = (t: Trade) => isRMultiple 
+    ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) 
+    : (t.profit || 0);
 
   const wins = trades.filter(t => t.outcome === "Win");
   const losses = trades.filter(t => t.outcome === "Loss");
