@@ -267,7 +267,7 @@ export const NetPLCard = (props: DashboardStatsProps) => {
         {/* Top label */}
         <div className="relative flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">
-            {viewMode === 'pips' ? 'Net Pips' : 'Net P&L'}
+            {viewMode === 'rMultiple' ? 'Net R Multiple' : 'Net P&L'}
           </span>
           <Tooltip>
             <TooltipTrigger>
@@ -275,8 +275,8 @@ export const NetPLCard = (props: DashboardStatsProps) => {
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[200px]">
               <p className="text-sm">
-                {viewMode === 'pips' 
-                  ? 'Total pips from all trades. Account running P&L is not included in pips view.'
+                {viewMode === 'rMultiple' 
+                  ? 'Cumulative R Multiple from all trades. Calculated as profit / risk for each trade.'
                   : 'Your total profit or loss. Includes manually entered account running P&L plus trades profit from calendar.'}
               </p>
             </TooltipContent>
