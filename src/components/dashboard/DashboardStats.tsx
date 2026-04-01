@@ -193,10 +193,13 @@ const useStats = (props: DashboardStatsProps) => {
       if (error || !trades) return;
 
       const tradesValue = trades.reduce((sum, t) => {
-        return viewMode === 'pips' ? sum + (t.pips || 0) : sum + (t.profit || 0);
+        if (viewMode === 'rMultiple') {
+          return sum + (t.risk_to_pay && t.risk_to_pay > 0 && t.profit ? t.profit / t.risk_to_pay : 0);
+        }
+        return sum + (t.profit || 0);
       }, 0);
 
-      const netPL = viewMode === 'pips' ? tradesValue : accountPL + tradesValue;
+      const netPL = viewMode === 'rMultiple' ? tradesValue : accountPL + tradesValue;
       const wins = trades.filter(t => t.outcome === "Win");
       const losses = trades.filter(t => t.outcome === "Loss");
       const totalTrades = trades.length;
