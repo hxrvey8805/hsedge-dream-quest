@@ -58,6 +58,7 @@ interface DayStats {
   trades: Trade[];
   totalPips: number;
   totalProfit: number;
+  totalRMultiple: number;
   outcome: 'profit' | 'loss' | 'neutral';
 }
 
