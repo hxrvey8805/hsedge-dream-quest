@@ -228,8 +228,8 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-primary" />
                           <span className="text-sm font-medium">
-                            {viewMode === 'pips'
-                              ? `${value >= 0 ? '+' : ''}${value.toFixed(1)} pips`
+                            {viewMode === 'rMultiple'
+                              ? `${value >= 0 ? '+' : ''}${value.toFixed(2)}R`
                               : `$${value >= 0 ? '+' : ''}${value.toFixed(2)}`
                             }
                           </span>
