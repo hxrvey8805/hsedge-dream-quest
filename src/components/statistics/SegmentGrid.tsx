@@ -55,7 +55,7 @@ export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => 
               <span className="font-bold text-sm">{s.winRate.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[10px] text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span>
+              <span className="text-[10px] text-muted-foreground">{isPips ? 'R Mult' : 'P&L'}</span>
               <span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span>
             </div>
             <div className="flex justify-between text-[10px] pt-1 border-t border-border/30">

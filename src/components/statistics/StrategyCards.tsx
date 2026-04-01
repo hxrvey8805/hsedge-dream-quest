@@ -186,7 +186,7 @@ export const StrategyCards = ({ trades, isPips }: Props) => {
                             <span className="text-right">Trades</span>
                             <span className="text-right">Win %</span>
                             <span className="text-right">PF</span>
-                            <span className="text-right">{isPips ? 'Pips' : 'P&L'}</span>
+                            <span className="text-right">{isPips ? 'R Mult' : 'P&L'}</span>
                           </div>
 
                           {/* Setup Rows */}

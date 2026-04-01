@@ -48,7 +48,7 @@ export const PerformanceOverview = ({ stats, isPips, netPL, accountPL }: Props) 
             value={stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}
             color={stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}
           />
-          <KPICard label={isPips ? 'Avg Pips/Trade' : 'Avg Trade P&L'} value={fmt(stats.avgProfit)} color={stats.avgProfit >= 0 ? 'text-success' : 'text-destructive'} />
+          <KPICard label={isPips ? 'Avg R/Trade' : 'Avg Trade P&L'} value={fmt(stats.avgProfit)} color={stats.avgProfit >= 0 ? 'text-success' : 'text-destructive'} />
           <KPICard label="Largest Win" value={fmt(stats.largestWin)} color="text-success" />
           <KPICard label="Largest Loss" value={stats.largestLoss !== 0 ? fmt(stats.largestLoss) : '$0.00'} color="text-destructive" />
           <KPICard label="Max Consec. Wins" value={String(stats.maxConsecutiveWins)} color="text-success" />
