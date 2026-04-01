@@ -563,7 +563,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                 const isSelected = selectedDay && isSameDay(day, selectedDay);
                 const isToday = isSameDay(day, new Date());
                 const hasTrades = dayStats.trades.length > 0;
-                const displayValue = viewMode === 'pips' ? dayStats.totalPips : dayStats.totalProfit;
+                const displayValue = viewMode === 'rMultiple' ? dayStats.totalRMultiple : dayStats.totalProfit;
                 
                 // Enhanced styling based on outcome
                 let dayClass = 'border-border/30 bg-card/50';
