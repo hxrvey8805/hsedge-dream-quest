@@ -705,10 +705,10 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                       ? 'bg-rose-500/20 text-rose-500'
                       : 'bg-primary/20 text-primary'
                   }`}>
-                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'pips' ? 'Pips' : 'P&L'}</p>
+                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'rMultiple' ? 'R Mult' : 'P&L'}</p>
                     <p className="text-2xl font-bold">
-                      {selectedDay && viewMode === 'pips' 
-                        ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)}`
+                      {selectedDay && viewMode === 'rMultiple' 
+                        ? `${getDayStats(selectedDay).totalRMultiple >= 0 ? '+' : ''}${getDayStats(selectedDay).totalRMultiple.toFixed(2)}R`
                         : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
                       }
                     </p>

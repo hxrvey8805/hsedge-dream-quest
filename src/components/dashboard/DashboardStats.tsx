@@ -292,13 +292,13 @@ export const NetPLCard = (props: DashboardStatsProps) => {
                  : '0 0 30px hsl(348 100% 60% / 0.3)' 
              }}
           >
-            {viewMode === 'pips' 
-              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`
+            {viewMode === 'rMultiple' 
+              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}R`
               : `${stats.netPL >= 0 ? '+' : ''}$${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             }
           </p>
-          {viewMode === 'pips' && (
-            <span className="text-xs text-muted-foreground/50 uppercase tracking-widest mt-1">pips</span>
+          {viewMode === 'rMultiple' && (
+            <span className="text-xs text-muted-foreground/50 uppercase tracking-widest mt-1">r multiple</span>
           )}
         </div>
 
