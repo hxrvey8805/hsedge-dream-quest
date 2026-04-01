@@ -25,7 +25,7 @@ const loadDashboardFilters = () => {
       accountSwitchEnabled,
       selectedAccountId: accountSwitchEnabled ? (savedAccount || null) : null,
       currentMonth: savedMonth ? new Date(savedMonth) : new Date(),
-      viewMode: (savedViewMode as 'pips' | 'profit') || 'profit',
+      viewMode: (savedViewMode as 'rMultiple' | 'profit') || 'profit',
     };
   } catch {
     return { monthSwitchEnabled: false, accountSwitchEnabled: false, selectedAccountId: null, currentMonth: new Date(), viewMode: 'profit' as const };
