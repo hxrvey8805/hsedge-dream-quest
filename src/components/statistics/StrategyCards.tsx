@@ -38,7 +38,7 @@ interface SetupStats {
 export const StrategyCards = ({ trades, isPips }: Props) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [expandedSetup, setExpandedSetup] = useState<string | null>(null);
-  const viewMode = isPips ? 'pips' as const : 'profit' as const;
+  const viewMode = isPips ? 'rMultiple' as const : 'profit' as const;
 
   // Fetch playbook setups for name resolution
   const { data: setups = [] } = useQuery({
