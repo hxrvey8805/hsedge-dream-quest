@@ -9,6 +9,7 @@ interface Trade {
   trade_date: string;
   profit: number | null;
   pips: number | null;
+  risk_to_pay: number | null;
 }
 
 interface EquityPoint {
