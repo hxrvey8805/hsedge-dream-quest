@@ -21,7 +21,7 @@ interface EquityPoint {
 
 interface EquityCurveProps {
   refreshTrigger?: number;
-  viewMode?: 'pips' | 'profit';
+  viewMode?: 'rMultiple' | 'profit';
   monthSwitchEnabled?: boolean;
   currentMonth?: Date;
   selectedAccountId?: string | null;
