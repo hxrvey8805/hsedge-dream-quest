@@ -652,8 +652,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                         weekOutcome === 'loss' ? 'text-rose-500' :
                         'text-foreground'
                       }`}>
-                        {weekValue >= 0 ? '+' : ''}{weekValue.toFixed(viewMode === 'pips' ? 1 : 2)}
-                        {viewMode === 'profit' && '$'}
+                        {weekValue >= 0 ? '+' : ''}{weekValue.toFixed(2)}
+                        {viewMode === 'rMultiple' ? 'R' : '$'}
                       </div>
                       <div className="flex items-center justify-center">
                         <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
