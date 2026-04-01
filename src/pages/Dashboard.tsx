@@ -19,7 +19,6 @@ import { EquityCurve } from "@/components/EquityCurve";
 import { VisionModeDashboard } from "@/components/dashboard/VisionModeDashboard";
 import { NetPLCard, FourStatsGrid } from "@/components/dashboard/DashboardStats";
 import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
-import { WeekendReviewCard } from "@/components/dashboard/WeekendReviewCard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -438,16 +437,8 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-            {/* Weekend Review - only on Sat/Sun, tight below header */}
-            {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
-              <div className="mt-1 mb-1">
-                <WeekendReviewCard
-                  selectedAccountId={selectedAccount}
-                  refreshTrigger={refreshTrigger}
-                />
-              </div>
-            )}
-            <TradingCalendar
+            
+            <TradingCalendar 
               onDaySelect={handleDaySelect} 
               onDayAction={handleDayAction}
               viewMode={viewMode} 

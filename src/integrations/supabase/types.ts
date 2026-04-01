@@ -1191,51 +1191,6 @@ export type Database = {
         }
         Relationships: []
       }
-      weekly_reviews: {
-        Row: {
-          best_trade_analysis: string | null
-          best_trade_id: string | null
-          created_at: string
-          id: string
-          next_week_plan: string | null
-          patterns_insights: string | null
-          updated_at: string
-          user_id: string
-          week_start_date: string
-          week_stats: Json | null
-          worst_trade_analysis: string | null
-          worst_trade_id: string | null
-        }
-        Insert: {
-          best_trade_analysis?: string | null
-          best_trade_id?: string | null
-          created_at?: string
-          id?: string
-          next_week_plan?: string | null
-          patterns_insights?: string | null
-          updated_at?: string
-          user_id: string
-          week_start_date: string
-          week_stats?: Json | null
-          worst_trade_analysis?: string | null
-          worst_trade_id?: string | null
-        }
-        Update: {
-          best_trade_analysis?: string | null
-          best_trade_id?: string | null
-          created_at?: string
-          id?: string
-          next_week_plan?: string | null
-          patterns_insights?: string | null
-          updated_at?: string
-          user_id?: string
-          week_start_date?: string
-          week_stats?: Json | null
-          worst_trade_analysis?: string | null
-          worst_trade_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
