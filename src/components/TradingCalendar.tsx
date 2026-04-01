@@ -64,7 +64,7 @@ interface DayStats {
 interface TradingCalendarProps {
   onDaySelect: (date: Date) => void;
   onDayAction?: (date: Date, hasTrades: boolean) => void;
-  viewMode: 'pips' | 'profit';
+  viewMode: 'rMultiple' | 'profit';
   refreshTrigger?: number;
   onRefresh?: () => void;
   selectedStrategy?: string | null;
