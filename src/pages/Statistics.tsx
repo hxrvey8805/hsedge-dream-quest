@@ -70,7 +70,7 @@ const Statistics = () => {
     setLoading(false);
   };
 
-  const isPips = filters.viewMode === 'pips';
+  const isPips = filters.viewMode === 'rMultiple';
 
   const accountPL = useMemo(() => {
     if (filters.monthSwitchEnabled || isPips) return 0;
