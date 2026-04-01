@@ -635,7 +635,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
               const fridayKey = friday.toISOString().split('T')[0];
               const weekSummary = weekSummaries.get(fridayKey);
               if (weekSummary) {
-                const weekValue = viewMode === 'pips' ? weekSummary.totalPips : weekSummary.totalProfit;
+                const weekValue = viewMode === 'rMultiple' ? weekSummary.totalRMultiple : weekSummary.totalProfit;
                 const weekOutcome = weekValue > 0 ? 'profit' : weekValue < 0 ? 'loss' : 'neutral';
                 
                 elements.push(
