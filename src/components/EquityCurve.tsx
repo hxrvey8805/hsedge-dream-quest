@@ -9,6 +9,7 @@ interface Trade {
   trade_date: string;
   profit: number | null;
   pips: number | null;
+  risk_to_pay: number | null;
 }
 
 interface EquityPoint {
@@ -20,7 +21,7 @@ interface EquityPoint {
 
 interface EquityCurveProps {
   refreshTrigger?: number;
-  viewMode?: 'pips' | 'profit';
+  viewMode?: 'rMultiple' | 'profit';
   monthSwitchEnabled?: boolean;
   currentMonth?: Date;
   selectedAccountId?: string | null;
@@ -32,7 +33,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
 
   const chartConfig = {
     cumulative: {
-      label: viewMode === 'pips' ? "Cumulative Pips" : "Cumulative P&L",
+      label: viewMode === 'rMultiple' ? "Cumulative R Multiple" : "Cumulative P&L",
       color: "hsl(var(--primary))",
     },
   };
@@ -50,7 +51,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
 
     let query = supabase
       .from("trades")
-      .select("trade_date, profit, pips")
+      .select("trade_date, profit, pips, risk_to_pay")
       .eq("user_id", user.id);
 
     // Filter by month if enabled
@@ -82,14 +83,14 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
     if (trades && trades.length > 0) {
       let cumulative = 0;
       const equityPoints: EquityPoint[] = trades.map((trade: Trade, index: number) => {
-        const value = viewMode === 'pips' ? (trade.pips || 0) : (trade.profit || 0);
+        const value = viewMode === 'rMultiple' 
+          ? (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null ? trade.profit / trade.risk_to_pay : 0)
+          : (trade.profit || 0);
         cumulative += value;
         const date = parseISO(trade.trade_date);
         return {
           date: format(date, "MMM d"),
-          cumulative: viewMode === 'pips' 
-            ? parseFloat(cumulative.toFixed(1)) 
-            : parseFloat(cumulative.toFixed(2)),
+          cumulative: parseFloat(cumulative.toFixed(2)),
           isToday: isToday(date),
           index,
         };
@@ -186,8 +187,8 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Current</p>
           <p className={`text-sm font-bold ${todayValue >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {viewMode === 'pips' 
-              ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(1)} pips`
+            {viewMode === 'rMultiple' 
+              ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}R`
               : `$${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}`
             }
           </p>
@@ -227,8 +228,8 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-primary" />
                           <span className="text-sm font-medium">
-                            {viewMode === 'pips'
-                              ? `${value >= 0 ? '+' : ''}${value.toFixed(1)} pips`
+                            {viewMode === 'rMultiple'
+                              ? `${value >= 0 ? '+' : ''}${value.toFixed(2)}R`
                               : `$${value >= 0 ? '+' : ''}${value.toFixed(2)}`
                             }
                           </span>

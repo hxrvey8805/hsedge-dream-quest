@@ -45,7 +45,7 @@ const Dashboard = () => {
         accountSwitchEnabled: savedAccountSwitch === 'true',
         selectedAccount: savedSelectedAccount || null,
         currentMonth: savedCurrentMonth ? new Date(savedCurrentMonth) : new Date(),
-        viewMode: (savedViewMode as 'pips' | 'profit') || 'pips',
+        viewMode: (savedViewMode as 'rMultiple' | 'profit') || 'rMultiple',
       };
     } catch (error) {
       return {
@@ -53,13 +53,13 @@ const Dashboard = () => {
         accountSwitchEnabled: false,
         selectedAccount: null,
         currentMonth: new Date(),
-        viewMode: 'pips' as const,
+        viewMode: 'rMultiple' as const,
       };
     }
   };
 
   const persistedState = loadPersistedState();
-  const [viewMode, setViewMode] = useState<'pips' | 'profit'>(persistedState.viewMode);
+  const [viewMode, setViewMode] = useState<'rMultiple' | 'profit'>(persistedState.viewMode);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionPickerOpen, setActionPickerOpen] = useState(false);
@@ -158,12 +158,17 @@ const Dashboard = () => {
       error
     } = await query;
     if (!error && data) {
-      const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const totalRMultiple = data.reduce((sum, trade) => {
+        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
+          return sum + (trade.profit / trade.risk_to_pay);
+        }
+        return sum;
+      }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
       const winRate = data.length > 0 ? wins / data.length * 100 : 0;
       setStats({
-        totalPL: totalPips,
+        totalPL: totalRMultiple,
         totalProfit: totalProfit,
         winRate: Math.round(winRate),
         totalTrades: data.length
@@ -197,12 +202,17 @@ const Dashboard = () => {
     const { data, error } = await query;
 
     if (!error && data) {
-      const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const totalRMultiple = data.reduce((sum, trade) => {
+        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
+          return sum + (trade.profit / trade.risk_to_pay);
+        }
+        return sum;
+      }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
       const winRate = data.length > 0 ? wins / data.length * 100 : 0;
       setMonthStats({
-        totalPL: totalPips,
+        totalPL: totalRMultiple,
         totalProfit: totalProfit,
         winRate: Math.round(winRate),
         totalTrades: data.length
@@ -364,20 +374,20 @@ const Dashboard = () => {
                 </Button>
               </div>
               <div className="relative flex flex-col gap-2 transition-all duration-300">
-                {/* Pips / P&L Toggle */}
+                {/* R Multiple / P&L Toggle */}
                 <button
-                  onClick={() => setViewMode(viewMode === 'pips' ? 'profit' : 'pips')}
+                  onClick={() => setViewMode(viewMode === 'rMultiple' ? 'profit' : 'rMultiple')}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all duration-200 cursor-pointer ${
-                    viewMode === 'pips'
+                    viewMode === 'rMultiple'
                       ? 'bg-primary/10 border-primary/40 text-primary'
                       : 'bg-success/10 border-success/40 text-success'
                   }`}
                 >
                   <BarChart3 className="w-4 h-4" />
                   <span className="text-sm font-semibold tracking-wide">
-                    {viewMode === 'pips' ? 'PIPS' : 'P&L ($)'}
+                    {viewMode === 'rMultiple' ? 'R MULT' : 'P&L ($)'}
                   </span>
-                  <div className={`w-2 h-2 rounded-full ${viewMode === 'pips' ? 'bg-primary' : 'bg-success'}`} />
+                  <div className={`w-2 h-2 rounded-full ${viewMode === 'rMultiple' ? 'bg-primary' : 'bg-success'}`} />
                 </button>
 
                 {/* Month Toggle */}

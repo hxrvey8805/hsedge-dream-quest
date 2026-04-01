@@ -17,7 +17,7 @@ interface DashboardStatsProps {
   monthSwitchEnabled: boolean;
   currentMonth: Date;
   refreshTrigger: number;
-  viewMode?: 'pips' | 'profit';
+  viewMode?: 'rMultiple' | 'profit';
 }
 
 interface Trade {
@@ -193,10 +193,13 @@ const useStats = (props: DashboardStatsProps) => {
       if (error || !trades) return;
 
       const tradesValue = trades.reduce((sum, t) => {
-        return viewMode === 'pips' ? sum + (t.pips || 0) : sum + (t.profit || 0);
+        if (viewMode === 'rMultiple') {
+          return sum + (t.risk_to_pay && t.risk_to_pay > 0 && t.profit ? t.profit / t.risk_to_pay : 0);
+        }
+        return sum + (t.profit || 0);
       }, 0);
 
-      const netPL = viewMode === 'pips' ? tradesValue : accountPL + tradesValue;
+      const netPL = viewMode === 'rMultiple' ? tradesValue : accountPL + tradesValue;
       const wins = trades.filter(t => t.outcome === "Win");
       const losses = trades.filter(t => t.outcome === "Loss");
       const totalTrades = trades.length;
@@ -264,7 +267,7 @@ export const NetPLCard = (props: DashboardStatsProps) => {
         {/* Top label */}
         <div className="relative flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">
-            {viewMode === 'pips' ? 'Net Pips' : 'Net P&L'}
+            {viewMode === 'rMultiple' ? 'Net R Multiple' : 'Net P&L'}
           </span>
           <Tooltip>
             <TooltipTrigger>
@@ -272,8 +275,8 @@ export const NetPLCard = (props: DashboardStatsProps) => {
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[200px]">
               <p className="text-sm">
-                {viewMode === 'pips' 
-                  ? 'Total pips from all trades. Account running P&L is not included in pips view.'
+                {viewMode === 'rMultiple' 
+                  ? 'Cumulative R Multiple from all trades. Calculated as profit / risk for each trade.'
                   : 'Your total profit or loss. Includes manually entered account running P&L plus trades profit from calendar.'}
               </p>
             </TooltipContent>
@@ -289,13 +292,13 @@ export const NetPLCard = (props: DashboardStatsProps) => {
                  : '0 0 30px hsl(348 100% 60% / 0.3)' 
              }}
           >
-            {viewMode === 'pips' 
-              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`
+            {viewMode === 'rMultiple' 
+              ? `${stats.netPL >= 0 ? '+' : ''}${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}R`
               : `${stats.netPL >= 0 ? '+' : ''}$${stats.netPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             }
           </p>
-          {viewMode === 'pips' && (
-            <span className="text-xs text-muted-foreground/50 uppercase tracking-widest mt-1">pips</span>
+          {viewMode === 'rMultiple' && (
+            <span className="text-xs text-muted-foreground/50 uppercase tracking-widest mt-1">r multiple</span>
           )}
         </div>
 

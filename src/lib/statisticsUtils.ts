@@ -11,6 +11,7 @@ export interface Trade {
   outcome: string;
   pips: number | null;
   profit: number | null;
+  risk_to_pay: number | null;
   time_opened: string | null;
   time_closed: string | null;
   buy_sell: string;
@@ -72,9 +73,11 @@ const getHoldTimeMinutes = (t: Trade): number | null => {
 
 const avgOrNull = (arr: number[]): number | null => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
-export const calculateFullStats = (trades: Trade[], viewMode: 'pips' | 'profit'): FullStats => {
-  const isPips = viewMode === 'pips';
-  const getValue = (t: Trade) => isPips ? (t.pips || 0) : (t.profit || 0);
+export const calculateFullStats = (trades: Trade[], viewMode: 'rMultiple' | 'profit'): FullStats => {
+  const isRMultiple = viewMode === 'rMultiple';
+  const getValue = (t: Trade) => isRMultiple 
+    ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) 
+    : (t.profit || 0);
 
   const wins = trades.filter(t => t.outcome === "Win");
   const losses = trades.filter(t => t.outcome === "Loss");
@@ -189,8 +192,8 @@ function cdf(x: number): number {
   return 0.5 * (1.0 + sign * y);
 }
 
-export const formatCurrency = (v: number, isPips: boolean): string => {
-  if (isPips) return `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+export const formatCurrency = (v: number, isRMultiple: boolean): string => {
+  if (isRMultiple) return `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}R`;
   return `${v >= 0 ? '+' : '-'}$${Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 

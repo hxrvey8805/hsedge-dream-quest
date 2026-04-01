@@ -58,13 +58,14 @@ interface DayStats {
   trades: Trade[];
   totalPips: number;
   totalProfit: number;
+  totalRMultiple: number;
   outcome: 'profit' | 'loss' | 'neutral';
 }
 
 interface TradingCalendarProps {
   onDaySelect: (date: Date) => void;
   onDayAction?: (date: Date, hasTrades: boolean) => void;
-  viewMode: 'pips' | 'profit';
+  viewMode: 'rMultiple' | 'profit';
   refreshTrigger?: number;
   onRefresh?: () => void;
   selectedStrategy?: string | null;
@@ -166,13 +167,19 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const dayTrades = trades.filter(t => isSameDay(new Date(t.trade_date), date));
     const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const totalProfit = dayTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const totalRMultiple = dayTrades.reduce((sum, t) => {
+      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
+        return sum + (t.profit / t.risk_to_pay);
+      }
+      return sum;
+    }, 0);
     
-    const value = viewMode === 'pips' ? totalPips : totalProfit;
+    const value = viewMode === 'rMultiple' ? totalRMultiple : totalProfit;
     let outcome: 'profit' | 'loss' | 'neutral' = 'neutral';
     if (value > 0) outcome = 'profit';
     else if (value < 0) outcome = 'loss';
     
-    return { date, trades: dayTrades, totalPips, totalProfit, outcome };
+    return { date, trades: dayTrades, totalPips, totalProfit, totalRMultiple, outcome };
   };
 
   const handleDayClick = (day: Date, dayStats: DayStats) => {
@@ -453,6 +460,12 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const weekProfit = weekTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const weekRMultiple = weekTrades.reduce((sum, t) => {
+      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
+        return sum + (t.profit / t.risk_to_pay);
+      }
+      return sum;
+    }, 0);
     
     // Count trading days (days with trades) in this week
     const weekDays = daysInMonth.filter(day => {
@@ -467,6 +480,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
       weekNumber,
       totalPips: weekPips,
       totalProfit: weekProfit,
+      totalRMultiple: weekRMultiple,
       tradingDays,
       fridayDate
     };
@@ -556,7 +570,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                 const isSelected = selectedDay && isSameDay(day, selectedDay);
                 const isToday = isSameDay(day, new Date());
                 const hasTrades = dayStats.trades.length > 0;
-                const displayValue = viewMode === 'pips' ? dayStats.totalPips : dayStats.totalProfit;
+                const displayValue = viewMode === 'rMultiple' ? dayStats.totalRMultiple : dayStats.totalProfit;
                 
                 // Enhanced styling based on outcome
                 let dayClass = 'border-border/30 bg-card/50';
@@ -595,8 +609,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                           dayStats.outcome === 'loss' ? 'text-rose-500' :
                           'text-foreground'
                         }`}>
-                          {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(viewMode === 'pips' ? 1 : 2)}
-                          {viewMode === 'profit' && '$'}
+                          {displayValue >= 0 ? '+' : ''}{displayValue.toFixed(2)}
+                          {viewMode === 'rMultiple' ? 'R' : '$'}
                         </div>
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground/80 font-medium">
@@ -628,7 +642,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
               const fridayKey = friday.toISOString().split('T')[0];
               const weekSummary = weekSummaries.get(fridayKey);
               if (weekSummary) {
-                const weekValue = viewMode === 'pips' ? weekSummary.totalPips : weekSummary.totalProfit;
+                const weekValue = viewMode === 'rMultiple' ? weekSummary.totalRMultiple : weekSummary.totalProfit;
                 const weekOutcome = weekValue > 0 ? 'profit' : weekValue < 0 ? 'loss' : 'neutral';
                 
                 elements.push(
@@ -645,8 +659,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                         weekOutcome === 'loss' ? 'text-rose-500' :
                         'text-foreground'
                       }`}>
-                        {weekValue >= 0 ? '+' : ''}{weekValue.toFixed(viewMode === 'pips' ? 1 : 2)}
-                        {viewMode === 'profit' && '$'}
+                        {weekValue >= 0 ? '+' : ''}{weekValue.toFixed(2)}
+                        {viewMode === 'rMultiple' ? 'R' : '$'}
                       </div>
                       <div className="flex items-center justify-center">
                         <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
@@ -698,10 +712,10 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                       ? 'bg-rose-500/20 text-rose-500'
                       : 'bg-primary/20 text-primary'
                   }`}>
-                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'pips' ? 'Pips' : 'P&L'}</p>
+                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'rMultiple' ? 'R Mult' : 'P&L'}</p>
                     <p className="text-2xl font-bold">
-                      {selectedDay && viewMode === 'pips' 
-                        ? `${getDayStats(selectedDay).totalPips >= 0 ? '+' : ''}${getDayStats(selectedDay).totalPips.toFixed(1)}`
+                      {selectedDay && viewMode === 'rMultiple' 
+                        ? `${getDayStats(selectedDay).totalRMultiple >= 0 ? '+' : ''}${getDayStats(selectedDay).totalRMultiple.toFixed(2)}R`
                         : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
                       }
                     </p>

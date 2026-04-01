@@ -25,7 +25,7 @@ const loadDashboardFilters = () => {
       accountSwitchEnabled,
       selectedAccountId: accountSwitchEnabled ? (savedAccount || null) : null,
       currentMonth: savedMonth ? new Date(savedMonth) : new Date(),
-      viewMode: (savedViewMode as 'pips' | 'profit') || 'profit',
+      viewMode: (savedViewMode as 'rMultiple' | 'profit') || 'profit',
     };
   } catch {
     return { monthSwitchEnabled: false, accountSwitchEnabled: false, selectedAccountId: null, currentMonth: new Date(), viewMode: 'profit' as const };
@@ -70,7 +70,7 @@ const Statistics = () => {
     setLoading(false);
   };
 
-  const isPips = filters.viewMode === 'pips';
+  const isPips = filters.viewMode === 'rMultiple';
 
   const accountPL = useMemo(() => {
     if (filters.monthSwitchEnabled || isPips) return 0;
@@ -85,7 +85,7 @@ const Statistics = () => {
 
   const filterLabel = useMemo(() => {
     const parts: string[] = [];
-    if (isPips) parts.push('Pips mode');
+    if (isPips) parts.push('R Multiple mode');
     if (filters.monthSwitchEnabled) parts.push(format(filters.currentMonth, 'MMMM yyyy'));
     if (filters.selectedAccountId) {
       const acct = accounts.find(a => a.id === filters.selectedAccountId);
@@ -108,7 +108,7 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? (t.pips || 0) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
       return { name: day, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
   }, [trades, isPips]);
@@ -120,7 +120,7 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? (t.pips || 0) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
       return { name: `Q${q}`, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
   }, [trades, isPips]);
@@ -188,7 +188,7 @@ const Statistics = () => {
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Win Rate</span><span className="font-bold text-sm">{s.winRate.toFixed(1)}%</span></div>
-                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
+                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'R Mult' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
                       <div className="flex justify-between text-[10px] pt-1 border-t border-border/30">
                         <span className="text-success">{s.wins}W</span><span className="text-muted-foreground">{s.breakeven}BE</span><span className="text-destructive">{s.losses}L</span>
                       </div>
@@ -209,7 +209,7 @@ const Statistics = () => {
                     </div>
                     <div className="space-y-1.5">
                       <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Win Rate</span><span className="font-bold text-sm">{s.winRate.toFixed(1)}%</span></div>
-                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
+                      <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">{isPips ? 'R Mult' : 'P&L'}</span><span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span></div>
                       <div className="flex justify-between text-[10px] pt-1 border-t border-border/30">
                         <span className="text-success">{s.wins}W</span><span className="text-muted-foreground">{s.breakeven}BE</span><span className="text-destructive">{s.losses}L</span>
                       </div>

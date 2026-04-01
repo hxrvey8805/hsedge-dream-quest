@@ -38,7 +38,7 @@ interface SetupStats {
 export const StrategyCards = ({ trades, isPips }: Props) => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [expandedSetup, setExpandedSetup] = useState<string | null>(null);
-  const viewMode = isPips ? 'pips' as const : 'profit' as const;
+  const viewMode = isPips ? 'rMultiple' as const : 'profit' as const;
 
   // Fetch playbook setups for name resolution
   const { data: setups = [] } = useQuery({
@@ -142,7 +142,7 @@ export const StrategyCards = ({ trades, isPips }: Props) => {
                         <p className={`font-bold ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>{stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-muted-foreground text-[10px]">{isPips ? 'Pips' : 'P&L'}</span>
+                        <span className="text-muted-foreground text-[10px]">{isPips ? 'R Mult' : 'P&L'}</span>
                         <p className={`font-bold ${stats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(stats.totalProfit)}</p>
                       </div>
                     </div>
@@ -186,7 +186,7 @@ export const StrategyCards = ({ trades, isPips }: Props) => {
                             <span className="text-right">Trades</span>
                             <span className="text-right">Win %</span>
                             <span className="text-right">PF</span>
-                            <span className="text-right">{isPips ? 'Pips' : 'P&L'}</span>
+                            <span className="text-right">{isPips ? 'R Mult' : 'P&L'}</span>
                           </div>
 
                           {/* Setup Rows */}

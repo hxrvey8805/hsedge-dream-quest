@@ -20,7 +20,7 @@ interface StatSummary {
 }
 
 export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => {
-  const viewMode = isPips ? 'pips' as const : 'profit' as const;
+  const viewMode = isPips ? 'rMultiple' as const : 'profit' as const;
 
   const segments = useMemo(() => {
     const map = new Map<string, Trade[]>();
@@ -32,7 +32,7 @@ export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => 
       const wins = tr.filter(t => t.outcome === "Win").length;
       const losses = tr.filter(t => t.outcome === "Loss").length;
       const breakeven = tr.filter(t => t.outcome === "Break Even").length;
-      const totalProfit = tr.reduce((s, t) => s + (isPips ? (t.pips || 0) : (t.profit || 0)), 0);
+      const totalProfit = tr.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
       return { name, wins, losses, breakeven, totalTrades: tr.length, winRate: tr.length > 0 ? (wins / tr.length) * 100 : 0, totalProfit };
     });
   }, [trades, category, viewMode]);
@@ -55,7 +55,7 @@ export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => 
               <span className="font-bold text-sm">{s.winRate.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[10px] text-muted-foreground">{isPips ? 'Pips' : 'P&L'}</span>
+              <span className="text-[10px] text-muted-foreground">{isPips ? 'R Mult' : 'P&L'}</span>
               <span className={`font-bold text-sm ${s.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(s.totalProfit)}</span>
             </div>
             <div className="flex justify-between text-[10px] pt-1 border-t border-border/30">

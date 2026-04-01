@@ -28,7 +28,7 @@ export const PerformanceOverview = ({ stats, isPips, netPL, accountPL }: Props) 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <Card className="p-4 bg-card border-border/50 col-span-2 md:col-span-1">
             <div className="flex items-center gap-1.5 mb-1">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{isPips ? 'Net Pips' : 'Net P&L'}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{isPips ? 'Net R Multiple' : 'Net P&L'}</p>
               {!isPips && accountPL !== 0 && (
                 <Tooltip>
                   <TooltipTrigger><Info className="w-3 h-3 text-muted-foreground/50" /></TooltipTrigger>
@@ -48,7 +48,7 @@ export const PerformanceOverview = ({ stats, isPips, netPL, accountPL }: Props) 
             value={stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}
             color={stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}
           />
-          <KPICard label={isPips ? 'Avg Pips/Trade' : 'Avg Trade P&L'} value={fmt(stats.avgProfit)} color={stats.avgProfit >= 0 ? 'text-success' : 'text-destructive'} />
+          <KPICard label={isPips ? 'Avg R/Trade' : 'Avg Trade P&L'} value={fmt(stats.avgProfit)} color={stats.avgProfit >= 0 ? 'text-success' : 'text-destructive'} />
           <KPICard label="Largest Win" value={fmt(stats.largestWin)} color="text-success" />
           <KPICard label="Largest Loss" value={stats.largestLoss !== 0 ? fmt(stats.largestLoss) : '$0.00'} color="text-destructive" />
           <KPICard label="Max Consec. Wins" value={String(stats.maxConsecutiveWins)} color="text-success" />
