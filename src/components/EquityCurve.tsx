@@ -187,8 +187,8 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Current</p>
           <p className={`text-sm font-bold ${todayValue >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {viewMode === 'pips' 
-              ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(1)} pips`
+            {viewMode === 'rMultiple' 
+              ? `${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}R`
               : `$${todayValue >= 0 ? '+' : ''}${todayValue.toFixed(2)}`
             }
           </p>
