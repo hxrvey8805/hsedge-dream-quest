@@ -158,12 +158,17 @@ const Dashboard = () => {
       error
     } = await query;
     if (!error && data) {
-      const totalPips = data.reduce((sum, trade) => sum + (trade.pips || 0), 0);
+      const totalRMultiple = data.reduce((sum, trade) => {
+        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
+          return sum + (trade.profit / trade.risk_to_pay);
+        }
+        return sum;
+      }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
       const winRate = data.length > 0 ? wins / data.length * 100 : 0;
       setStats({
-        totalPL: totalPips,
+        totalPL: totalRMultiple,
         totalProfit: totalProfit,
         winRate: Math.round(winRate),
         totalTrades: data.length
