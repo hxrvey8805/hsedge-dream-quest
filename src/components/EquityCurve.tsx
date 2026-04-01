@@ -51,7 +51,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
 
     let query = supabase
       .from("trades")
-      .select("trade_date, profit, pips")
+      .select("trade_date, profit, pips, risk_to_pay")
       .eq("user_id", user.id);
 
     // Filter by month if enabled
