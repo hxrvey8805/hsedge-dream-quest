@@ -11,6 +11,7 @@ export interface Trade {
   outcome: string;
   pips: number | null;
   profit: number | null;
+  risk_to_pay: number | null;
   time_opened: string | null;
   time_closed: string | null;
   buy_sell: string;
