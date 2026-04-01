@@ -366,6 +366,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         pips: calculatedPips,
         profit: calculatedProfit,
         risk_reward_ratio: rrRatio,
+        risk_to_pay: sizeInputMode === 'risk' && riskAmount ? parseFloat(riskAmount) : (stopLoss && entryPrice && finalSize ? Math.abs(parseFloat(entryPrice) - parseFloat(stopLoss)) * finalSize : null),
         outcome: calculatedProfit > 0 ? "Win" : calculatedProfit < 0 ? "Loss" : "Break Even",
         notes: notes || null,
         account_id: selectedAccountId || null,
