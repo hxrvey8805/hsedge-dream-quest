@@ -83,14 +83,14 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
     if (trades && trades.length > 0) {
       let cumulative = 0;
       const equityPoints: EquityPoint[] = trades.map((trade: Trade, index: number) => {
-        const value = viewMode === 'pips' ? (trade.pips || 0) : (trade.profit || 0);
+        const value = viewMode === 'rMultiple' 
+          ? (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null ? trade.profit / trade.risk_to_pay : 0)
+          : (trade.profit || 0);
         cumulative += value;
         const date = parseISO(trade.trade_date);
         return {
           date: format(date, "MMM d"),
-          cumulative: viewMode === 'pips' 
-            ? parseFloat(cumulative.toFixed(1)) 
-            : parseFloat(cumulative.toFixed(2)),
+          cumulative: parseFloat(cumulative.toFixed(2)),
           isToday: isToday(date),
           index,
         };
