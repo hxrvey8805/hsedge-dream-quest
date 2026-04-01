@@ -142,7 +142,7 @@ export const StrategyCards = ({ trades, isPips }: Props) => {
                         <p className={`font-bold ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>{stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-muted-foreground text-[10px]">{isPips ? 'Pips' : 'P&L'}</span>
+                        <span className="text-muted-foreground text-[10px]">{isPips ? 'R Mult' : 'P&L'}</span>
                         <p className={`font-bold ${stats.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(stats.totalProfit)}</p>
                       </div>
                     </div>
