@@ -17,7 +17,7 @@ interface DashboardStatsProps {
   monthSwitchEnabled: boolean;
   currentMonth: Date;
   refreshTrigger: number;
-  viewMode?: 'pips' | 'profit';
+  viewMode?: 'rMultiple' | 'profit';
 }
 
 interface Trade {
