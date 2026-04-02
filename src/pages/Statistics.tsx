@@ -6,6 +6,8 @@ import { Clock, BarChart3, Calendar as CalendarIcon, PieChart } from "lucide-rea
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 import { Trade, calculateFullStats, formatCurrency } from "@/lib/statisticsUtils";
 import { PerformanceOverview } from "@/components/statistics/PerformanceOverview";
 import { TradeBreakdown } from "@/components/statistics/TradeBreakdown";
