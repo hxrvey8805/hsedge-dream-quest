@@ -23,6 +23,7 @@ interface StatSummary {
 
 export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => {
   const viewMode = isPips ? 'rMultiple' as const : 'profit' as const;
+  const { settings } = useUserSettings();
 
   const segments = useMemo(() => {
     const map = new Map<string, Trade[]>();
