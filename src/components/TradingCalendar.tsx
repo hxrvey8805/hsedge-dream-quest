@@ -140,13 +140,18 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
+    
+    // Expand fetch range to include trades from adjacent months that fall in visible weeks
+    // e.g. if April 1 is a Wednesday, we need Mon Mar 30 and Tue Mar 31 trades for the week summary
+    const fetchStart = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday of first visible week
+    const fetchEnd = endOfWeek(monthEnd, { weekStartsOn: 1 }); // Sunday of last visible week
 
     let query = supabase
       .from("trades")
       .select("*")
       .eq("user_id", user.id)
-      .gte("trade_date", monthStart.toISOString().split('T')[0])
-      .lte("trade_date", monthEnd.toISOString().split('T')[0]);
+      .gte("trade_date", fetchStart.toISOString().split('T')[0])
+      .lte("trade_date", fetchEnd.toISOString().split('T')[0]);
 
     if (selectedStrategy) {
       query = query.eq("strategy_type", selectedStrategy);
@@ -455,8 +460,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     
     const weekTrades = trades.filter(t => {
       const tradeDate = new Date(t.trade_date);
-      // Only include trades that fall within both the week AND the current month
-      return tradeDate >= weekStart && tradeDate <= weekEnd && tradeDate >= monthStart && tradeDate <= monthEnd;
+      // Include all trades within the week (Mon-Sun), even if some days fall in the previous/next month
+      return tradeDate >= weekStart && tradeDate <= weekEnd;
     });
     
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
