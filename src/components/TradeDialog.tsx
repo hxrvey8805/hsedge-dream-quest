@@ -71,6 +71,7 @@ const TIMEFRAMES = ["10S", "1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as con
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
   const { accounts } = useAccounts();
   const { timezone } = useUserTimezone();
+  const { settings } = useUserSettings();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [assetClass, setAssetClass] = useState<string>("Forex");
