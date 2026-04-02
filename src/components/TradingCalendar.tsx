@@ -87,6 +87,7 @@ const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
