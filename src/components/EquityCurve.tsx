@@ -87,7 +87,8 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
       let cumulative = 0;
       const equityPoints: EquityPoint[] = trades.map((trade: Trade, index: number) => {
         const value = viewMode === 'rMultiple' 
-          ? (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null ? trade.profit / trade.risk_to_pay : 0)
+          ? calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount)
+          : (trade.profit || 0);
           : (trade.profit || 0);
         cumulative += value;
         const date = parseISO(trade.trade_date);
