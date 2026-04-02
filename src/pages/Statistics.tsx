@@ -83,7 +83,7 @@ const Statistics = () => {
     return accounts.filter(a => a.type === 'personal' || a.type === 'funded').reduce((s, a) => s + (a.running_pl || 0), 0);
   }, [filters, accounts, isPips]);
 
-  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode), [trades, filters.viewMode]);
+  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode, settings.defaultRiskAmount), [trades, filters.viewMode, settings.defaultRiskAmount]);
   const netPL = isPips ? fullStats.totalProfit : accountPL + fullStats.totalProfit;
 
   const filterLabel = useMemo(() => {
