@@ -1,4 +1,5 @@
 // Shared utility functions for Statistics page metrics
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 export interface Trade {
   id: string;
