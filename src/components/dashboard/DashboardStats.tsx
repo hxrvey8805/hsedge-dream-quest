@@ -390,9 +390,19 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
           </div>
           <div className="flex flex-col mt-auto">
             <p className="text-2xl font-extrabold tracking-tight mb-2">
-              <span className="text-success">${stats.avgWinTrade.toFixed(0)}</span>
-              <span className="text-muted-foreground mx-1.5 text-lg">/</span>
-              <span className="text-destructive">-${stats.avgLossTrade.toFixed(0)}</span>
+              {props.viewMode === 'rMultiple' ? (
+                <>
+                  <span className="text-success">+{stats.avgWinTrade.toFixed(2)}R</span>
+                  <span className="text-muted-foreground mx-1.5 text-lg">/</span>
+                  <span className="text-destructive">-{stats.avgLossTrade.toFixed(2)}R</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-success">${stats.avgWinTrade.toFixed(0)}</span>
+                  <span className="text-muted-foreground mx-1.5 text-lg">/</span>
+                  <span className="text-destructive">-${stats.avgLossTrade.toFixed(0)}</span>
+                </>
+              )}
             </p>
             <AvgWinLossBar avgWin={stats.avgWinTrade} avgLoss={stats.avgLossTrade} />
           </div>

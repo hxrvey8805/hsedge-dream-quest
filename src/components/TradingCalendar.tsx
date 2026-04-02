@@ -455,7 +455,8 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     
     const weekTrades = trades.filter(t => {
       const tradeDate = new Date(t.trade_date);
-      return tradeDate >= weekStart && tradeDate <= weekEnd;
+      // Only include trades that fall within both the week AND the current month
+      return tradeDate >= weekStart && tradeDate <= weekEnd && tradeDate >= monthStart && tradeDate <= monthEnd;
     });
     
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
