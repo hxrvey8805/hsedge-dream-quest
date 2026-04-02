@@ -209,8 +209,11 @@ const useStats = (props: DashboardStatsProps) => {
       const winCount = wins.length;
       const lossCount = losses.length;
       const tradeWinPercent = totalTrades > 0 ? (winCount / totalTrades) * 100 : 0;
-      const grossProfit = wins.reduce((sum, t) => sum + (t.profit || 0), 0);
-      const grossLoss = Math.abs(losses.reduce((sum, t) => sum + (t.profit || 0), 0));
+      const getValue = (t: any) => viewMode === 'rMultiple'
+        ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount)
+        : (t.profit || 0);
+      const grossProfit = wins.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
+      const grossLoss = losses.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
       const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
       const avgWinTrade = winCount > 0 ? grossProfit / winCount : 0;
       const avgLossTrade = lossCount > 0 ? grossLoss / lossCount : 0;
