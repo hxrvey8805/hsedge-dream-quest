@@ -161,10 +161,7 @@ const Dashboard = () => {
     } = await query;
     if (!error && data) {
       const totalRMultiple = data.reduce((sum, trade) => {
-        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
-          return sum + (trade.profit / trade.risk_to_pay);
-        }
-        return sum;
+        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount);
       }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
