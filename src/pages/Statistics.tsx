@@ -6,6 +6,8 @@ import { Clock, BarChart3, Calendar as CalendarIcon, PieChart } from "lucide-rea
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 import { Trade, calculateFullStats, formatCurrency } from "@/lib/statisticsUtils";
 import { PerformanceOverview } from "@/components/statistics/PerformanceOverview";
 import { TradeBreakdown } from "@/components/statistics/TradeBreakdown";
@@ -38,6 +40,7 @@ const Statistics = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(loadDashboardFilters);
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
 
   useEffect(() => {
     const handleFocus = () => setFilters(loadDashboardFilters());
@@ -80,7 +83,7 @@ const Statistics = () => {
     return accounts.filter(a => a.type === 'personal' || a.type === 'funded').reduce((s, a) => s + (a.running_pl || 0), 0);
   }, [filters, accounts, isPips]);
 
-  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode), [trades, filters.viewMode]);
+  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode, settings.defaultRiskAmount), [trades, filters.viewMode, settings.defaultRiskAmount]);
   const netPL = isPips ? fullStats.totalProfit : accountPL + fullStats.totalProfit;
 
   const filterLabel = useMemo(() => {
@@ -108,7 +111,7 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
       return { name: day, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
   }, [trades, isPips]);
@@ -120,7 +123,7 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
       return { name: `Q${q}`, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
   }, [trades, isPips]);

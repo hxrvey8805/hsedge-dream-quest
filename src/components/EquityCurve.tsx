@@ -4,6 +4,8 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Dot } from "rechart
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
 import { format, isToday, parseISO, startOfMonth, endOfMonth } from "date-fns";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 interface Trade {
   trade_date: string;
@@ -30,6 +32,7 @@ interface EquityCurveProps {
 export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEnabled = false, currentMonth = new Date(), selectedAccountId = null }: EquityCurveProps) => {
   const [data, setData] = useState<EquityPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useUserSettings();
 
   const chartConfig = {
     cumulative: {
@@ -84,7 +87,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
       let cumulative = 0;
       const equityPoints: EquityPoint[] = trades.map((trade: Trade, index: number) => {
         const value = viewMode === 'rMultiple' 
-          ? (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null ? trade.profit / trade.risk_to_pay : 0)
+          ? calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount)
           : (trade.profit || 0);
         cumulative += value;
         const date = parseISO(trade.trade_date);

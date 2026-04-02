@@ -22,6 +22,8 @@ import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -81,6 +83,7 @@ const Dashboard = () => {
   const [clearTradesOpen, setClearTradesOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -159,10 +162,7 @@ const Dashboard = () => {
     } = await query;
     if (!error && data) {
       const totalRMultiple = data.reduce((sum, trade) => {
-        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
-          return sum + (trade.profit / trade.risk_to_pay);
-        }
-        return sum;
+        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount);
       }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
@@ -203,10 +203,7 @@ const Dashboard = () => {
 
     if (!error && data) {
       const totalRMultiple = data.reduce((sum, trade) => {
-        if (trade.risk_to_pay && trade.risk_to_pay > 0 && trade.profit !== null) {
-          return sum + (trade.profit / trade.risk_to_pay);
-        }
-        return sum;
+        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount);
       }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;

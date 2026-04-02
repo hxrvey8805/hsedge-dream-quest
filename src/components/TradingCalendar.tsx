@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { calculateRMultiple } from "@/lib/rMultiple";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from "date-fns";
 import { ChevronLeft, ChevronRight, Trash2, Edit2, Save, X, Globe, BarChart3, Activity, Zap, ArrowUpRight, ArrowDownRight, ArrowRight, Plus, LineChart, ClipboardList } from "lucide-react";
@@ -85,6 +87,7 @@ const TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as const;
 
 export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTrigger, onRefresh, selectedStrategy, onMonthChange, selectedAccountId }: TradingCalendarProps) => {
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -168,10 +171,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const totalProfit = dayTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const totalRMultiple = dayTrades.reduce((sum, t) => {
-      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
-        return sum + (t.profit / t.risk_to_pay);
-      }
-      return sum;
+      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
     }, 0);
     
     const value = viewMode === 'rMultiple' ? totalRMultiple : totalProfit;
@@ -461,10 +461,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const weekProfit = weekTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const weekRMultiple = weekTrades.reduce((sum, t) => {
-      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
-        return sum + (t.profit / t.risk_to_pay);
-      }
-      return sum;
+      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
     }, 0);
     
     // Count trading days (days with trades) in this week

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 interface Account {
   id: string;
@@ -151,6 +153,7 @@ const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number })
 // Custom hook for shared stats logic
 const useStats = (props: DashboardStatsProps) => {
   const { accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode = 'profit' } = props;
+  const { settings } = useUserSettings();
   const [stats, setStats] = useState<Stats>({
     netPL: 0, tradeWinPercent: 0, profitFactor: 0, dayWinPercent: 0,
     avgWinTrade: 0, avgLossTrade: 0, winCount: 0, lossCount: 0, winDays: 0, lossDays: 0
@@ -194,7 +197,7 @@ const useStats = (props: DashboardStatsProps) => {
 
       const tradesValue = trades.reduce((sum, t) => {
         if (viewMode === 'rMultiple') {
-          return sum + (t.risk_to_pay && t.risk_to_pay > 0 && t.profit ? t.profit / t.risk_to_pay : 0);
+          return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
         }
         return sum + (t.profit || 0);
       }, 0);
