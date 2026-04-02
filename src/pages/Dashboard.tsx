@@ -83,6 +83,7 @@ const Dashboard = () => {
   const [clearTradesOpen, setClearTradesOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
