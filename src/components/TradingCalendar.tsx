@@ -453,10 +453,14 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const weekStart = startOfWeek(fridayDate, { weekStartsOn: 1 }); // Monday
     const weekEnd = endOfWeek(fridayDate, { weekStartsOn: 1 }); // Sunday
     
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+    const monthStartStr = format(monthStart, 'yyyy-MM-dd');
+    const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+    
     const weekTrades = trades.filter(t => {
-      const tradeDate = new Date(t.trade_date);
-      // Only include trades that fall within both the week AND the current month
-      return tradeDate >= weekStart && tradeDate <= weekEnd && tradeDate >= monthStart && tradeDate <= monthEnd;
+      const d = t.trade_date; // already yyyy-MM-dd string
+      return d >= weekStartStr && d <= weekEndStr && d >= monthStartStr && d <= monthEndStr;
     });
     
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
