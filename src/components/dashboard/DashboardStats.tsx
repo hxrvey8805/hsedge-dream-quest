@@ -209,8 +209,11 @@ const useStats = (props: DashboardStatsProps) => {
       const winCount = wins.length;
       const lossCount = losses.length;
       const tradeWinPercent = totalTrades > 0 ? (winCount / totalTrades) * 100 : 0;
-      const grossProfit = wins.reduce((sum, t) => sum + (t.profit || 0), 0);
-      const grossLoss = Math.abs(losses.reduce((sum, t) => sum + (t.profit || 0), 0));
+      const getValue = (t: any) => viewMode === 'rMultiple'
+        ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount)
+        : (t.profit || 0);
+      const grossProfit = wins.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
+      const grossLoss = losses.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
       const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
       const avgWinTrade = winCount > 0 ? grossProfit / winCount : 0;
       const avgLossTrade = lossCount > 0 ? grossLoss / lossCount : 0;
@@ -387,9 +390,19 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
           </div>
           <div className="flex flex-col mt-auto">
             <p className="text-2xl font-extrabold tracking-tight mb-2">
-              <span className="text-success">${stats.avgWinTrade.toFixed(0)}</span>
-              <span className="text-muted-foreground mx-1.5 text-lg">/</span>
-              <span className="text-destructive">-${stats.avgLossTrade.toFixed(0)}</span>
+              {props.viewMode === 'rMultiple' ? (
+                <>
+                  <span className="text-success">+{stats.avgWinTrade.toFixed(2)}R</span>
+                  <span className="text-muted-foreground mx-1.5 text-lg">/</span>
+                  <span className="text-destructive">-{stats.avgLossTrade.toFixed(2)}R</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-success">${stats.avgWinTrade.toFixed(0)}</span>
+                  <span className="text-muted-foreground mx-1.5 text-lg">/</span>
+                  <span className="text-destructive">-${stats.avgLossTrade.toFixed(0)}</span>
+                </>
+              )}
             </p>
             <AvgWinLossBar avgWin={stats.avgWinTrade} avgLoss={stats.avgLossTrade} />
           </div>
