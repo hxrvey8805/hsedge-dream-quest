@@ -153,6 +153,7 @@ const AvgWinLossBar = ({ avgWin, avgLoss }: { avgWin: number; avgLoss: number })
 // Custom hook for shared stats logic
 const useStats = (props: DashboardStatsProps) => {
   const { accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode = 'profit' } = props;
+  const { settings } = useUserSettings();
   const [stats, setStats] = useState<Stats>({
     netPL: 0, tradeWinPercent: 0, profitFactor: 0, dayWinPercent: 0,
     avgWinTrade: 0, avgLossTrade: 0, winCount: 0, lossCount: 0, winDays: 0, lossDays: 0
