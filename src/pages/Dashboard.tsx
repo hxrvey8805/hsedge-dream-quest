@@ -22,6 +22,8 @@ import { CSVTradeUpload } from "@/components/trades/CSVTradeUpload";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
