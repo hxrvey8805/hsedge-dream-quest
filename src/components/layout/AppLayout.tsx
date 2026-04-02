@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard" },
@@ -20,6 +21,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -73,6 +75,13 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
               <span className="text-sm text-muted-foreground">{userEmail}</span>
             )}
             <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            <button
               onClick={handleSignOut}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
               title="Sign Out"
@@ -80,6 +89,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
               <LogOut className="h-4 w-4" />
             </button>
           </div>
+          <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
       </header>
       <main className="flex-1 w-full">

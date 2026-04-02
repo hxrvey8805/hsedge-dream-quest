@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { detectSession } from "@/lib/sessionDetection";
 
 interface PlaybookSetup {
@@ -70,6 +71,7 @@ const TIMEFRAMES = ["10S", "1M", "5M", "15M", "30M", "1H", "4H", "Daily"] as con
 export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, selectedAccountId }: TradeDialogProps) => {
   const { accounts } = useAccounts();
   const { timezone } = useUserTimezone();
+  const { settings } = useUserSettings();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [assetClass, setAssetClass] = useState<string>("Forex");
@@ -111,8 +113,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setTimeClosed("");
       setNotes("");
       setSetupId("");
-      setSizeInputMode('units');
-      setRiskAmount("");
+      setSizeInputMode(settings.defaultRiskAmount ? 'risk' : 'units');
+      setRiskAmount(settings.defaultRiskAmount ? settings.defaultRiskAmount.toString() : "");
     } else {
       fetchPlaybooks();
       fetchSetups();

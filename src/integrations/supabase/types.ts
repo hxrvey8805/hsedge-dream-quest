@@ -1120,7 +1120,9 @@ export type Database = {
       user_profiles: {
         Row: {
           created_at: string
+          currency: string | null
           current_streak_days: number
+          default_risk_amount: number | null
           experience_points: number
           last_trade_date: string | null
           level: number
@@ -1134,7 +1136,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string | null
           current_streak_days?: number
+          default_risk_amount?: number | null
           experience_points?: number
           last_trade_date?: string | null
           level?: number
@@ -1148,7 +1152,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string | null
           current_streak_days?: number
+          default_risk_amount?: number | null
           experience_points?: number
           last_trade_date?: string | null
           level?: number
