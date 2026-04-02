@@ -32,6 +32,7 @@ interface EquityCurveProps {
 export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEnabled = false, currentMonth = new Date(), selectedAccountId = null }: EquityCurveProps) => {
   const [data, setData] = useState<EquityPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useUserSettings();
 
   const chartConfig = {
     cumulative: {
