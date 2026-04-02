@@ -111,7 +111,7 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null ? t.profit / t.risk_to_pay : 0) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
       return { name: day, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
   }, [trades, isPips]);
