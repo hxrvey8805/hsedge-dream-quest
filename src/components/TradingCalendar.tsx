@@ -461,10 +461,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const weekProfit = weekTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const weekRMultiple = weekTrades.reduce((sum, t) => {
-      if (t.risk_to_pay && t.risk_to_pay > 0 && t.profit !== null) {
-        return sum + (t.profit / t.risk_to_pay);
-      }
-      return sum;
+      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
     }, 0);
     
     // Count trading days (days with trades) in this week
