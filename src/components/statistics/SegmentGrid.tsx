@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Trade, formatCurrency } from "@/lib/statisticsUtils";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 import { useMemo } from "react";
 
 interface Props {
