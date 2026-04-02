@@ -75,6 +75,13 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
               <span className="text-sm text-muted-foreground">{userEmail}</span>
             )}
             <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            <button
               onClick={handleSignOut}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
               title="Sign Out"
@@ -82,6 +89,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
               <LogOut className="h-4 w-4" />
             </button>
           </div>
+          <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
         </div>
       </header>
       <main className="flex-1 w-full">
