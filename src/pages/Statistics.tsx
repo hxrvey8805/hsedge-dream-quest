@@ -40,6 +40,7 @@ const Statistics = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(loadDashboardFilters);
   const { accounts } = useAccounts();
+  const { settings } = useUserSettings();
 
   useEffect(() => {
     const handleFocus = () => setFilters(loadDashboardFilters());
