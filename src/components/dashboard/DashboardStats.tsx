@@ -196,7 +196,7 @@ const useStats = (props: DashboardStatsProps) => {
 
       const tradesValue = trades.reduce((sum, t) => {
         if (viewMode === 'rMultiple') {
-          return sum + (t.risk_to_pay && t.risk_to_pay > 0 && t.profit ? t.profit / t.risk_to_pay : 0);
+          return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
         }
         return sum + (t.profit || 0);
       }, 0);
