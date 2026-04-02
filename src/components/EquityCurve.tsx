@@ -4,6 +4,8 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Dot } from "rechart
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
 import { format, isToday, parseISO, startOfMonth, endOfMonth } from "date-fns";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 interface Trade {
   trade_date: string;
