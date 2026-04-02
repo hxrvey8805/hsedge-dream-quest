@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { calculateRMultiple } from "@/lib/rMultiple";
 
 interface Account {
   id: string;
