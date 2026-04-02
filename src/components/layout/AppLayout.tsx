@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/tp-logo.png";
 import { motion, AnimatePresence } from "framer-motion";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard" },
