@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { detectSession } from "@/lib/sessionDetection";
 
 interface PlaybookSetup {
