@@ -113,8 +113,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setTimeClosed("");
       setNotes("");
       setSetupId("");
-      setSizeInputMode('units');
-      setRiskAmount("");
+      setSizeInputMode(settings.defaultRiskAmount ? 'risk' : 'units');
+      setRiskAmount(settings.defaultRiskAmount ? settings.defaultRiskAmount.toString() : "");
     } else {
       fetchPlaybooks();
       fetchSetups();
