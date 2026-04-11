@@ -1,5 +1,7 @@
 /**
- * Calculate R Multiple for a trade, falling back to default 1R if trade has no risk_to_pay set.
+ * Calculate R Multiple for a trade.
+ * When a default 1R amount is configured, it becomes the source of truth app-wide.
+ * Otherwise, fall back to the trade's saved risk amount.
  */
 export function calculateRMultiple(
   profit: number | null | undefined,
@@ -7,9 +9,11 @@ export function calculateRMultiple(
   defaultRiskAmount: number | null | undefined
 ): number {
   if (profit === null || profit === undefined) return 0;
-  
-  const risk = (riskToPay && riskToPay > 0) ? riskToPay : (defaultRiskAmount && defaultRiskAmount > 0 ? defaultRiskAmount : null);
-  
+
+  const defaultRisk = defaultRiskAmount && defaultRiskAmount > 0 ? defaultRiskAmount : null;
+  const tradeRisk = riskToPay && riskToPay > 0 ? riskToPay : null;
+  const risk = defaultRisk ?? tradeRisk;
+
   if (!risk) return 0;
   return profit / risk;
 }
