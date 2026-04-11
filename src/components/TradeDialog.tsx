@@ -1018,6 +1018,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Up to 5 images</p>
+                </div>
+
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes & Reflections</Label>
                   <Textarea 
