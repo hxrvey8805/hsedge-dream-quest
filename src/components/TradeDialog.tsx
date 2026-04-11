@@ -171,6 +171,39 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (screenshots.length + files.length > 5) {
+      toast.error("Maximum 5 images per trade");
+      return;
+    }
+    setScreenshots(prev => [...prev, ...files]);
+    setScreenshotPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeScreenshot = (index: number) => {
+    URL.revokeObjectURL(screenshotPreviews[index]);
+    setScreenshots(prev => prev.filter((_, i) => i !== index));
+    setScreenshotPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadScreenshots = async (userId: string, tradeId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of screenshots) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${userId}/${tradeId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('review-screenshots').upload(path, file);
+      if (error) {
+        console.error('Upload error:', error);
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from('review-screenshots').getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
+  };
+
   const filteredSetups = allSetups.filter(s => s.playbook_id === selectedPlaybookId);
   const selectedPlaybookName = playbooks.find(p => p.id === selectedPlaybookId)?.name || "";
 
