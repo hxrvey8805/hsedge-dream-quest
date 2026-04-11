@@ -1074,7 +1074,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                 className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity min-w-[140px]"
               >
                 {loading ? (
-                  <>Saving...</>
+                  <>{uploadingImages ? "Uploading images..." : "Saving..."}</>
                 ) : (
                   <>
                     <Trophy className="h-4 w-4" />
