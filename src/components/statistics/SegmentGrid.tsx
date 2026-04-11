@@ -38,7 +38,7 @@ export const SegmentGrid = ({ trades, isPips, category, icon: Icon }: Props) => 
       const totalProfit = tr.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
       return { name, wins, losses, breakeven, totalTrades: tr.length, winRate: tr.length > 0 ? (wins / tr.length) * 100 : 0, totalProfit };
     });
-  }, [trades, category, viewMode]);
+  }, [trades, category, viewMode, settings.defaultRiskAmount]);
 
   const fmt = (v: number) => formatCurrency(v, isPips);
 

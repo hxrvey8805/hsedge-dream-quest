@@ -43,7 +43,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
 
   useEffect(() => {
     fetchEquityData();
-  }, [refreshTrigger, viewMode, monthSwitchEnabled, currentMonth, selectedAccountId]);
+  }, [refreshTrigger, viewMode, monthSwitchEnabled, currentMonth, selectedAccountId, settings.defaultRiskAmount]);
 
   const fetchEquityData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
