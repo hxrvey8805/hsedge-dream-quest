@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,14 +29,15 @@ import {
   Globe,
   BarChart3,
   Activity,
-  Plus
+  Plus,
+  ImagePlus,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { detectSession } from "@/lib/sessionDetection";
-
 interface PlaybookSetup {
   id: string;
   name: string;
