@@ -120,6 +120,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setSetupId("");
       setSizeInputMode(settings.defaultRiskAmount ? 'risk' : 'units');
       setRiskAmount(settings.defaultRiskAmount ? settings.defaultRiskAmount.toString() : "");
+      setScreenshots([]);
+      setScreenshotPreviews(prev => { prev.forEach(url => URL.revokeObjectURL(url)); return []; });
     } else {
       fetchPlaybooks();
       fetchSetups();
