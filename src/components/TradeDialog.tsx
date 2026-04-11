@@ -94,6 +94,10 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const [notes, setNotes] = useState<string>("");
   const [setupId, setSetupId] = useState<string>("");
   const [allSetups, setAllSetups] = useState<PlaybookSetup[]>([]);
+  const [screenshots, setScreenshots] = useState<File[]>([]);
+  const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when dialog closes
   useEffect(() => {
