@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,14 +29,15 @@ import {
   Globe,
   BarChart3,
   Activity,
-  Plus
+  Plus,
+  ImagePlus,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useUserTimezone } from "@/hooks/useUserTimezone";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { detectSession } from "@/lib/sessionDetection";
-
 interface PlaybookSetup {
   id: string;
   name: string;
@@ -93,6 +94,10 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
   const [notes, setNotes] = useState<string>("");
   const [setupId, setSetupId] = useState<string>("");
   const [allSetups, setAllSetups] = useState<PlaybookSetup[]>([]);
+  const [screenshots, setScreenshots] = useState<File[]>([]);
+  const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -115,6 +120,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
       setSetupId("");
       setSizeInputMode(settings.defaultRiskAmount ? 'risk' : 'units');
       setRiskAmount(settings.defaultRiskAmount ? settings.defaultRiskAmount.toString() : "");
+      setScreenshots([]);
+      setScreenshotPreviews(prev => { prev.forEach(url => URL.revokeObjectURL(url)); return []; });
     } else {
       fetchPlaybooks();
       fetchSetups();
@@ -162,6 +169,39 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         playbook_name: playbookMap.get(s.playbook_id) || "Unknown",
       })));
     }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (screenshots.length + files.length > 5) {
+      toast.error("Maximum 5 images per trade");
+      return;
+    }
+    setScreenshots(prev => [...prev, ...files]);
+    setScreenshotPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeScreenshot = (index: number) => {
+    URL.revokeObjectURL(screenshotPreviews[index]);
+    setScreenshots(prev => prev.filter((_, i) => i !== index));
+    setScreenshotPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadScreenshots = async (userId: string, tradeId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of screenshots) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${userId}/${tradeId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('review-screenshots').upload(path, file);
+      if (error) {
+        console.error('Upload error:', error);
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from('review-screenshots').getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
   };
 
   const filteredSetups = allSetups.filter(s => s.playbook_id === selectedPlaybookId);
@@ -347,7 +387,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         }
       }
 
-      const { error } = await supabase.from("trades").insert({
+      // Insert trade first to get the ID
+      const { data: insertedTrade, error } = await supabase.from("trades").insert({
         user_id: user.id,
         trade_date: tradeDate,
         day_of_week: new Date(tradeDate).toLocaleDateString('en-US', { weekday: 'long' }),
@@ -374,9 +415,19 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         account_id: selectedAccountId || null,
         account_type: accountType || null,
         setup_id: setupId || null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
+
+      // Upload screenshots if any
+      if (screenshots.length > 0 && insertedTrade) {
+        setUploadingImages(true);
+        const urls = await uploadScreenshots(user.id, insertedTrade.id);
+        if (urls.length > 0) {
+          await supabase.from("trades").update({ screenshots: urls }).eq("id", insertedTrade.id);
+        }
+        setUploadingImages(false);
+      }
 
       // Check achievements
       try {
@@ -931,6 +982,44 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                   </div>
                 </div>
 
+                {/* Trade Screenshots */}
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Trade Screenshots</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {screenshotPreviews.map((url, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group">
+                        <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeScreenshot(i)}
+                          className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3 text-foreground" />
+                        </button>
+                      </div>
+                    ))}
+                    {screenshots.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <ImagePlus className="w-5 h-5" />
+                        <span className="text-[10px]">Add</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Up to 5 images</p>
+                </div>
+
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Notes & Reflections</Label>
                   <Textarea 
@@ -985,7 +1074,7 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
                 className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity min-w-[140px]"
               >
                 {loading ? (
-                  <>Saving...</>
+                  <>{uploadingImages ? "Uploading images..." : "Saving..."}</>
                 ) : (
                   <>
                     <Trophy className="h-4 w-4" />
