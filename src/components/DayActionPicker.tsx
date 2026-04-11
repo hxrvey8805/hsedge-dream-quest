@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { ClipboardList, Plus, XCircle, Eye } from "lucide-react";
+import { ClipboardList, Plus, XCircle, Eye, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DayActionPickerProps {
@@ -13,6 +13,7 @@ interface DayActionPickerProps {
   onGamePlan: () => void;
   onNoTradeDay: () => void;
   onViewGamePlan: () => void;
+  onAIGamePlan: () => void;
 }
 
 export const DayActionPicker = ({
@@ -23,6 +24,7 @@ export const DayActionPicker = ({
   onGamePlan,
   onNoTradeDay,
   onViewGamePlan,
+  onAIGamePlan,
 }: DayActionPickerProps) => {
   const [hasGamePlan, setHasGamePlan] = useState(false);
 
@@ -80,6 +82,23 @@ export const DayActionPicker = ({
         </div>
 
         <div className="p-4 space-y-2">
+          {/* AI Game Plan — always shown at top */}
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              onAIGamePlan();
+            }}
+            className="w-full flex items-center gap-4 p-4 rounded-lg border border-violet-500/30 bg-violet-500/5 hover:bg-violet-500/10 transition-all cursor-pointer text-left"
+          >
+            <div className="p-2 rounded-lg bg-violet-500/20 text-violet-400">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm text-violet-400">AI Game Plan</p>
+              <p className="text-xs text-muted-foreground">Generate a focused plan from your recent reviews</p>
+            </div>
+          </button>
+
           {actions.map((action) => (
             <button
               key={action.label}

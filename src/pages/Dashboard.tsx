@@ -9,6 +9,7 @@ import logo from "@/assets/tp-logo.png";
 import { TradeDialog } from "@/components/TradeDialog";
 import { DayActionPicker } from "@/components/DayActionPicker";
 import { GamePlanDialog } from "@/components/GamePlanDialog";
+import { AIGamePlanDialog } from "@/components/ai-game-plan/AIGamePlanDialog";
 import { TradingCalendar } from "@/components/TradingCalendar";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -67,6 +68,7 @@ const Dashboard = () => {
   const [actionPickerOpen, setActionPickerOpen] = useState(false);
   const [gamePlanOpen, setGamePlanOpen] = useState(false);
   const [gamePlanViewOnly, setGamePlanViewOnly] = useState(false);
+  const [aiGamePlanOpen, setAIGamePlanOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [monthSwitchEnabled, setMonthSwitchEnabled] = useState(persistedState.monthSwitchEnabled);
   const [accountSwitchEnabled, setAccountSwitchEnabled] = useState(persistedState.accountSwitchEnabled);
@@ -536,6 +538,12 @@ const Dashboard = () => {
               setGamePlanViewOnly(true);
               setGamePlanOpen(true);
             }}
+            onAIGamePlan={() => setAIGamePlanOpen(true)}
+          />
+          <AIGamePlanDialog
+            open={aiGamePlanOpen}
+            onOpenChange={setAIGamePlanOpen}
+            date={selectedDate}
           />
           <GamePlanDialog
             open={gamePlanOpen}
