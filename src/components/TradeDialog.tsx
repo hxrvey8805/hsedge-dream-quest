@@ -387,7 +387,8 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         }
       }
 
-      const { error } = await supabase.from("trades").insert({
+      // Insert trade first to get the ID
+      const { data: insertedTrade, error } = await supabase.from("trades").insert({
         user_id: user.id,
         trade_date: tradeDate,
         day_of_week: new Date(tradeDate).toLocaleDateString('en-US', { weekday: 'long' }),
@@ -414,9 +415,19 @@ export const TradeDialog = ({ selectedDate, onTradeAdded, open, onOpenChange, se
         account_id: selectedAccountId || null,
         account_type: accountType || null,
         setup_id: setupId || null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
+
+      // Upload screenshots if any
+      if (screenshots.length > 0 && insertedTrade) {
+        setUploadingImages(true);
+        const urls = await uploadScreenshots(user.id, insertedTrade.id);
+        if (urls.length > 0) {
+          await supabase.from("trades").update({ screenshots: urls }).eq("id", insertedTrade.id);
+        }
+        setUploadingImages(false);
+      }
 
       // Check achievements
       try {
