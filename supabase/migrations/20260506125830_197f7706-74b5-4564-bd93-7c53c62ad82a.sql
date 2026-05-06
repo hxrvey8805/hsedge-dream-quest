@@ -1,0 +1,1 @@
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS monthly_risk_overrides jsonb NOT NULL DEFAULT '{}'::jsonb;
