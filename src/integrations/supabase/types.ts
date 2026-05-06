@@ -1127,6 +1127,7 @@ export type Database = {
           last_trade_date: string | null
           level: number
           longest_streak: number
+          monthly_risk_overrides: Json
           onboarding_completed: boolean
           primary_dream_id: string | null
           timezone: string | null
@@ -1143,6 +1144,7 @@ export type Database = {
           last_trade_date?: string | null
           level?: number
           longest_streak?: number
+          monthly_risk_overrides?: Json
           onboarding_completed?: boolean
           primary_dream_id?: string | null
           timezone?: string | null
@@ -1159,6 +1161,7 @@ export type Database = {
           last_trade_date?: string | null
           level?: number
           longest_streak?: number
+          monthly_risk_overrides?: Json
           onboarding_completed?: boolean
           primary_dream_id?: string | null
           timezone?: string | null
