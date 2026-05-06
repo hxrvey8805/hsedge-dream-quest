@@ -74,10 +74,10 @@ const getHoldTimeMinutes = (t: Trade): number | null => {
 
 const avgOrNull = (arr: number[]): number | null => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
-export const calculateFullStats = (trades: Trade[], viewMode: 'rMultiple' | 'profit', defaultRiskAmount?: number | null): FullStats => {
+export const calculateFullStats = (trades: Trade[], viewMode: 'rMultiple' | 'profit', defaultRiskAmount?: number | null, monthlyOverrides?: MonthlyRiskOverrides | null): FullStats => {
   const isRMultiple = viewMode === 'rMultiple';
   const getValue = (t: Trade) => isRMultiple 
-    ? calculateRMultiple(t.profit, t.risk_to_pay, defaultRiskAmount) 
+    ? calculateRMultiple(t.profit, t.risk_to_pay, defaultRiskAmount, t.trade_date, monthlyOverrides) 
     : (t.profit || 0);
 
   const wins = trades.filter(t => t.outcome === "Win");
