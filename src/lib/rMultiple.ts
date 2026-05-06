@@ -13,13 +13,15 @@ export function getEffectiveRiskAmount(
   defaultRiskAmount: number | null | undefined,
   monthlyOverrides?: MonthlyRiskOverrides | null
 ): number | null {
-  // Resolve trade month key
+  // Resolve trade month key (YYYY-MM). Parse string dates literally to avoid UTC->local off-by-one.
   let monthKey: string | null = null;
   if (tradeDate) {
-    const d = typeof tradeDate === "string" ? new Date(tradeDate) : tradeDate;
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
+    if (typeof tradeDate === "string") {
+      const match = tradeDate.match(/^(\d{4})-(\d{2})/);
+      if (match) monthKey = `${match[1]}-${match[2]}`;
+    } else if (tradeDate instanceof Date && !isNaN(tradeDate.getTime())) {
+      const y = tradeDate.getFullYear();
+      const m = String(tradeDate.getMonth() + 1).padStart(2, "0");
       monthKey = `${y}-${m}`;
     }
   }
