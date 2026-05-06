@@ -114,7 +114,7 @@ const Statistics = () => {
       const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides) : (t.profit || 0)), 0);
       return { name: day, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
-  }, [trades, isPips, settings.defaultRiskAmount]);
+  }, [trades, isPips, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   const quarterStats = useMemo(() => {
     return [1, 2, 3, 4].map(q => {
@@ -126,7 +126,7 @@ const Statistics = () => {
       const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides) : (t.profit || 0)), 0);
       return { name: `Q${q}`, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
-  }, [trades, isPips, settings.defaultRiskAmount]);
+  }, [trades, isPips, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   if (loading) {
     return (

@@ -261,13 +261,13 @@ const Dashboard = () => {
     if (user) {
       fetchStats();
     }
-  }, [user, selectedAccount, settings.defaultRiskAmount]);
+  }, [user, selectedAccount, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   useEffect(() => {
     if (monthSwitchEnabled && user) {
       fetchMonthStats(currentMonth);
     }
-  }, [currentMonth, monthSwitchEnabled, user, selectedAccount, settings.defaultRiskAmount]);
+  }, [currentMonth, monthSwitchEnabled, user, selectedAccount, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   // Persist state to localStorage whenever it changes
   useEffect(() => {

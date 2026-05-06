@@ -240,7 +240,7 @@ const useStats = (props: DashboardStatsProps) => {
     };
 
     fetchStats();
-  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode, settings.defaultRiskAmount]);
+  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   return stats;
 };
