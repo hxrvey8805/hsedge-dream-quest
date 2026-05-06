@@ -164,7 +164,7 @@ const Dashboard = () => {
     } = await query;
     if (!error && data) {
       const totalRMultiple = data.reduce((sum, trade) => {
-        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount);
+        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount, trade.trade_date, settings.monthlyRiskOverrides);
       }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;
@@ -205,7 +205,7 @@ const Dashboard = () => {
 
     if (!error && data) {
       const totalRMultiple = data.reduce((sum, trade) => {
-        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount);
+        return sum + calculateRMultiple(trade.profit, trade.risk_to_pay, settings.defaultRiskAmount, trade.trade_date, settings.monthlyRiskOverrides);
       }, 0);
       const totalProfit = data.reduce((sum, trade) => sum + (trade.profit || 0), 0);
       const wins = data.filter(t => t.outcome === "Win").length;

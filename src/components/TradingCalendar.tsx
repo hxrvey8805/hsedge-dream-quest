@@ -171,7 +171,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const totalPips = dayTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const totalProfit = dayTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const totalRMultiple = dayTrades.reduce((sum, t) => {
-      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
+      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides);
     }, 0);
     
     const value = viewMode === 'rMultiple' ? totalRMultiple : totalProfit;
@@ -462,7 +462,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
     const weekPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
     const weekProfit = weekTrades.reduce((sum, t) => sum + (t.profit || 0), 0);
     const weekRMultiple = weekTrades.reduce((sum, t) => {
-      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
+      return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides);
     }, 0);
     
     // Count trading days (days with trades) in this week
