@@ -83,7 +83,7 @@ const Statistics = () => {
     return accounts.filter(a => a.type === 'personal' || a.type === 'funded').reduce((s, a) => s + (a.running_pl || 0), 0);
   }, [filters, accounts, isPips]);
 
-  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode, settings.defaultRiskAmount), [trades, filters.viewMode, settings.defaultRiskAmount]);
+  const fullStats = useMemo(() => calculateFullStats(trades, filters.viewMode, settings.defaultRiskAmount, settings.monthlyRiskOverrides), [trades, filters.viewMode, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
   const netPL = isPips ? fullStats.totalProfit : accountPL + fullStats.totalProfit;
 
   const filterLabel = useMemo(() => {
@@ -111,10 +111,10 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides) : (t.profit || 0)), 0);
       return { name: day, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
-  }, [trades, isPips, settings.defaultRiskAmount]);
+  }, [trades, isPips, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   const quarterStats = useMemo(() => {
     return [1, 2, 3, 4].map(q => {
@@ -123,10 +123,10 @@ const Statistics = () => {
       const losses = filtered.filter(t => t.outcome === "Loss").length;
       const be = filtered.filter(t => t.outcome === "Break Even").length;
       const total = filtered.length;
-      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount) : (t.profit || 0)), 0);
+      const profit = filtered.reduce((s, t) => s + (isPips ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides) : (t.profit || 0)), 0);
       return { name: `Q${q}`, wins, losses, breakeven: be, totalTrades: total, winRate: total > 0 ? (wins / total) * 100 : 0, totalProfit: profit };
     });
-  }, [trades, isPips, settings.defaultRiskAmount]);
+  }, [trades, isPips, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   if (loading) {
     return (

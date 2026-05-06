@@ -197,7 +197,7 @@ const useStats = (props: DashboardStatsProps) => {
 
       const tradesValue = trades.reduce((sum, t) => {
         if (viewMode === 'rMultiple') {
-          return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount);
+          return sum + calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides);
         }
         return sum + (t.profit || 0);
       }, 0);
@@ -210,7 +210,7 @@ const useStats = (props: DashboardStatsProps) => {
       const lossCount = losses.length;
       const tradeWinPercent = totalTrades > 0 ? (winCount / totalTrades) * 100 : 0;
       const getValue = (t: any) => viewMode === 'rMultiple'
-        ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount)
+        ? calculateRMultiple(t.profit, t.risk_to_pay, settings.defaultRiskAmount, t.trade_date, settings.monthlyRiskOverrides)
         : (t.profit || 0);
       const grossProfit = wins.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
       const grossLoss = losses.reduce((sum, t) => sum + Math.abs(getValue(t)), 0);
@@ -240,7 +240,7 @@ const useStats = (props: DashboardStatsProps) => {
     };
 
     fetchStats();
-  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode, settings.defaultRiskAmount]);
+  }, [accounts, selectedAccountId, monthSwitchEnabled, currentMonth, refreshTrigger, viewMode, settings.defaultRiskAmount, settings.monthlyRiskOverrides]);
 
   return stats;
 };

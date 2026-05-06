@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { MonthlyRiskOverrides } from "@/lib/rMultiple";
 
 export interface UserSettings {
   timezone: string;
   currency: string;
   defaultRiskAmount: number | null;
+  monthlyRiskOverrides: MonthlyRiskOverrides;
 }
 
 export function useUserSettings() {
@@ -12,6 +14,7 @@ export function useUserSettings() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York",
     currency: "USD",
     defaultRiskAmount: null,
+    monthlyRiskOverrides: {},
   });
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +25,7 @@ export function useUserSettings() {
 
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("timezone, currency, default_risk_amount")
+        .select("timezone, currency, default_risk_amount, monthly_risk_overrides")
         .eq("user_id", user.id)
         .single();
 
@@ -31,6 +34,7 @@ export function useUserSettings() {
           timezone: profile.timezone || settings.timezone,
           currency: (profile as any).currency || "USD",
           defaultRiskAmount: (profile as any).default_risk_amount ?? null,
+          monthlyRiskOverrides: ((profile as any).monthly_risk_overrides as MonthlyRiskOverrides) || {},
         });
       }
     } catch (error) {
@@ -51,6 +55,7 @@ export function useUserSettings() {
       if (updates.timezone !== undefined) dbUpdates.timezone = updates.timezone;
       if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
       if (updates.defaultRiskAmount !== undefined) dbUpdates.default_risk_amount = updates.defaultRiskAmount;
+      if (updates.monthlyRiskOverrides !== undefined) dbUpdates.monthly_risk_overrides = updates.monthlyRiskOverrides;
 
       const { error } = await supabase
         .from("user_profiles")

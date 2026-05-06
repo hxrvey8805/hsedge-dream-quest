@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { TIMEZONE_OPTIONS } from "@/lib/sessionDetection";
-import { DollarSign, Globe, Clock } from "lucide-react";
+import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react";
+import type { MonthlyRiskOverrides } from "@/lib/rMultiple";
 
 const CURRENCY_OPTIONS = [
   { value: "USD", label: "USD ($)", symbol: "$" },
   { value: "EUR", label: "EUR (€)", symbol: "€" },
   { value: "GBP", label: "GBP (£)", symbol: "£" },
 ];
+
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 interface SettingsDialogProps {
   open: boolean;
@@ -25,13 +28,21 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [timezone, setTimezone] = useState(settings.timezone);
   const [currency, setCurrency] = useState(settings.currency);
   const [riskAmount, setRiskAmount] = useState(settings.defaultRiskAmount?.toString() || "");
+  const [overrides, setOverrides] = useState<MonthlyRiskOverrides>({});
   const [saving, setSaving] = useState(false);
+
+  // New override row inputs
+  const now = new Date();
+  const [newYear, setNewYear] = useState<string>(String(now.getFullYear()));
+  const [newMonth, setNewMonth] = useState<string>(String(now.getMonth() + 1).padStart(2, "0"));
+  const [newAmount, setNewAmount] = useState<string>("");
 
   useEffect(() => {
     if (!loading) {
       setTimezone(settings.timezone);
       setCurrency(settings.currency);
       setRiskAmount(settings.defaultRiskAmount?.toString() || "");
+      setOverrides({ ...(settings.monthlyRiskOverrides || {}) });
     }
   }, [loading, settings]);
 
@@ -41,6 +52,7 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
       timezone,
       currency,
       defaultRiskAmount: riskAmount ? parseFloat(riskAmount) : null,
+      monthlyRiskOverrides: overrides,
     });
     setSaving(false);
 
@@ -54,9 +66,31 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
 
   const currencySymbol = CURRENCY_OPTIONS.find(c => c.value === currency)?.symbol || "$";
 
+  const addOverride = () => {
+    const amt = parseFloat(newAmount);
+    if (!amt || amt <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    const key = `${newYear}-${newMonth}`;
+    setOverrides(prev => ({ ...prev, [key]: amt }));
+    setNewAmount("");
+  };
+
+  const removeOverride = (key: string) => {
+    setOverrides(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const sortedOverrideKeys = Object.keys(overrides).sort().reverse();
+  const yearOptions = Array.from({ length: 7 }, (_, i) => now.getFullYear() - 3 + i);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-card border-border/40">
+      <DialogContent className="sm:max-w-md bg-card border-border/40 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Settings</DialogTitle>
         </DialogHeader>
@@ -84,6 +118,81 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                 onChange={(e) => setRiskAmount(e.target.value)}
                 className="pl-7"
               />
+            </div>
+          </div>
+
+          {/* Monthly 1R Overrides */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <CalendarIcon className="h-4 w-4 text-primary" />
+              Monthly 1R Overrides
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Set a different 1R amount for specific months. Trades in those months use this value instead of the default.
+            </p>
+
+            {sortedOverrideKeys.length > 0 && (
+              <div className="space-y-1.5 mt-2">
+                {sortedOverrideKeys.map(key => {
+                  const [y, m] = key.split("-");
+                  const label = `${MONTH_NAMES[parseInt(m, 10) - 1]} ${y}`;
+                  return (
+                    <div key={key} className="flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-muted/40 border border-border/40">
+                      <span className="text-sm font-medium">{label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {currencySymbol}{overrides[key]}
+                        </span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => removeOverride(key)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end pt-2">
+              <Select value={newMonth} onValueChange={setNewMonth}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MONTH_NAMES.map((n, i) => (
+                    <SelectItem key={i} value={String(i + 1).padStart(2, "0")}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={newYear} onValueChange={setNewYear}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                  {currencySymbol}
+                </span>
+                <Input
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="Amount"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  className="pl-6"
+                />
+              </div>
+              <Button type="button" size="icon" variant="outline" onClick={addOverride}>
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
