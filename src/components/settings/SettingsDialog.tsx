@@ -47,12 +47,22 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   }, [loading, settings]);
 
   const handleSave = async () => {
+    // Auto-commit any pending override that the user typed but didn't click "+"
+    let finalOverrides = { ...overrides };
+    const pendingAmt = parseFloat(newAmount);
+    if (!isNaN(pendingAmt) && pendingAmt > 0) {
+      const key = `${newYear}-${newMonth}`;
+      finalOverrides[key] = pendingAmt;
+      setOverrides(finalOverrides);
+      setNewAmount("");
+    }
+
     setSaving(true);
     const success = await updateSettings({
       timezone,
       currency,
       defaultRiskAmount: riskAmount ? parseFloat(riskAmount) : null,
-      monthlyRiskOverrides: overrides,
+      monthlyRiskOverrides: finalOverrides,
     });
     setSaving(false);
 

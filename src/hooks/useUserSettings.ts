@@ -44,7 +44,12 @@ export function useUserSettings() {
     }
   };
 
-  useEffect(() => { fetchSettings(); }, []);
+  useEffect(() => {
+    fetchSettings();
+    const handler = () => fetchSettings();
+    window.addEventListener("user-settings-updated", handler);
+    return () => window.removeEventListener("user-settings-updated", handler);
+  }, []);
 
   const updateSettings = async (updates: Partial<UserSettings>) => {
     try {
@@ -65,6 +70,7 @@ export function useUserSettings() {
       if (error) throw error;
 
       setSettings(prev => ({ ...prev, ...updates }));
+      window.dispatchEvent(new CustomEvent("user-settings-updated"));
       return true;
     } catch (error) {
       console.error("Error updating settings:", error);
