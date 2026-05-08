@@ -328,7 +328,7 @@ const Dashboard = () => {
         <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />
           <div 
-            className="cursor-pointer group"
+            className="cursor-pointer group h-full"
             onClick={() => setShowVisionMode(true)}
           >
             <MinimalProgressBar />
