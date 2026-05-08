@@ -331,15 +331,6 @@ const Dashboard = () => {
             className="cursor-pointer group"
             onClick={() => setShowVisionMode(true)}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                CURRENT REALITY
-              </span>
-              <span className="text-sm text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Sparkles className="w-4 h-4" />
-                Click to see Vision Mode
-              </span>
-            </div>
             <MinimalProgressBar />
           </div>
         </div>
