@@ -327,8 +327,8 @@ const Dashboard = () => {
         {/* Top Row: Dream Progress Line Chart + Net P&L */}
         <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />
-          <div 
-            className="cursor-pointer group h-full flex flex-col"
+          <Card 
+            className="cursor-pointer group h-full flex flex-col p-5 bg-card border-border overflow-hidden"
             onClick={() => setShowVisionMode(true)}
           >
             <div className="flex items-center justify-end mb-2">
@@ -340,7 +340,7 @@ const Dashboard = () => {
             <div className="flex-1 min-h-0">
               <MinimalProgressBar />
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Main Content - Two Column Layout */}
