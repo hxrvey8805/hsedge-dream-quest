@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { TIMEZONE_OPTIONS } from "@/lib/sessionDetection";
-import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2, Mail } from "lucide-react";
 import type { MonthlyRiskOverrides } from "@/lib/rMultiple";
+import { supabase } from "@/integrations/supabase/client";
 
 const CURRENCY_OPTIONS = [
   { value: "USD", label: "USD ($)", symbol: "$" },
@@ -30,6 +31,38 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [riskAmount, setRiskAmount] = useState(settings.defaultRiskAmount?.toString() || "");
   const [overrides, setOverrides] = useState<MonthlyRiskOverrides>({});
   const [saving, setSaving] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState<string>("");
+  const [newEmail, setNewEmail] = useState<string>("");
+  const [emailSaving, setEmailSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setCurrentEmail(user?.email ?? "");
+        setNewEmail(user?.email ?? "");
+      });
+    }
+  }, [open]);
+
+  const handleEmailChange = async () => {
+    const trimmed = newEmail.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    if (trimmed === currentEmail) {
+      toast.info("That's already your email");
+      return;
+    }
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: trimmed });
+    setEmailSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to update email");
+    } else {
+      toast.success("Confirmation link sent. Check both your old and new inboxes to confirm the change.");
+    }
+  };
 
   // New override row inputs
   const now = new Date();
@@ -106,6 +139,33 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Email */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <Mail className="h-4 w-4 text-primary" />
+              Email Address
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Changing your email requires confirmation from both your current and new inboxes.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleEmailChange}
+                disabled={emailSaving || !newEmail.trim() || newEmail.trim() === currentEmail}
+              >
+                {emailSaving ? "Sending..." : "Update"}
+              </Button>
+            </div>
+          </div>
+
           {/* Default 1R Amount */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
