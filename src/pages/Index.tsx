@@ -24,15 +24,61 @@ export default function Index() {
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [entryEmail, setEntryEmail] = useState("");
+  const [entryLoading, setEntryLoading] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [accessPassword, setAccessPassword] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleEnter = () => {
+  // Secret password for owner access — keep private
+  const ACCESS_PASSWORD = "summit-tradepeaks-2026";
+
+  const startAmbientAudio = () => {
     const audio = new Audio("/audio/ambient.mp3");
     audio.loop = true;
     audio.volume = 0.4;
     audioRef.current = audio;
     audio.play().catch(() => {});
-    setEntered(true);
+  };
+
+  const handleEntrySubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const email = entryEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    try {
+      setEntryLoading(true);
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email, source: "landing-entry" });
+      if (error) {
+        const code = (error as any)?.code;
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        if (!(code === "23505" || msg.includes("duplicate") || msg.includes("unique"))) {
+          console.error(error);
+          toast.error("Couldn't join the waitlist — try again.");
+          return;
+        }
+      }
+      toast.success("You're on the list — we'll alert you when TradePeaks is available.");
+      setEntryEmail("");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't join the waitlist — try again.");
+    } finally {
+      setEntryLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (accessPassword === ACCESS_PASSWORD) {
+      startAmbientAudio();
+      setEntered(true);
+    } else {
+      toast.error("Incorrect password");
+      setAccessPassword("");
+    }
   };
 
   useEffect(() => {
