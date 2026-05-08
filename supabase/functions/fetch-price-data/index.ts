@@ -116,6 +116,27 @@ serve(async (req) => {
   }
 
   try {
+    // Require auth
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: authError } = await supabaseAuth.auth.getUser(token);
+    if (authError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("TWELVE_DATA_API_KEY");
     if (!apiKey) {
       throw new Error("TWELVE_DATA_API_KEY not configured");
