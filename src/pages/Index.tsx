@@ -147,7 +147,7 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
