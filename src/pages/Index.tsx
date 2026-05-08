@@ -24,15 +24,61 @@ export default function Index() {
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [entryEmail, setEntryEmail] = useState("");
+  const [entryLoading, setEntryLoading] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [accessPassword, setAccessPassword] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleEnter = () => {
+  // Secret password for owner access — keep private
+  const ACCESS_PASSWORD = "summit-tradepeaks-2026";
+
+  const startAmbientAudio = () => {
     const audio = new Audio("/audio/ambient.mp3");
     audio.loop = true;
     audio.volume = 0.4;
     audioRef.current = audio;
     audio.play().catch(() => {});
-    setEntered(true);
+  };
+
+  const handleEntrySubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const email = entryEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    try {
+      setEntryLoading(true);
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email, source: "landing-entry" });
+      if (error) {
+        const code = (error as any)?.code;
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        if (!(code === "23505" || msg.includes("duplicate") || msg.includes("unique"))) {
+          console.error(error);
+          toast.error("Couldn't join the waitlist — try again.");
+          return;
+        }
+      }
+      toast.success("You're on the list — we'll alert you when TradePeaks is available.");
+      setEntryEmail("");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't join the waitlist — try again.");
+    } finally {
+      setEntryLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (accessPassword === ACCESS_PASSWORD) {
+      startAmbientAudio();
+      setEntered(true);
+    } else {
+      toast.error("Incorrect password");
+      setAccessPassword("");
+    }
   };
 
   useEffect(() => {
@@ -105,12 +151,12 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer" onClick={handleEnter}>
+      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="text-center w-full max-w-md"
         >
           <h1
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
@@ -118,14 +164,53 @@ export default function Index() {
           >
             TRADE PEAKS
           </h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-white/60 text-lg font-medium tracking-widest uppercase"
+          <p className="text-white/60 text-sm font-medium tracking-widest uppercase mb-8">
+            Coming Soon — Join the waitlist
+          </p>
+
+          {!showPasswordField ? (
+            <form onSubmit={handleEntrySubmit} className="flex flex-col gap-3">
+              <Input
+                type="email"
+                value={entryEmail}
+                onChange={(e) => setEntryEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoFocus
+                className="h-12 bg-white/5 border-white/15 text-white placeholder:text-white/30 text-center rounded-xl"
+              />
+              <Button
+                type="submit"
+                disabled={entryLoading}
+                className="h-12 rounded-xl bg-[hsl(212_98%_62%)] hover:bg-[hsl(212_98%_55%)] text-white font-semibold tracking-wide"
+              >
+                {entryLoading ? "Joining..." : "Join the waitlist"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-3">
+              <Input
+                type="password"
+                value={accessPassword}
+                onChange={(e) => setAccessPassword(e.target.value)}
+                placeholder="Access password"
+                autoFocus
+                className="h-12 bg-white/5 border-white/15 text-white placeholder:text-white/30 text-center rounded-xl"
+              />
+              <Button
+                type="submit"
+                className="h-12 rounded-xl bg-[hsl(212_98%_62%)] hover:bg-[hsl(212_98%_55%)] text-white font-semibold tracking-wide"
+              >
+                Enter
+              </Button>
+            </form>
+          )}
+
+          <button
+            onClick={() => setShowPasswordField(!showPasswordField)}
+            className="mt-6 text-xs text-white/30 hover:text-white/60 tracking-widest uppercase transition-colors"
           >
-            Click anywhere to enter
-          </motion.p>
+            {showPasswordField ? "← Back to waitlist" : "Have access? Enter password"}
+          </button>
         </motion.div>
       </div>
     );
