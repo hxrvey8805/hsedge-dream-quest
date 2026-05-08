@@ -174,7 +174,7 @@ export default function Index() {
               onChange={(e) => setEntryValue(e.target.value)}
               placeholder="Enter email to join waitlist"
               disabled={entrySubmitting}
-              className="w-full bg-transparent border-0 border-b border-white/30 focus:border-white/80 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3 transition-colors"
+              className="w-full bg-transparent border-0 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3"
               style={{ caretColor: 'hsl(212 98% 62%)' }}
             />
           </motion.form>
