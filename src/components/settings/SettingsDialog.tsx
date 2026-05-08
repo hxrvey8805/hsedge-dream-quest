@@ -31,6 +31,38 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [riskAmount, setRiskAmount] = useState(settings.defaultRiskAmount?.toString() || "");
   const [overrides, setOverrides] = useState<MonthlyRiskOverrides>({});
   const [saving, setSaving] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState<string>("");
+  const [newEmail, setNewEmail] = useState<string>("");
+  const [emailSaving, setEmailSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setCurrentEmail(user?.email ?? "");
+        setNewEmail(user?.email ?? "");
+      });
+    }
+  }, [open]);
+
+  const handleEmailChange = async () => {
+    const trimmed = newEmail.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    if (trimmed === currentEmail) {
+      toast.info("That's already your email");
+      return;
+    }
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: trimmed });
+    setEmailSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to update email");
+    } else {
+      toast.success("Confirmation link sent. Check both your old and new inboxes to confirm the change.");
+    }
+  };
 
   // New override row inputs
   const now = new Date();
