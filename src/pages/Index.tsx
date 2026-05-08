@@ -147,7 +147,16 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center">
+      <div
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
+        style={{
+          backgroundColor: '#070C1A',
+          backgroundImage: `
+            radial-gradient(80rem 40rem at 50% -10%, rgba(16, 40, 90, 0.55), transparent 60%),
+            radial-gradient(60rem 30rem at 50% 120%, rgba(7, 12, 26, 0.8), transparent 60%)
+          `,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
