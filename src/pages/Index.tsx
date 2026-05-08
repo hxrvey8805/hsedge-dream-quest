@@ -24,7 +24,11 @@ export default function Index() {
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [entryValue, setEntryValue] = useState("");
+  const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const ACCESS_PASSWORD = "summit2026";
 
   const handleEnter = () => {
     const audio = new Audio("/audio/ambient.mp3");
@@ -33,6 +37,44 @@ export default function Index() {
     audioRef.current = audio;
     audio.play().catch(() => {});
     setEntered(true);
+  };
+
+  const handleEntrySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = entryValue.trim();
+    if (!v) return;
+    if (v === ACCESS_PASSWORD) {
+      handleEnter();
+      return;
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    if (!emailOk) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    try {
+      setEntrySubmitting(true);
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email: v, source: "landing" });
+      if (error) {
+        const code = (error as any)?.code;
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        if (code === "23505" || msg.includes("duplicate") || msg.includes("unique")) {
+          toast.success("You're already on the list — we'll alert you when TradePeaks is available.");
+          setEntryValue("");
+          return;
+        }
+        console.error(error);
+        toast.error("Couldn't join the waitlist — try again.");
+        return;
+      }
+      toast.success("You're on the list! We'll alert you when TradePeaks is available.");
+      setEntryValue("");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't join the waitlist — try again.");
+    } finally {
+      setEntrySubmitting(false);
+    }
   };
 
   useEffect(() => {
