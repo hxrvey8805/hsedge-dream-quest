@@ -147,12 +147,12 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer" onClick={handleEnter}>
+      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="text-center w-full px-6"
         >
           <h1
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
@@ -160,14 +160,24 @@ export default function Index() {
           >
             TRADE PEAKS
           </h1>
-          <motion.p
+          <motion.form
+            onSubmit={handleEntrySubmit}
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.4, 1, 0.4] }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-white/60 text-lg font-medium tracking-widest uppercase"
+            className="mx-auto max-w-md"
           >
-            Click anywhere to enter
-          </motion.p>
+            <input
+              type="text"
+              autoFocus
+              value={entryValue}
+              onChange={(e) => setEntryValue(e.target.value)}
+              placeholder="Enter email to join waitlist"
+              disabled={entrySubmitting}
+              className="w-full bg-transparent border-0 border-b border-white/30 focus:border-white/80 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3 transition-colors"
+              style={{ caretColor: 'hsl(212 98% 62%)' }}
+            />
+          </motion.form>
         </motion.div>
       </div>
     );
