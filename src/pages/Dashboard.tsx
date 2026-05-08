@@ -328,10 +328,18 @@ const Dashboard = () => {
         <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />
           <div 
-            className="cursor-pointer group h-full"
+            className="cursor-pointer group h-full flex flex-col"
             onClick={() => setShowVisionMode(true)}
           >
-            <MinimalProgressBar />
+            <div className="flex items-center justify-end mb-2">
+              <span className="text-sm text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Sparkles className="w-4 h-4" />
+                Click to see Vision Mode
+              </span>
+            </div>
+            <div className="flex-1 min-h-0">
+              <MinimalProgressBar />
+            </div>
           </div>
         </div>
 

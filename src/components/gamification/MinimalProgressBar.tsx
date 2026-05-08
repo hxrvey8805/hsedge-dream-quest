@@ -153,11 +153,7 @@ export const MinimalProgressBar = () => {
 
   return (
     <div className="w-full h-full flex flex-col space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <img src={tlIcon} alt="TL" className="w-5 h-5 object-contain" />
-          <span className="text-muted-foreground">Dream Achievement</span>
-        </div>
+      <div className="flex items-center justify-end text-sm">
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
             ${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo to goal
