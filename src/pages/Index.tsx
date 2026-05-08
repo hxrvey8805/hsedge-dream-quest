@@ -178,13 +178,11 @@ export default function Index() {
           >
             <input
               type="text"
-              autoFocus
               value={entryValue}
               onChange={(e) => setEntryValue(e.target.value)}
               placeholder="Enter email to join waitlist"
               disabled={entrySubmitting}
-              className="w-full bg-transparent border-0 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3"
-              style={{ caretColor: 'hsl(212 98% 62%)' }}
+              className="w-full bg-transparent border-0 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3 caret-transparent focus:caret-[hsl(212_98%_62%)]"
             />
           </motion.form>
         </motion.div>
