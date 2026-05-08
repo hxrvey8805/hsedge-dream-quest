@@ -139,6 +139,33 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Email */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <Mail className="h-4 w-4 text-primary" />
+              Email Address
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Changing your email requires confirmation from both your current and new inboxes.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleEmailChange}
+                disabled={emailSaving || !newEmail.trim() || newEmail.trim() === currentEmail}
+              >
+                {emailSaving ? "Sending..." : "Update"}
+              </Button>
+            </div>
+          </div>
+
           {/* Default 1R Amount */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
