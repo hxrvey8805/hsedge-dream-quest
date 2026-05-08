@@ -24,7 +24,11 @@ export default function Index() {
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [entryValue, setEntryValue] = useState("");
+  const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const ACCESS_PASSWORD = "summit2026";
 
   const handleEnter = () => {
     const audio = new Audio("/audio/ambient.mp3");
@@ -33,6 +37,44 @@ export default function Index() {
     audioRef.current = audio;
     audio.play().catch(() => {});
     setEntered(true);
+  };
+
+  const handleEntrySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = entryValue.trim();
+    if (!v) return;
+    if (v === ACCESS_PASSWORD) {
+      handleEnter();
+      return;
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    if (!emailOk) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    try {
+      setEntrySubmitting(true);
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email: v, source: "landing" });
+      if (error) {
+        const code = (error as any)?.code;
+        const msg = (error as any)?.message?.toLowerCase?.() || "";
+        if (code === "23505" || msg.includes("duplicate") || msg.includes("unique")) {
+          toast.success("You're already on the list — we'll alert you when TradePeaks is available.");
+          setEntryValue("");
+          return;
+        }
+        console.error(error);
+        toast.error("Couldn't join the waitlist — try again.");
+        return;
+      }
+      toast.success("You're on the list! We'll alert you when TradePeaks is available.");
+      setEntryValue("");
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't join the waitlist — try again.");
+    } finally {
+      setEntrySubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -105,12 +147,12 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center cursor-pointer" onClick={handleEnter}>
+      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="text-center w-full px-6"
         >
           <h1
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
@@ -118,14 +160,24 @@ export default function Index() {
           >
             TRADE PEAKS
           </h1>
-          <motion.p
+          <motion.form
+            onSubmit={handleEntrySubmit}
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.4, 1, 0.4] }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-white/60 text-lg font-medium tracking-widest uppercase"
+            className="mx-auto max-w-md"
           >
-            Click anywhere to enter
-          </motion.p>
+            <input
+              type="text"
+              autoFocus
+              value={entryValue}
+              onChange={(e) => setEntryValue(e.target.value)}
+              placeholder="Enter email to join waitlist"
+              disabled={entrySubmitting}
+              className="w-full bg-transparent border-0 border-b border-white/30 focus:border-white/80 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3 transition-colors"
+              style={{ caretColor: 'hsl(212 98% 62%)' }}
+            />
+          </motion.form>
         </motion.div>
       </div>
     );
