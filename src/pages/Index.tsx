@@ -147,7 +147,7 @@ export default function Index() {
 
   if (!entered) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#030712] flex flex-col items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -174,7 +174,7 @@ export default function Index() {
               onChange={(e) => setEntryValue(e.target.value)}
               placeholder="Enter email to join waitlist"
               disabled={entrySubmitting}
-              className="w-full bg-transparent border-0 border-b border-white/30 focus:border-white/80 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3 transition-colors"
+              className="w-full bg-transparent border-0 outline-none text-center text-white text-lg font-medium tracking-widest uppercase placeholder:text-white/50 py-3"
               style={{ caretColor: 'hsl(212 98% 62%)' }}
             />
           </motion.form>
