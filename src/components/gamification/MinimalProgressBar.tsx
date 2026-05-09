@@ -65,16 +65,36 @@ export const MinimalProgressBar = ({ selectedAccountId, monthSwitchEnabled, curr
         .eq("dream_profile_id", profile.primary_dream_id)
         .eq("is_selected", true);
 
-      // Get trades from last 30 days with dates
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      // Determine date window based on toggles
+      let windowStart: Date;
+      let windowEnd: Date;
+      let windowDays: number;
+      if (monthSwitchEnabled && currentMonth) {
+        windowStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        windowEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      } else {
+        windowEnd = new Date();
+        windowStart = new Date();
+        windowStart.setDate(windowStart.getDate() - 30);
+      }
+      windowDays = Math.round((windowEnd.getTime() - windowStart.getTime()) / 86400000);
 
-      const { data: trades } = await supabase
+      let tradesQuery = supabase
         .from("trades")
-        .select("profit, trade_date")
+        .select("profit, trade_date, account_id, account_type")
         .eq("user_id", user.id)
-        .gte("trade_date", thirtyDaysAgo.toISOString().split("T")[0])
-        .order("trade_date", { ascending: true });
+        .gte("trade_date", windowStart.toISOString().split("T")[0])
+        .lte("trade_date", windowEnd.toISOString().split("T")[0])
+        .order("trade_date", { ascending: true })
+        .range(0, 9999);
+
+      if (selectedAccountId) {
+        tradesQuery = tradesQuery.eq("account_id", selectedAccountId);
+      } else {
+        tradesQuery = tradesQuery.or("account_type.is.null,account_type.eq.personal,account_type.eq.funded");
+      }
+
+      const { data: trades } = await tradesQuery;
 
       const monthlyProfit = trades?.reduce((sum, t) => sum + (t.profit || 0), 0) || 0;
       const totalMonthlyCost = purchases?.reduce((sum, p) => sum + calculateMonthlyCost(p), 0) || 0;
@@ -86,16 +106,15 @@ export const MinimalProgressBar = ({ selectedAccountId, monthSwitchEnabled, curr
         dailyMap[d] = (dailyMap[d] || 0) + (t.profit || 0);
       });
 
-      // Fill in all 30 days
       const dailyData: { date: string; cumulative: number }[] = [];
       let cumulative = 0;
-      for (let i = 30; i >= 0; i--) {
-        const d = new Date();
+      for (let i = windowDays; i >= 0; i--) {
+        const d = new Date(windowEnd);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().split("T")[0];
         cumulative += dailyMap[key] || 0;
         dailyData.push({
-          date: key.slice(5), // MM-DD
+          date: key.slice(5),
           cumulative,
         });
       }
