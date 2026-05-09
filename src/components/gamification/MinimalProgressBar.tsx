@@ -144,7 +144,7 @@ export const MinimalProgressBar = ({ selectedAccountId, monthSwitchEnabled, curr
       supabase.removeChannel(tradesChannel);
       supabase.removeChannel(purchasesChannel);
     };
-  }, []);
+  }, [selectedAccountId, monthSwitchEnabled, currentMonth?.getTime()]);
 
   if (loading) {
     return (
