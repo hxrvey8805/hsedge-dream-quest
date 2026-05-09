@@ -348,28 +348,30 @@ const Dashboard = () => {
           {/* Left Column - Trading Calendar */}
           <Card className="p-5 pt-3 bg-card border-border">
             <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-2">
                 <h2 className={`text-2xl font-bold transition-all duration-300 ${accountSwitchEnabled ? 'mr-4' : ''}`}>
                   Trading Calendar
                 </h2>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setCsvUploadOpen(true)}
-                  className="gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Import CSV
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setClearTradesOpen(true)}
-                  className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Undo Last Import
-                </Button>
+                <div className="flex flex-col gap-2 items-start">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCsvUploadOpen(true)}
+                    className="gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Import CSV
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setClearTradesOpen(true)}
+                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Undo Last Import
+                  </Button>
+                </div>
               </div>
               <div className="relative flex flex-col gap-2 transition-all duration-300">
                 {/* R Multiple / P&L Toggle */}
