@@ -421,23 +421,35 @@ const Dashboard = () => {
                 {accountSwitchEnabled && (
                   <div className="absolute right-0 top-full mt-2 z-50">
                     <Select value={selectedAccount || "all"} onValueChange={(value) => setSelectedAccount(value === "all" ? null : value)}>
-                      <SelectTrigger className="w-[220px] bg-secondary/50">
-                        <SelectValue placeholder="Select account" />
+                      <SelectTrigger className="w-[240px] h-11 px-4 rounded-lg border-primary/30 bg-gradient-to-br from-card via-card/80 to-primary/5 backdrop-blur-md shadow-[0_0_20px_-8px_hsl(var(--primary)/0.4)] hover:border-primary/50 hover:shadow-[0_0_24px_-6px_hsl(var(--primary)/0.5)] transition-all duration-200 text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <Wallet className="w-4 h-4 text-primary" />
+                          <SelectValue placeholder="Select account" />
+                        </div>
                       </SelectTrigger>
-                      <SelectContent className="z-50">
-                        <SelectItem value="all">All Accounts</SelectItem>
+                      <SelectContent className="z-50 w-[240px] rounded-lg border-primary/20 bg-card/95 backdrop-blur-xl shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.3)]">
+                        <SelectItem value="all" className="rounded-md focus:bg-primary/10 focus:text-primary">
+                          <span className="font-medium">All Accounts</span>
+                        </SelectItem>
+                        {accounts.filter(account => account.type === 'personal' || account.type === 'funded').length > 0 && (
+                          <div className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-primary/70">Live</div>
+                        )}
                         {accounts
                           .filter(account => account.type === 'personal' || account.type === 'funded')
                           .map((account) => (
-                            <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                            <SelectItem key={account.id} value={account.id} className="rounded-md focus:bg-primary/10 focus:text-primary">
+                              {account.displayName}
+                            </SelectItem>
                           ))}
                         {accounts.filter(account => account.type === 'evaluation' || account.type === 'backtesting').length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Evaluations & Backtests</div>
+                            <div className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">Evaluations & Backtests</div>
                             {accounts
                               .filter(account => account.type === 'evaluation' || account.type === 'backtesting')
                               .map((account) => (
-                                <SelectItem key={account.id} value={account.id}>{account.displayName}</SelectItem>
+                                <SelectItem key={account.id} value={account.id} className="rounded-md focus:bg-primary/10 focus:text-primary">
+                                  {account.displayName}
+                                </SelectItem>
                               ))}
                           </>
                         )}
