@@ -338,7 +338,11 @@ const Dashboard = () => {
               </span>
             </div>
             <div className="absolute inset-0">
-              <MinimalProgressBar />
+              <MinimalProgressBar 
+                selectedAccountId={selectedAccount}
+                monthSwitchEnabled={monthSwitchEnabled}
+                currentMonth={currentMonth}
+              />
             </div>
           </Card>
         </div>
