@@ -152,14 +152,14 @@ export const MinimalProgressBar = () => {
   const isGoalMet = progressPercent >= 100;
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="flex items-center justify-end gap-3 px-1 pb-1 shrink-0">
+    <div className="w-full h-full relative">
+      <div className="absolute top-3 left-4 z-10 flex items-center gap-3 pointer-events-none">
         <span className="text-xs text-muted-foreground">
           ${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo to goal
         </span>
         <span className={`font-bold text-sm ${isGoalMet ? 'text-success' : 'text-primary'}`}>{Math.round(progressPercent)}%</span>
       </div>
-      <div className="w-full flex-1 min-h-0 relative overflow-hidden rounded-lg" style={{ background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)' }}>
+      <div className="w-full h-full relative overflow-hidden rounded-lg" style={{ background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)' }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={dreamData.dailyData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <defs>
