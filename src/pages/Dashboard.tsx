@@ -328,16 +328,16 @@ const Dashboard = () => {
         <div className="mb-6 max-w-[1800px] mx-auto grid grid-cols-[320px_1fr] gap-4">
           <NetPLCard {...statsProps} />
           <Card 
-            className="cursor-pointer group h-full flex flex-col p-5 bg-card border-border overflow-hidden"
+            className="cursor-pointer group h-full relative bg-card border-border overflow-hidden"
             onClick={() => setShowVisionMode(true)}
           >
-            <div className="flex items-center justify-end mb-2">
+            <div className="absolute top-3 right-4 z-10 pointer-events-none">
               <span className="text-sm text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Sparkles className="w-4 h-4" />
                 Click to see Vision Mode
               </span>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="absolute inset-0">
               <MinimalProgressBar />
             </div>
           </Card>
