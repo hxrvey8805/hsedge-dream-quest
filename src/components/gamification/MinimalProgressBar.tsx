@@ -24,7 +24,13 @@ const calculateMonthlyCost = (purchase: {
   return withBuffer / (years * 12);
 };
 
-export const MinimalProgressBar = () => {
+interface MinimalProgressBarProps {
+  selectedAccountId?: string | null;
+  monthSwitchEnabled?: boolean;
+  currentMonth?: Date;
+}
+
+export const MinimalProgressBar = ({ selectedAccountId, monthSwitchEnabled, currentMonth }: MinimalProgressBarProps = {}) => {
   const [dreamData, setDreamData] = useState<DreamData | null>(null);
   const [loading, setLoading] = useState(true);
 
