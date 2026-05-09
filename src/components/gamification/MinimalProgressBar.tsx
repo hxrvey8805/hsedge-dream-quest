@@ -153,11 +153,14 @@ export const MinimalProgressBar = () => {
 
   return (
     <div className="w-full h-full relative">
-      <div className="absolute top-3 left-4 z-10 flex items-center gap-3 pointer-events-none">
-        <span className="text-xs text-muted-foreground">
-          ${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo to goal
+      <div className="absolute top-3 left-4 z-10 flex items-baseline gap-2 pointer-events-none">
+        <span className={`font-bold text-base leading-none ${isGoalMet ? 'text-success' : 'text-primary'}`}>
+          {Math.round(progressPercent)}%
         </span>
-        <span className={`font-bold text-sm ${isGoalMet ? 'text-success' : 'text-primary'}`}>{Math.round(progressPercent)}%</span>
+        <span className="text-muted-foreground/60 text-xs leading-none">·</span>
+        <span className="text-xs text-muted-foreground leading-none">
+          ${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} /mo to goal
+        </span>
       </div>
       <div className="w-full h-full relative overflow-hidden rounded-lg" style={{ background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%)' }}>
         <ResponsiveContainer width="100%" height="100%">
