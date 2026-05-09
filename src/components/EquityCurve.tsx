@@ -199,7 +199,7 @@ export const EquityCurve = ({ refreshTrigger, viewMode = 'profit', monthSwitchEn
       </div>
 
       <div className="flex-1 min-h-[120px] w-full">
-        <ChartContainer config={chartConfig} className="!aspect-auto h-full w-full">
+        <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
               data={data} 
