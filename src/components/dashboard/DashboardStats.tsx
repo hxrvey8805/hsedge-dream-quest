@@ -323,9 +323,9 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-2 gap-3 h-full">
+      <div className="grid grid-cols-2 gap-4 h-full">
         {/* Trade Win % */}
-        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
+        <Card className="p-8 bg-card border-border flex flex-col justify-between min-h-[190px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Trade Win %</span>
             <Tooltip>
@@ -336,13 +336,13 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
             </Tooltip>
           </div>
           <div className="flex items-end justify-between mt-auto">
-            <p className="text-3xl font-extrabold tracking-tight">{stats.tradeWinPercent.toFixed(1)}%</p>
+            <p className="text-4xl font-extrabold tracking-tight">{stats.tradeWinPercent.toFixed(1)}%</p>
             <WinLossArc winPercent={stats.tradeWinPercent} winCount={stats.winCount} lossCount={stats.lossCount} />
           </div>
         </Card>
 
         {/* Profit Factor */}
-        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
+        <Card className="p-8 bg-card border-border flex flex-col justify-between min-h-[190px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Profit Factor</span>
             <Tooltip>
@@ -353,7 +353,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
             </Tooltip>
           </div>
           <div className="flex items-end justify-between mt-auto">
-            <p className={`text-3xl font-extrabold tracking-tight ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>
+            <p className={`text-4xl font-extrabold tracking-tight ${stats.profitFactor >= 1 ? 'text-success' : 'text-destructive'}`}>
               {stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}
             </p>
             <ProfitFactorRing value={stats.profitFactor} />
@@ -361,7 +361,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Day Win % */}
-        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
+        <Card className="p-8 bg-card border-border flex flex-col justify-between min-h-[190px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Day Win %</span>
             <Tooltip>
@@ -372,13 +372,13 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
             </Tooltip>
           </div>
           <div className="flex items-end justify-between mt-auto">
-            <p className="text-3xl font-extrabold tracking-tight">{stats.dayWinPercent.toFixed(1)}%</p>
+            <p className="text-4xl font-extrabold tracking-tight">{stats.dayWinPercent.toFixed(1)}%</p>
             <WinLossArc winPercent={stats.dayWinPercent} winCount={stats.winDays} lossCount={stats.lossDays} />
           </div>
         </Card>
 
         {/* Avg Win/Loss */}
-        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
+        <Card className="p-8 bg-card border-border flex flex-col justify-between min-h-[190px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Avg Win/Loss</span>
             <Tooltip>
@@ -389,7 +389,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
             </Tooltip>
           </div>
           <div className="flex flex-col mt-auto">
-            <p className="text-2xl font-extrabold tracking-tight mb-2">
+            <p className="text-3xl font-extrabold tracking-tight mb-3">
               {props.viewMode === 'rMultiple' ? (
                 <>
                   <span className="text-success">+{stats.avgWinTrade.toFixed(2)}R</span>
