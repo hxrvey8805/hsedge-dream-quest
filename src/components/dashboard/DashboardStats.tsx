@@ -86,7 +86,7 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
   };
 
   return (
-    <svg viewBox="0 0 120 70" className="w-full max-w-[140px] h-auto">
+    <svg viewBox="0 0 160 92" className="w-full max-w-[180px] h-auto">
       <defs>
         <linearGradient id="winArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="hsl(163 100% 45%)" />
@@ -98,15 +98,15 @@ const WinLossArc = ({ winPercent, winCount, lossCount }: { winPercent: number; w
         </linearGradient>
       </defs>
       {winAngle > 0 && (
-        <path d={describeArc(60, 55, 40, 0, Math.max(winAngle, 1))} fill="none" stroke="url(#winArcGradient)" strokeWidth="8" strokeLinecap="round" />
+        <path d={describeArc(80, 70, 52, 0, Math.max(winAngle, 1))} fill="none" stroke="url(#winArcGradient)" strokeWidth="10" strokeLinecap="round" />
       )}
       {winAngle < 180 && (
-        <path d={describeArc(60, 55, 40, Math.min(winAngle, 179), 180)} fill="none" stroke="url(#lossArcGradient)" strokeWidth="8" strokeLinecap="round" />
+        <path d={describeArc(80, 70, 52, Math.min(winAngle, 179), 180)} fill="none" stroke="url(#lossArcGradient)" strokeWidth="10" strokeLinecap="round" />
       )}
-      <circle cx="22" cy="65" r="9" fill="hsl(var(--success))" className="drop-shadow-sm" />
-      <text x="22" y="68.5" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="9" fontWeight="700">{winCount}</text>
-      <circle cx="98" cy="65" r="9" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
-      <text x="98" y="68.5" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="9" fontWeight="700">{lossCount}</text>
+      <rect x="10" y="74" width="46" height="16" rx="8" fill="hsl(var(--success))" className="drop-shadow-sm" />
+      <text x="33" y="85" textAnchor="middle" fill="hsl(var(--success-foreground))" fontSize="10" fontWeight="800">{winCount}</text>
+      <rect x="104" y="74" width="46" height="16" rx="8" fill="hsl(var(--destructive))" className="drop-shadow-sm" />
+      <text x="127" y="85" textAnchor="middle" fill="hsl(var(--destructive-foreground))" fontSize="10" fontWeight="800">{lossCount}</text>
     </svg>
   );
 };
@@ -119,7 +119,7 @@ const ProfitFactorRing = ({ value }: { value: number }) => {
   const strokeDashoffset = circumference - (percent / 100) * circumference;
   
   return (
-    <svg viewBox="0 0 90 90" className="w-full max-w-[100px] h-auto">
+    <svg viewBox="0 0 90 90" className="w-full max-w-[125px] h-auto">
       <defs>
         <linearGradient id="profitFactorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="hsl(212 98% 55%)" />
