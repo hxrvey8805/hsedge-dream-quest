@@ -253,7 +253,7 @@ export const NetPLCard = (props: DashboardStatsProps) => {
 
   return (
     <TooltipProvider>
-      <Card className="relative overflow-hidden p-5 bg-card border-border flex flex-col justify-between h-full">
+      <Card className="relative overflow-hidden p-7 bg-card border-border flex flex-col justify-between min-h-[140px] h-full">
         {/* Dreamy ambient background */}
         <div className="absolute inset-0 pointer-events-none">
           <div 
@@ -325,7 +325,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
     <TooltipProvider>
       <div className="grid grid-cols-2 gap-3 h-full">
         {/* Trade Win % */}
-        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Trade Win %</span>
             <Tooltip>
@@ -342,7 +342,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Profit Factor */}
-        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Profit Factor</span>
             <Tooltip>
@@ -361,7 +361,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Day Win % */}
-        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Day Win %</span>
             <Tooltip>
@@ -378,7 +378,7 @@ export const FourStatsGrid = (props: DashboardStatsProps) => {
         </Card>
 
         {/* Avg Win/Loss */}
-        <Card className="p-5 bg-card border-border flex flex-col justify-between">
+        <Card className="p-7 bg-card border-border flex flex-col justify-between min-h-[140px]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Avg Win/Loss</span>
             <Tooltip>
