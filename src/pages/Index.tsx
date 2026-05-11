@@ -20,7 +20,24 @@ export default function Index() {
   const navigate = useNavigate();
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistName, setWaitlistName] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+
+  const sendWaitlistWelcome = async (email: string, firstName?: string) => {
+    try {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "waitlist-welcome",
+          recipientEmail: email,
+          idempotencyKey: `waitlist-welcome-${email.toLowerCase()}`,
+          ...(firstName ? { templateData: { firstName } } : {}),
+        },
+      });
+    } catch (err) {
+      // Non-blocking — signup already succeeded
+      console.error("Welcome email failed to enqueue:", err);
+    }
+  };
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
