@@ -129,6 +129,7 @@ export default function Index() {
 
   const submitWaitlist = async () => {
     const email = waitlistEmail.trim();
+    const firstName = waitlistName.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailOk) {
       toast.error("Enter a valid email address");
@@ -136,7 +137,11 @@ export default function Index() {
     }
     try {
       setWaitlistLoading(true);
-      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email, source: "landing" });
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({
+        email,
+        source: "landing",
+        ...(firstName ? { first_name: firstName } : {}),
+      });
       if (error) {
         const msg = (error as any)?.message?.toLowerCase?.() || "";
         const code = (error as any)?.code;
@@ -144,15 +149,18 @@ export default function Index() {
           toast.success("You're already on the waitlist.");
           setWaitlistOpen(false);
           setWaitlistEmail("");
+          setWaitlistName("");
           return;
         }
         console.error(error);
         toast.error("Couldn't join the waitlist — try again.");
         return;
       }
-      toast.success("You're on the TradePeaks waitlist.");
+      toast.success("You're on the TradePeaks waitlist. Check your inbox!");
       setWaitlistOpen(false);
       setWaitlistEmail("");
+      setWaitlistName("");
+      sendWaitlistWelcome(email, firstName || undefined);
     } catch (e) {
       console.error(e);
       toast.error("Couldn't join the waitlist — try again.");
