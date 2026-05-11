@@ -86,6 +86,7 @@ export default function Index() {
       }
       toast.success("You're on the list! We'll alert you when TradePeaks is available.");
       setEntryValue("");
+      sendWaitlistWelcome(v);
     } catch (err) {
       console.error(err);
       toast.error("Couldn't join the waitlist — try again.");
