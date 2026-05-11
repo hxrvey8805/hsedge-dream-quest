@@ -15,6 +15,7 @@ import Pricing from "./pages/Pricing";
 import TradingRooms from "./pages/TradingRooms";
 import NotFound from "./pages/NotFound";
 import Playbooks from "./pages/Playbooks";
+import Unsubscribe from "./pages/Unsubscribe";
 import { AppLayout } from "./components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/playbooks" element={<Playbooks />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
           {/* All app pages share the persistent header via AppLayout */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />

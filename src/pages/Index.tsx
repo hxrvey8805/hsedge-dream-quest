@@ -20,7 +20,24 @@ export default function Index() {
   const navigate = useNavigate();
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistName, setWaitlistName] = useState("");
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+
+  const sendWaitlistWelcome = async (email: string, firstName?: string) => {
+    try {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "waitlist-welcome",
+          recipientEmail: email,
+          idempotencyKey: `waitlist-welcome-${email.toLowerCase()}`,
+          ...(firstName ? { templateData: { firstName } } : {}),
+        },
+      });
+    } catch (err) {
+      // Non-blocking — signup already succeeded
+      console.error("Welcome email failed to enqueue:", err);
+    }
+  };
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
   const [lightMode, setLightMode] = useState(false);
@@ -69,6 +86,7 @@ export default function Index() {
       }
       toast.success("You're on the list! We'll alert you when TradePeaks is available.");
       setEntryValue("");
+      sendWaitlistWelcome(v);
     } catch (err) {
       console.error(err);
       toast.error("Couldn't join the waitlist — try again.");
@@ -111,6 +129,7 @@ export default function Index() {
 
   const submitWaitlist = async () => {
     const email = waitlistEmail.trim();
+    const firstName = waitlistName.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailOk) {
       toast.error("Enter a valid email address");
@@ -118,7 +137,11 @@ export default function Index() {
     }
     try {
       setWaitlistLoading(true);
-      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({ email, source: "landing" });
+      const { error } = await (supabase.from("waitlist_signups" as any) as any).insert({
+        email,
+        source: "landing",
+        ...(firstName ? { first_name: firstName } : {}),
+      });
       if (error) {
         const msg = (error as any)?.message?.toLowerCase?.() || "";
         const code = (error as any)?.code;
@@ -126,15 +149,18 @@ export default function Index() {
           toast.success("You're already on the waitlist.");
           setWaitlistOpen(false);
           setWaitlistEmail("");
+          setWaitlistName("");
           return;
         }
         console.error(error);
         toast.error("Couldn't join the waitlist — try again.");
         return;
       }
-      toast.success("You're on the TradePeaks waitlist.");
+      toast.success("You're on the TradePeaks waitlist. Check your inbox!");
       setWaitlistOpen(false);
       setWaitlistEmail("");
+      setWaitlistName("");
+      sendWaitlistWelcome(email, firstName || undefined);
     } catch (e) {
       console.error(e);
       toast.error("Couldn't join the waitlist — try again.");
@@ -320,17 +346,25 @@ export default function Index() {
                     >
                       <Card className="bg-card/50 border-border/50 p-6 backdrop-blur-sm max-w-md">
                         <h3 className="text-lg font-semibold text-foreground mb-3">Join the Waitlist</h3>
-                        <div className="flex gap-2">
+                        <div className="space-y-2">
                           <Input
-                            placeholder="you@email.com"
-                            value={waitlistEmail}
-                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            placeholder="First name (optional)"
+                            value={waitlistName}
+                            onChange={(e) => setWaitlistName(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
-                            className="flex-1"
                           />
-                          <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
-                            {waitlistLoading ? "..." : "Join"}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="you@email.com"
+                              value={waitlistEmail}
+                              onChange={(e) => setWaitlistEmail(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
+                              className="flex-1"
+                            />
+                            <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
+                              {waitlistLoading ? "..." : "Join"}
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     </motion.div>
