@@ -13,7 +13,7 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'TradePeaks'
-const LOGO_URL = 'https://tradepeaks.com/tp-logo.png'
+const LOGO_URL = 'https://wwixjhsbwasnoldyrtdk.supabase.co/storage/v1/object/public/email-assets/waitlist-hero.png'
 
 interface WaitlistWelcomeProps {
   firstName?: string
@@ -29,7 +29,7 @@ const WaitlistWelcomeEmail = ({ firstName }: WaitlistWelcomeProps) => {
         <Container style={container}>
           {/* Hero */}
           <Section style={hero}>
-            <Img src={LOGO_URL} alt={SITE_NAME} height="38" style={logo} />
+            <Img src={LOGO_URL} alt={SITE_NAME} width="120" height="120" style={logo} />
             <Text style={eyebrow}>WAITLIST CONFIRMED</Text>
             <Heading style={h1}>
               {greetingName ? `Welcome to the climb, ${greetingName}.` : 'Welcome to the climb.'}
