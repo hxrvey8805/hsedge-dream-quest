@@ -15,6 +15,7 @@ import Pricing from "./pages/Pricing";
 import TradingRooms from "./pages/TradingRooms";
 import NotFound from "./pages/NotFound";
 import Playbooks from "./pages/Playbooks";
+import Unsubscribe from "./pages/Unsubscribe";
 import { AppLayout } from "./components/layout/AppLayout";
 
 const queryClient = new QueryClient();
