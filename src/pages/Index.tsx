@@ -346,17 +346,25 @@ export default function Index() {
                     >
                       <Card className="bg-card/50 border-border/50 p-6 backdrop-blur-sm max-w-md">
                         <h3 className="text-lg font-semibold text-foreground mb-3">Join the Waitlist</h3>
-                        <div className="flex gap-2">
+                        <div className="space-y-2">
                           <Input
-                            placeholder="you@email.com"
-                            value={waitlistEmail}
-                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            placeholder="First name (optional)"
+                            value={waitlistName}
+                            onChange={(e) => setWaitlistName(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
-                            className="flex-1"
                           />
-                          <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
-                            {waitlistLoading ? "..." : "Join"}
-                          </Button>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="you@email.com"
+                              value={waitlistEmail}
+                              onChange={(e) => setWaitlistEmail(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && submitWaitlist()}
+                              className="flex-1"
+                            />
+                            <Button onClick={submitWaitlist} disabled={waitlistLoading} className="bg-primary text-primary-foreground">
+                              {waitlistLoading ? "..." : "Join"}
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     </motion.div>
