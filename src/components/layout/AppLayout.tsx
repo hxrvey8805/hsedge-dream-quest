@@ -77,6 +77,14 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
               <span className="text-sm text-muted-foreground">{userEmail}</span>
             )}
             <button
+              onClick={toggleTheme}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button
               onClick={() => setSettingsOpen(true)}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
               title="Settings"
