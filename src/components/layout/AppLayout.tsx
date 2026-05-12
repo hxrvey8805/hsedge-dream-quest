@@ -27,6 +27,10 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
+    [logoLight, logoDark].forEach((src) => { const i = new Image(); i.src = src; });
+  }, []);
+
+  useEffect(() => {
     const resolveName = (user: any) => {
       if (!user) return setTraderName(null);
       const meta = (user.user_metadata || {}) as Record<string, any>;
