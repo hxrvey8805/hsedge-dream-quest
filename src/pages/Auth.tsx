@@ -21,6 +21,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const lightMode = theme === "light";
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
