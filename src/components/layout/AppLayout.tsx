@@ -27,6 +27,10 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
+    [logoLight, logoDark].forEach((src) => { const i = new Image(); i.src = src; });
+  }, []);
+
+  useEffect(() => {
     const resolveName = (user: any) => {
       if (!user) return setTraderName(null);
       const meta = (user.user_metadata || {}) as Record<string, any>;
@@ -57,7 +61,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
-              <img src={theme === "light" ? logoLight : logoDark} alt="TradePeaks" className="h-10 w-10" />
+              <img src={theme === "light" ? logoLight : logoDark} alt="TradePeaks" className="h-10 w-10" decoding="sync" fetchPriority="high" />
               <span className="text-xl font-bold text-foreground">TradePeaks</span>
             </div>
             <nav className="flex items-center gap-1">
