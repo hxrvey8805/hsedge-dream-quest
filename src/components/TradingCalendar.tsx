@@ -1165,10 +1165,13 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
 
                       {/* Row 3: Strategy — full width */}
                       {trade.strategy_type && (
-                        <div className="mt-3">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Strategy</p>
-                          <p className="text-sm font-semibold break-words">{trade.strategy_type}</p>
-                        </div>
+                        <>
+                          <div className="my-3 border-t border-border/30" />
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Strategy</p>
+                            <p className="text-sm font-semibold break-words">{trade.strategy_type}</p>
+                          </div>
+                        </>
                       )}
 
                       {/* Notes */}
