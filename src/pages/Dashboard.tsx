@@ -348,7 +348,7 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content - Two Column Layout */}
-        <div className="grid lg:grid-cols-[1.8fr_1fr] gap-6 max-w-[1800px] mx-auto">
+        <div className="grid lg:grid-cols-[1.9fr_1fr] gap-6 max-w-[1800px] mx-auto">
           {/* Left Column - Trading Calendar */}
           <Card className="p-5 pt-3 bg-card border-border">
             <div className="flex items-start justify-between mb-2">
