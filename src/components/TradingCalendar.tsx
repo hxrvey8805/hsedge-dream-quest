@@ -710,21 +710,31 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className={`text-right px-4 py-2 rounded-lg ${
-                    selectedDay && getDayStats(selectedDay).outcome === 'profit'
-                      ? 'bg-emerald-500/20 text-emerald-500'
-                      : selectedDay && getDayStats(selectedDay).outcome === 'loss'
-                      ? 'bg-rose-500/20 text-rose-500'
-                      : 'bg-primary/20 text-primary'
-                  }`}>
-                    <p className="text-xs text-muted-foreground/80 mb-0.5">Total {viewMode === 'rMultiple' ? 'R Mult' : 'P&L'}</p>
-                    <p className="text-2xl font-bold">
-                      {selectedDay && viewMode === 'rMultiple' 
-                        ? `${getDayStats(selectedDay).totalRMultiple >= 0 ? '+' : ''}${getDayStats(selectedDay).totalRMultiple.toFixed(2)}R`
-                        : `$${getDayStats(selectedDay).totalProfit >= 0 ? '+' : ''}${getDayStats(selectedDay).totalProfit.toFixed(2)}`
-                      }
-                    </p>
-                  </div>
+                  {(() => {
+                    const stats = selectedDay ? getDayStats(selectedDay) : null;
+                    const isWin = stats?.outcome === 'profit';
+                    const isLoss = stats?.outcome === 'loss';
+                    return (
+                      <div className={`rounded-lg border px-3 py-1.5 flex flex-col items-center justify-center ${
+                        isWin ? 'border-emerald-500/30 bg-emerald-500/5' :
+                        isLoss ? 'border-rose-500/30 bg-rose-500/5' :
+                        'border-border/60 bg-card/40'
+                      }`}>
+                        <p className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none mb-0.5">
+                          Total {viewMode === 'rMultiple' ? 'R:R' : 'P&L'}
+                        </p>
+                        <p className={`text-xl font-bold tabular-nums leading-tight ${
+                          viewMode === 'rMultiple'
+                            ? 'text-foreground'
+                            : isWin ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-foreground'
+                        }`}>
+                          {stats && viewMode === 'rMultiple'
+                            ? `${stats.totalRMultiple >= 0 ? '+' : ''}${stats.totalRMultiple.toFixed(2)}R`
+                            : stats ? `${stats.totalProfit >= 0 ? '+' : '-'}$${Math.abs(stats.totalProfit).toFixed(2)}` : ''}
+                        </p>
+                      </div>
+                    );
+                  })()}
                   {selectedDay && onDaySelect && (
                     <div className="flex gap-2">
                       <Button
