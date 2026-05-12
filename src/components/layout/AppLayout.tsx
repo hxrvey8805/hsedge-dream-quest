@@ -81,8 +81,8 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            {userEmail && (
-              <span className="text-sm text-muted-foreground">{userEmail}</span>
+            {traderName && (
+              <span className="text-sm text-muted-foreground">{traderName}</span>
             )}
             <button
               onClick={toggleTheme}
