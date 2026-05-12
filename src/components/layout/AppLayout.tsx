@@ -61,8 +61,8 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
               <span className="relative block h-10 w-10 shrink-0" aria-hidden="true">
-                <img src={logoLight} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "light" ? "block" : "hidden"}`} decoding="sync" loading="eager" />
-                <img src={logoDark} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "dark" ? "block" : "hidden"}`} decoding="sync" loading="eager" />
+                <img src={logoLight} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "light" ? "opacity-100" : "opacity-0"}`} decoding="sync" loading="eager" />
+                <img src={logoDark} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "dark" ? "opacity-100" : "opacity-0"}`} decoding="sync" loading="eager" />
               </span>
               <span className="sr-only">TradePeaks</span>
               <span className="text-xl font-bold text-foreground">TradePeaks</span>
