@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-const logo = "/favicon.png";
+import logo from "@/assets/header-mountains.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { useTheme } from "@/hooks/useTheme";
