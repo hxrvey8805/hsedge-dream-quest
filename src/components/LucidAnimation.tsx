@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/hooks/useTheme";
 
 interface LucidAnimationProps {
   onComplete?: () => void;
@@ -9,6 +10,8 @@ interface LucidAnimationProps {
 const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) => {
   const [phase, setPhase] = useState<'logo' | 'text' | 'exit'>('logo');
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const lightMode = theme === 'light';
 
   // Phase timing
   useEffect(() => {
@@ -56,7 +59,9 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           style={{
-            background: 'radial-gradient(ellipse at 50% 30%, hsl(220 40% 8%) 0%, hsl(220 50% 4%) 50%, hsl(220 60% 2%) 100%)'
+            background: lightMode
+              ? 'radial-gradient(ellipse at 50% 30%, hsl(210 40% 100%) 0%, hsl(210 40% 98%) 50%, hsl(210 40% 96%) 100%)'
+              : 'radial-gradient(ellipse at 50% 30%, hsl(220 40% 8%) 0%, hsl(220 50% 4%) 50%, hsl(220 60% 2%) 100%)'
           }}
         >
           {/* Animated gradient overlay */}
@@ -214,7 +219,9 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
           <div 
             className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
             style={{
-              background: 'linear-gradient(to top, hsl(220 60% 2%), transparent)'
+              background: lightMode
+                ? 'linear-gradient(to top, hsl(210 40% 96%), transparent)'
+                : 'linear-gradient(to top, hsl(220 60% 2%), transparent)'
             }}
           />
         </motion.div>
