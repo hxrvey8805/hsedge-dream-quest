@@ -174,31 +174,13 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
               />
               
               <motion.h1
-                className="text-6xl md:text-7xl lg:text-8xl font-light italic relative z-10"
+                className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight relative z-10"
                 style={{
-                  fontFamily: "'Playfair Display', 'Dancing Script', 'Georgia', serif",
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 40%, #22d3ee 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  letterSpacing: '0.08em',
-                  fontWeight: 300,
-                  filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.5))',
-                }}
-                animate={{
-                  y: [0, -8, 0],
-                  filter: [
-                    'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
-                    'drop-shadow(0 0 60px rgba(59, 130, 246, 0.7))',
-                    'drop-shadow(0 0 30px rgba(59, 130, 246, 0.5))',
-                  ],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                  color: 'hsl(212 98% 62%)',
+                  textShadow: '0 0 30px hsl(212 98% 62% / 0.4), 0 0 60px hsl(212 98% 62% / 0.15)',
                 }}
               >
-                TradePeaks
+                TRADE PEAKS
               </motion.h1>
             </motion.div>
 
