@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 const logo = "/favicon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
+import { useTheme } from "@/hooks/useTheme";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard" },
@@ -22,6 +23,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -37,7 +39,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border/30 bg-[hsl(222,47%,6%)] sticky top-0 z-50 shrink-0">
+      <header className="border-b border-border/30 bg-card sticky top-0 z-50 shrink-0">
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
@@ -74,6 +76,14 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
             {userEmail && (
               <span className="text-sm text-muted-foreground">{userEmail}</span>
             )}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               onClick={() => setSettingsOpen(true)}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/20"

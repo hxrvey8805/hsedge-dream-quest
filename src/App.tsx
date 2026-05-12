@@ -17,11 +17,13 @@ import NotFound from "./pages/NotFound";
 import Playbooks from "./pages/Playbooks";
 import Unsubscribe from "./pages/Unsubscribe";
 import { AppLayout } from "./components/layout/AppLayout";
+import { ThemeProvider } from "./hooks/useTheme";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -48,6 +50,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
