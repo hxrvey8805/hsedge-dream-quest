@@ -59,7 +59,9 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           style={{
-            background: 'radial-gradient(ellipse at 50% 30%, hsl(220 40% 8%) 0%, hsl(220 50% 4%) 50%, hsl(220 60% 2%) 100%)'
+            background: lightMode
+              ? 'radial-gradient(ellipse at 50% 30%, hsl(210 40% 100%) 0%, hsl(210 40% 98%) 50%, hsl(210 40% 96%) 100%)'
+              : 'radial-gradient(ellipse at 50% 30%, hsl(220 40% 8%) 0%, hsl(220 50% 4%) 50%, hsl(220 60% 2%) 100%)'
           }}
         >
           {/* Animated gradient overlay */}
