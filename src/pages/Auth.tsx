@@ -231,7 +231,7 @@ const Auth = () => {
               <img 
                 src={lightMode ? logoLight : logoDark} 
                 alt="TradePeaks" 
-                className="h-20 w-20" 
+                className="h-32 w-32" 
               />
             </div>
             <div className="space-y-2">
