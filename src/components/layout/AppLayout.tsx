@@ -4,7 +4,7 @@ import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logoLight from "@/assets/header-mountains-light.png";
-const logoDark = "/favicon.png";
+import logoDark from "@/assets/header-mountains.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { useTheme } from "@/hooks/useTheme";
