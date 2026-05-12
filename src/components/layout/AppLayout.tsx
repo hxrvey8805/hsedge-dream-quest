@@ -23,6 +23,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
