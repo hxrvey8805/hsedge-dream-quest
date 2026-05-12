@@ -110,11 +110,19 @@ export default function Index() {
   }, []);
 
   const toggleMute = () => {
-    if (audioRef.current) {
-      const next = !isMuted;
-      audioRef.current.muted = next;
-      setIsMuted(next);
+    if (!audioRef.current) {
+      const audio = new Audio("/audio/ambient.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+      audioRef.current = audio;
+      audio.play().catch(() => {});
+      setIsMuted(false);
+      return;
     }
+    const next = !isMuted;
+    audioRef.current.muted = next;
+    if (!next && audioRef.current.paused) audioRef.current.play().catch(() => {});
+    setIsMuted(next);
   };
 
   const particles = useMemo(() => {
