@@ -229,7 +229,7 @@ const Auth = () => {
           <div className="space-y-6 text-center mb-8">
             <div className="flex justify-center">
               <img 
-                src={logo} 
+                src={lightMode ? logoLight : logoDark} 
                 alt="TradePeaks" 
                 className="h-20 w-20" 
               />

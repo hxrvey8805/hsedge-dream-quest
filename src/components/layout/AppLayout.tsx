@@ -57,7 +57,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
-              <img src={logo} alt="TradePeaks" className="h-10 w-10" />
+              <img src={theme === "light" ? logoLight : logoDark} alt="TradePeaks" className="h-10 w-10" />
               <span className="text-xl font-bold text-foreground">TradePeaks</span>
             </div>
             <nav className="flex items-center gap-1">
