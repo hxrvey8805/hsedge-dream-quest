@@ -40,7 +40,7 @@ export default function Index() {
     }
   };
   const [isMuted, setIsMuted] = useState(false);
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(() => typeof window !== "undefined" && sessionStorage.getItem("tp-entered") === "1");
   const { theme, setTheme } = useTheme();
   const lightMode = theme === "light";
   const setLightMode = (v: boolean) => setTheme(v ? "light" : "dark");
