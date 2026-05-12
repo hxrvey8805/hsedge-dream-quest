@@ -39,7 +39,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border/30 bg-[hsl(222,47%,6%)] light:bg-card sticky top-0 z-50 shrink-0">
+      <header className="app-header border-b border-border/30 sticky top-0 z-50 shrink-0">
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
