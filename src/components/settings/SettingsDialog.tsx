@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { TIMEZONE_OPTIONS } from "@/lib/sessionDetection";
-import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2, Mail } from "lucide-react";
+import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2, Mail, User } from "lucide-react";
 import type { MonthlyRiskOverrides } from "@/lib/rMultiple";
 import { supabase } from "@/integrations/supabase/client";
 
