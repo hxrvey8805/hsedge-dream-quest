@@ -9,6 +9,7 @@ import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX, Sun, Moo
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/hooks/useTheme";
 
 const proofCards = [
   { icon: ClipboardCheck, title: "Daily Report Card", desc: "Structured reflection that forces growth every session." },
