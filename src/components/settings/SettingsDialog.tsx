@@ -34,15 +34,49 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [currentEmail, setCurrentEmail] = useState<string>("");
   const [newEmail, setNewEmail] = useState<string>("");
   const [emailSaving, setEmailSaving] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const [initialUsername, setInitialUsername] = useState<string>("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       supabase.auth.getUser().then(({ data: { user } }) => {
         setCurrentEmail(user?.email ?? "");
         setNewEmail(user?.email ?? "");
+        const meta = (user?.user_metadata || {}) as Record<string, any>;
+        const name =
+          meta.display_name ||
+          meta.full_name ||
+          meta.name ||
+          [meta.first_name, meta.last_name].filter(Boolean).join(" ").trim() ||
+          "";
+        setUsername(name);
+        setInitialUsername(name);
       });
     }
   }, [open]);
+
+  const handleUsernameSave = async () => {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      toast.error("Username cannot be empty");
+      return;
+    }
+    if (trimmed.length > 50) {
+      toast.error("Username must be 50 characters or less");
+      return;
+    }
+    if (trimmed === initialUsername) return;
+    setUsernameSaving(true);
+    const { error } = await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    setUsernameSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to update username");
+    } else {
+      setInitialUsername(trimmed);
+      toast.success("Username updated");
+    }
+  };
 
   const handleEmailChange = async () => {
     const trimmed = newEmail.trim();
