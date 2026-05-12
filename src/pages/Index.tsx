@@ -225,9 +225,9 @@ export default function Index() {
       <div className="fixed top-5 right-5 z-[60] flex items-center gap-2">
         <button
           onClick={() => setLightMode(!lightMode)}
-          className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+          className={`p-2.5 rounded-full border backdrop-blur-md transition-all duration-300 ${
             lightMode
-              ? 'bg-gray-900/10 border-gray-900/20 text-gray-700 hover:bg-gray-900/20'
+              ? 'bg-white/80 border-gray-300 text-gray-900 hover:bg-white shadow-sm'
               : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
           }`}
           title={lightMode ? "Dark mode" : "Light mode"}
@@ -236,9 +236,9 @@ export default function Index() {
         </button>
         <button
           onClick={toggleMute}
-          className={`p-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+          className={`p-2.5 rounded-full border backdrop-blur-md transition-all duration-300 ${
             lightMode
-              ? 'bg-gray-900/10 border-gray-900/20 text-gray-700 hover:bg-gray-900/20'
+              ? 'bg-white/80 border-gray-300 text-gray-900 hover:bg-white shadow-sm'
               : 'bg-white/10 border-white/20 text-white/70 hover:text-white hover:bg-white/20'
           }`}
           title={isMuted ? "Unmute" : "Mute"}
@@ -250,13 +250,13 @@ export default function Index() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
-          <nav className="flex items-center gap-8">
-            <a href="#system" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>System</a>
-            <a href="#analytics" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Analytics</a>
-            <button type="button" onClick={() => navigate("/pricing")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Pricing</button>
-            <button type="button" onClick={() => navigate("/playbooks")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-500 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Playbooks</button>
+          <nav className={`flex items-center gap-8 rounded-full px-6 py-2 ${lightMode ? 'bg-white/80 backdrop-blur-md border border-gray-200 shadow-sm' : ''}`}>
+            <a href="#system" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>System</a>
+            <a href="#analytics" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Playbooks</button>
           </nav>
-          <Button size="default" className={`backdrop-blur-sm rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-gray-900/10 hover:bg-gray-900/20 text-gray-900 border border-gray-900/20 hover:border-gray-900/40' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
+          <Button size="default" className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-gray-900 hover:bg-gray-800 text-white border border-gray-900 shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
             Log in
           </Button>
         </div>
