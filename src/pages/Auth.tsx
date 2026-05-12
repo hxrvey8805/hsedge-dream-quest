@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import logo from "@/assets/header-mountains.png";
 import LucidAnimation from "@/components/LucidAnimation";
+import { useTheme } from "@/hooks/useTheme";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
