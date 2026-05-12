@@ -348,6 +348,13 @@ All colors MUST be HSL.
 }
 
 /* HUD Glass Card */
+.app-header {
+  background-color: hsl(222 47% 6%);
+}
+.light .app-header {
+  background-color: hsl(var(--card));
+}
+
 .hud-glass {
   background: linear-gradient(145deg, hsl(var(--card) / 0.85), hsl(var(--background) / 0.9));
   backdrop-filter: blur(16px);
