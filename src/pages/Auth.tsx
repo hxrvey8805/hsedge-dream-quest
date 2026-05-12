@@ -226,8 +226,8 @@ const Auth = () => {
             <div className="flex justify-center">
               <img 
                 src={logo} 
-                alt="HS-Edge" 
-                className="h-20 w-20 animate-logo-float" 
+                alt="TradePeaks" 
+                className="h-20 w-20" 
               />
             </div>
             <div className="space-y-2">
