@@ -26,17 +26,22 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+    const resolveName = (user: any) => {
+      if (!user) return setTraderName(null);
       const meta = (user.user_metadata || {}) as Record<string, any>;
       const name =
+        meta.display_name ||
         meta.full_name ||
         meta.name ||
-        meta.display_name ||
         [meta.first_name, meta.last_name].filter(Boolean).join(" ").trim() ||
         (user.email ? user.email.split("@")[0] : null);
       setTraderName(name || null);
+    };
+    supabase.auth.getUser().then(({ data: { user } }) => resolveName(user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      resolveName(session?.user ?? null);
     });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
