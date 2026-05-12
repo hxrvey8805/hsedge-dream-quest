@@ -9,6 +9,7 @@ import { ArrowRight, ClipboardCheck, Gauge, Mountain, Volume2, VolumeX, Sun, Moo
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import heroBanner from "@/assets/landing/background/hero-banner.png";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/hooks/useTheme";
 
 const proofCards = [
   { icon: ClipboardCheck, title: "Daily Report Card", desc: "Structured reflection that forces growth every session." },
@@ -40,7 +41,9 @@ export default function Index() {
   };
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
-  const [lightMode, setLightMode] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const lightMode = theme === "light";
+  const setLightMode = (v: boolean) => setTheme(v ? "light" : "dark");
   const [entryValue, setEntryValue] = useState("");
   const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
