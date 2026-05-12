@@ -251,11 +251,11 @@ export default function Index() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
-          <nav className={`flex items-center gap-8 rounded-full px-6 py-2 ${lightMode ? 'bg-white/80 backdrop-blur-md border border-gray-200 shadow-sm' : ''}`}>
-            <a href="#system" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>System</a>
-            <a href="#analytics" className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Analytics</a>
-            <button type="button" onClick={() => navigate("/pricing")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Pricing</button>
-            <button type="button" onClick={() => navigate("/playbooks")} className={`text-base transition-colors duration-300 font-medium tracking-wide ${lightMode ? 'text-gray-700 hover:text-gray-900' : 'text-white/60 hover:text-white'}`}>Playbooks</button>
+          <nav className="flex items-center gap-8 rounded-full px-6 py-2">
+            <a href="#system" className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">System</a>
+            <a href="#analytics" className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Playbooks</button>
           </nav>
           <Button size="default" className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-gray-900 hover:bg-gray-800 text-white border border-gray-900 shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
             Log in
