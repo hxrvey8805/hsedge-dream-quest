@@ -56,6 +56,7 @@ export default function Index() {
     audio.volume = 0.4;
     audioRef.current = audio;
     audio.play().catch(() => {});
+    sessionStorage.setItem("tp-entered", "1");
     setEntered(true);
   };
 
