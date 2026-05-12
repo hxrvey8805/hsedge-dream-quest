@@ -219,7 +219,9 @@ const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) =>
           <div 
             className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
             style={{
-              background: 'linear-gradient(to top, hsl(220 60% 2%), transparent)'
+              background: lightMode
+                ? 'linear-gradient(to top, hsl(210 40% 96%), transparent)'
+                : 'linear-gradient(to top, hsl(220 60% 2%), transparent)'
             }}
           />
         </motion.div>
