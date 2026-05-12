@@ -10,6 +10,8 @@ interface LucidAnimationProps {
 const LucidAnimation = ({ onComplete, duration = 3500 }: LucidAnimationProps) => {
   const [phase, setPhase] = useState<'logo' | 'text' | 'exit'>('logo');
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const lightMode = theme === 'light';
 
   // Phase timing
   useEffect(() => {
