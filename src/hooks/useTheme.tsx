@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useState, ReactNode } from "react";
 
 type Theme = "dark" | "light";
 
@@ -29,13 +29,25 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return (localStorage.getItem(STORAGE_KEY) as Theme) || "dark";
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyTheme(theme);
     localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
-  const setTheme = (t: Theme) => setThemeState(t);
-  const toggleTheme = () => setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
+  const setTheme = (t: Theme) => {
+    applyTheme(t);
+    localStorage.setItem(STORAGE_KEY, t);
+    setThemeState(t);
+  };
+
+  const toggleTheme = () => {
+    setThemeState((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      applyTheme(next);
+      localStorage.setItem(STORAGE_KEY, next);
+      return next;
+    });
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
