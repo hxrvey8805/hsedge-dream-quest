@@ -203,11 +203,18 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
   };
 
   const calculateRiskReward = (trade: Trade) => {
+    // Derive RR from the user's R (default risk amount / monthly override),
+    // falling back to the trade's own risk_to_pay if no setting is configured.
+    const r = calculateRMultiple(
+      trade.profit,
+      trade.risk_to_pay,
+      settings.defaultRiskAmount,
+      trade.trade_date,
+      settings.monthlyRiskOverrides,
+    );
+    if (r && isFinite(r) && r !== 0) return `1:${r.toFixed(2)}`;
     if (trade.risk_reward_ratio) return trade.risk_reward_ratio;
-    if (!trade.risk_to_pay || !trade.total_pips_secured) return 'N/A';
-    const reward = trade.total_pips_secured;
-    const risk = trade.risk_to_pay;
-    return `1:${(reward / risk).toFixed(2)}`;
+    return 'N/A';
   };
 
   const fetchEditPlaybooks = async () => {
