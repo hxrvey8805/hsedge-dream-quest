@@ -1070,9 +1070,9 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
 
                     {/* Metrics Body */}
                     <div className="px-5 pb-5">
-                      <div className="grid grid-cols-[1fr_auto] gap-4 items-stretch">
-                        {/* Left: meta grid */}
-                        <div className="grid grid-cols-3 gap-x-4 gap-y-4 content-center">
+                      {/* Row 1: Entry / Exit / Size + P&L tile aligned to this row */}
+                      <div className="flex items-stretch gap-4">
+                        <div className="grid grid-cols-3 gap-x-4 flex-1">
                           {trade.entry_price !== null && trade.entry_price !== undefined && (
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Entry</p>
@@ -1091,66 +1091,18 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                               <p className="text-sm font-semibold tabular-nums">{trade.size.toFixed(2)}</p>
                             </div>
                           )}
-                          {trade.stop_loss !== null && trade.stop_loss !== undefined && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Stop Loss</p>
-                              <p className="text-sm font-semibold tabular-nums">${trade.stop_loss.toFixed(4)}</p>
-                            </div>
-                          )}
-                          {trade.session && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Session</p>
-                              <p className="text-sm font-semibold">{trade.session}</p>
-                            </div>
-                          )}
-                          {trade.entry_timeframe && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Timeframe</p>
-                              <p className="text-sm font-semibold">{trade.entry_timeframe}</p>
-                            </div>
-                          )}
-                          {(trade.time_opened || trade.time_closed) && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Time</p>
-                              <p className="text-sm font-semibold tabular-nums">
-                                {trade.time_opened && trade.time_closed
-                                  ? `${trade.time_opened} - ${trade.time_closed}`
-                                  : trade.time_opened || trade.time_closed}
-                              </p>
-                            </div>
-                          )}
-                          {trade.strategy_type && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Strategy</p>
-                              <p className="text-sm font-semibold truncate">{trade.strategy_type}</p>
-                            </div>
-                          )}
-                          {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && trade.pips !== null && trade.pips !== undefined && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{trade.asset_class === "Forex" ? "Pips" : "Ticks"}</p>
-                              <p className={`text-sm font-semibold tabular-nums ${isWin ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-foreground'}`}>
-                                {(trade.pips >= 0 ? '+' : '') + trade.pips.toFixed(1)}
-                              </p>
-                            </div>
-                          )}
-                          {trade.fees !== null && trade.fees !== undefined && trade.fees !== 0 && (
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Fees</p>
-                              <p className="text-sm font-semibold tabular-nums">${trade.fees.toFixed(2)}</p>
-                            </div>
-                          )}
                         </div>
 
-                        {/* Right: primary metric tile */}
-                        <div className={`rounded-xl border px-6 py-4 flex flex-col items-center justify-center min-w-[140px] ${
+                        {/* Primary metric tile — tight to value, aligned with row 1 */}
+                        <div className={`rounded-lg border px-3 py-1.5 flex flex-col items-center justify-center self-start ${
                           isWin ? 'border-emerald-500/30 bg-emerald-500/5' :
                           isLoss ? 'border-rose-500/30 bg-rose-500/5' :
                           'border-border/60 bg-card/40'
                         }`}>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                          <p className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none mb-0.5">
                             {viewMode === 'rMultiple' ? 'R:R' : 'P&L'}
                           </p>
-                          <p className={`text-3xl font-bold tabular-nums ${
+                          <p className={`text-xl font-bold tabular-nums leading-tight ${
                             viewMode === 'rMultiple'
                               ? 'text-foreground'
                               : isWin ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-foreground'
@@ -1161,6 +1113,63 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                           </p>
                         </div>
                       </div>
+
+                      {/* Divider between row 1 and row 2 */}
+                      <div className="my-3 border-t border-border/30" />
+
+                      {/* Row 2: Stop / Session / Timeframe / Time / Pips / Fees */}
+                      <div className="grid grid-cols-4 gap-x-4 gap-y-3">
+                        {trade.stop_loss !== null && trade.stop_loss !== undefined && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Stop Loss</p>
+                            <p className="text-sm font-semibold tabular-nums">${trade.stop_loss.toFixed(4)}</p>
+                          </div>
+                        )}
+                        {trade.session && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Session</p>
+                            <p className="text-sm font-semibold">{trade.session}</p>
+                          </div>
+                        )}
+                        {trade.entry_timeframe && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Timeframe</p>
+                            <p className="text-sm font-semibold">{trade.entry_timeframe}</p>
+                          </div>
+                        )}
+                        {(trade.time_opened || trade.time_closed) && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Time</p>
+                            <p className="text-sm font-semibold tabular-nums">
+                              {trade.time_opened && trade.time_closed
+                                ? `${trade.time_opened} - ${trade.time_closed}`
+                                : trade.time_opened || trade.time_closed}
+                            </p>
+                          </div>
+                        )}
+                        {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && trade.pips !== null && trade.pips !== undefined && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{trade.asset_class === "Forex" ? "Pips" : "Ticks"}</p>
+                            <p className={`text-sm font-semibold tabular-nums ${isWin ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-foreground'}`}>
+                              {(trade.pips >= 0 ? '+' : '') + trade.pips.toFixed(1)}
+                            </p>
+                          </div>
+                        )}
+                        {trade.fees !== null && trade.fees !== undefined && trade.fees !== 0 && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Fees</p>
+                            <p className="text-sm font-semibold tabular-nums">${trade.fees.toFixed(2)}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Row 3: Strategy — full width */}
+                      {trade.strategy_type && (
+                        <div className="mt-3">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Strategy</p>
+                          <p className="text-sm font-semibold break-words">{trade.strategy_type}</p>
+                        </div>
+                      )}
 
                       {/* Notes */}
                       {trade.notes && (
