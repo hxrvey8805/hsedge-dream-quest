@@ -748,7 +748,7 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
           </div>
 
           <div className="px-6 pb-6">
-            <div className="space-y-3 max-h-[65vh] overflow-y-auto pt-4">
+            <div className="space-y-3 max-h-[65vh] overflow-y-auto pt-4 hud-scrollbar pr-1">
               {selectedDay && [...getDayStats(selectedDay).trades].sort((a, b) => {
                 // Sort by time_opened ascending (earliest first)
                 if (a.time_opened && b.time_opened) {
