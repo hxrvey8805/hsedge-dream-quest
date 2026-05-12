@@ -41,7 +41,9 @@ export default function Index() {
   };
   const [isMuted, setIsMuted] = useState(false);
   const [entered, setEntered] = useState(false);
-  const [lightMode, setLightMode] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const lightMode = theme === "light";
+  const setLightMode = (v: boolean) => setTheme(v ? "light" : "dark");
   const [entryValue, setEntryValue] = useState("");
   const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
