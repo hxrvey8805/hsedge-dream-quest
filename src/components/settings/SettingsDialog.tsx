@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { TIMEZONE_OPTIONS } from "@/lib/sessionDetection";
-import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2, Mail } from "lucide-react";
+import { DollarSign, Globe, Clock, Calendar as CalendarIcon, Plus, Trash2, Mail, User } from "lucide-react";
 import type { MonthlyRiskOverrides } from "@/lib/rMultiple";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,15 +34,49 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
   const [currentEmail, setCurrentEmail] = useState<string>("");
   const [newEmail, setNewEmail] = useState<string>("");
   const [emailSaving, setEmailSaving] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const [initialUsername, setInitialUsername] = useState<string>("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       supabase.auth.getUser().then(({ data: { user } }) => {
         setCurrentEmail(user?.email ?? "");
         setNewEmail(user?.email ?? "");
+        const meta = (user?.user_metadata || {}) as Record<string, any>;
+        const name =
+          meta.display_name ||
+          meta.full_name ||
+          meta.name ||
+          [meta.first_name, meta.last_name].filter(Boolean).join(" ").trim() ||
+          "";
+        setUsername(name);
+        setInitialUsername(name);
       });
     }
   }, [open]);
+
+  const handleUsernameSave = async () => {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      toast.error("Username cannot be empty");
+      return;
+    }
+    if (trimmed.length > 50) {
+      toast.error("Username must be 50 characters or less");
+      return;
+    }
+    if (trimmed === initialUsername) return;
+    setUsernameSaving(true);
+    const { error } = await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    setUsernameSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to update username");
+    } else {
+      setInitialUsername(trimmed);
+      toast.success("Username updated");
+    }
+  };
 
   const handleEmailChange = async () => {
     const trimmed = newEmail.trim();
@@ -139,6 +173,34 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Username */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <User className="h-4 w-4 text-primary" />
+              Username
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Displayed in the dashboard header.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Your name"
+                maxLength={50}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUsernameSave}
+                disabled={usernameSaving || !username.trim() || username.trim() === initialUsername}
+              >
+                {usernameSaving ? "Saving..." : "Update"}
+              </Button>
+            </div>
+          </div>
+
           {/* Email */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
