@@ -21,13 +21,21 @@ const navItems = [
 export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [traderName, setTraderName] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email ?? null);
+      if (!user) return;
+      const meta = (user.user_metadata || {}) as Record<string, any>;
+      const name =
+        meta.full_name ||
+        meta.name ||
+        meta.display_name ||
+        [meta.first_name, meta.last_name].filter(Boolean).join(" ").trim() ||
+        (user.email ? user.email.split("@")[0] : null);
+      setTraderName(name || null);
     });
   }, []);
 
