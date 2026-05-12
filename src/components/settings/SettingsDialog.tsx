@@ -173,6 +173,34 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Username */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <User className="h-4 w-4 text-primary" />
+              Username
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Displayed in the dashboard header.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Your name"
+                maxLength={50}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUsernameSave}
+                disabled={usernameSaving || !username.trim() || username.trim() === initialUsername}
+              >
+                {usernameSaving ? "Saving..." : "Update"}
+              </Button>
+            </div>
+          </div>
+
           {/* Email */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
