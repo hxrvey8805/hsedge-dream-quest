@@ -3,8 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import logoLight from "@/assets/header-mountains-light.png";
-import logoDark from "@/assets/header-mountains.png";
+import { dashboardLogoLight as logoLight, dashboardLogoDark as logoDark } from "@/assets/dashboardHeaderLogos";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { useTheme } from "@/hooks/useTheme";
@@ -61,7 +60,11 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
-              <img src={theme === "light" ? logoLight : logoDark} alt="TradePeaks" className="h-10 w-10" decoding="sync" fetchPriority="high" />
+              <span className="relative block h-10 w-10 shrink-0" aria-hidden="true">
+                <img src={logoLight} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "light" ? "opacity-100" : "opacity-0"}`} decoding="sync" loading="eager" />
+                <img src={logoDark} alt="" className={`absolute inset-0 h-10 w-10 object-contain ${theme === "dark" ? "opacity-100" : "opacity-0"}`} decoding="sync" loading="eager" />
+              </span>
+              <span className="sr-only">TradePeaks</span>
               <span className="text-xl font-bold text-foreground">TradePeaks</span>
             </div>
             <nav className="flex items-center gap-1">
