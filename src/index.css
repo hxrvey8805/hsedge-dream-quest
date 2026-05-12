@@ -81,6 +81,55 @@ All colors MUST be HSL.
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
   }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 212 98% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 212 98% 62%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 40%;
+
+    --accent: 163 80% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 163 80% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 348 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 212 98% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(212 98% 50%), hsl(212 98% 62%));
+    --gradient-success: linear-gradient(135deg, hsl(163 80% 38%), hsl(163 80% 48%));
+    --gradient-hero: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
+    --shadow-glow: 0 0 40px hsl(212 98% 50% / 0.18);
+    --shadow-success: 0 0 30px hsl(163 80% 38% / 0.18);
+    --shadow-danger: 0 0 30px hsl(348 85% 50% / 0.18);
+
+    --hud-glass: 0 0% 100% / 0.75;
+    --hud-border: 214 32% 80% / 0.5;
+    --hud-glow-cyan: 190 90% 42%;
+    --hud-glow-green: 163 80% 38%;
+    --hud-glow-red: 348 85% 50%;
+    --hud-glow-amber: 38 92% 45%;
+    --hud-glow-purple: 270 65% 50%;
+  }
 }
 
 @layer base {
