@@ -175,7 +175,7 @@ const Auth = () => {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen flex items-center justify-center bg-[#070C1A] p-4 relative overflow-hidden">
+    <div ref={containerRef} className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 ${lightMode ? 'landing-light' : ''}`} style={{ backgroundColor: lightMode ? '#f8fafc' : '#070C1A' }}>
       {/* Radial gradient overlay background - matching homepage */}
       <div 
         className="absolute inset-0 pointer-events-none z-0"
