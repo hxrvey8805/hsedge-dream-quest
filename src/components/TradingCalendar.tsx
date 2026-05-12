@@ -1095,9 +1095,9 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                     <div className="p-4">
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center p-3 rounded-lg bg-card/50">
-                          <p className="text-xs text-muted-foreground mb-1">P&L</p>
-                          <p className={`text-xl font-bold ${isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground'}`}>
-                            ${trade.profit?.toFixed(2) || '0.00'}
+                          <p className="text-xs text-muted-foreground mb-1">{viewMode === 'rMultiple' ? 'R:R' : 'P&L'}</p>
+                          <p className={`text-xl font-bold ${viewMode === 'rMultiple' ? 'text-foreground' : (isWin ? 'text-emerald-500' : isLoss ? 'text-rose-500' : 'text-foreground')}`}>
+                            {viewMode === 'rMultiple' ? calculateRiskReward(trade) : `$${trade.profit?.toFixed(2) || '0.00'}`}
                           </p>
                         </div>
                         {(trade.asset_class === "Forex" || trade.asset_class === "Futures") && (
@@ -1108,10 +1108,6 @@ export const TradingCalendar = ({ onDaySelect, onDayAction, viewMode, refreshTri
                             </p>
                           </div>
                         )}
-                        <div className="text-center p-3 rounded-lg bg-card/50">
-                          <p className="text-xs text-muted-foreground mb-1">R:R</p>
-                          <p className="text-xl font-bold">{calculateRiskReward(trade)}</p>
-                        </div>
                       </div>
 
                       {/* Details Grid - Only show if there's data */}
