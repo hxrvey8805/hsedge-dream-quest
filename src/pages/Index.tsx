@@ -257,7 +257,7 @@ export default function Index() {
             <button type="button" onClick={() => navigate("/pricing")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Pricing</button>
             <button type="button" onClick={() => navigate("/playbooks")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Playbooks</button>
           </nav>
-          <Button size="default" className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-gray-900 hover:bg-gray-800 text-white border border-gray-900 shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
+          <Button size="default" className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-white/80 hover:bg-white text-gray-900 border border-gray-300 shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
             Log in
           </Button>
         </div>
