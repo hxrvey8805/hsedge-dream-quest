@@ -3,7 +3,8 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-const logo = "/favicon.png";
+import logoLight from "@/assets/header-mountains-light.png";
+const logoDark = "/favicon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { useTheme } from "@/hooks/useTheme";
@@ -56,7 +57,7 @@ export const AppLayout = ({ children }: { children?: React.ReactNode }) => {
         <div className="w-full px-8 py-0 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-3 py-4">
-              <img src={logo} alt="TradePeaks" className="h-10 w-10" />
+              <img src={theme === "light" ? logoLight : logoDark} alt="TradePeaks" className="h-10 w-10" />
               <span className="text-xl font-bold text-foreground">TradePeaks</span>
             </div>
             <nav className="flex items-center gap-1">

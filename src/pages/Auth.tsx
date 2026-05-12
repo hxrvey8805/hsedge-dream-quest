@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
-import logo from "@/assets/header-mountains.png";
+import logoDark from "@/assets/header-mountains.png";
+import logoLight from "@/assets/header-mountains-light.png";
 import LucidAnimation from "@/components/LucidAnimation";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -228,7 +229,7 @@ const Auth = () => {
           <div className="space-y-6 text-center mb-8">
             <div className="flex justify-center">
               <img 
-                src={logo} 
+                src={lightMode ? logoLight : logoDark} 
                 alt="TradePeaks" 
                 className="h-20 w-20" 
               />
