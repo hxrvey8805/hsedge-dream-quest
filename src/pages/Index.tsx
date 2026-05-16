@@ -47,18 +47,6 @@ export default function Index() {
   const [entryValue, setEntryValue] = useState("");
   const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const heroRef = useRef<HTMLElement | null>(null);
-  const [scrolledPastHero, setScrolledPastHero] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const h = heroRef.current?.offsetHeight ?? window.innerHeight;
-      setScrolledPastHero(window.scrollY > h - 80);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [entered]);
 
   const ACCESS_PASSWORD = "summit2026";
 
@@ -268,37 +256,16 @@ export default function Index() {
         </button>
       </div>
 
+      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-center gap-10">
           <nav className="flex items-center gap-8 rounded-full px-6 py-2">
-            {[
-              { label: "System", onClick: () => document.getElementById("system")?.scrollIntoView({ behavior: "smooth" }), href: "#system" as const },
-              { label: "Analytics", onClick: () => document.getElementById("analytics")?.scrollIntoView({ behavior: "smooth" }), href: "#analytics" as const },
-              { label: "Pricing", onClick: () => navigate("/pricing") },
-              { label: "Playbooks", onClick: () => navigate("/playbooks") },
-            ].map((item) => {
-              const cls = `text-base transition-colors duration-300 font-medium tracking-wide ${
-                scrolledPastHero
-                  ? "text-gray-900 hover:text-black drop-shadow-none"
-                  : "text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-              }`;
-              if (item.href) {
-                return <a key={item.label} href={item.href} className={cls}>{item.label}</a>;
-              }
-              return <button key={item.label} type="button" onClick={item.onClick} className={cls}>{item.label}</button>;
-            })}
+            <a href="#system" className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">System</a>
+            <a href="#analytics" className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Analytics</a>
+            <button type="button" onClick={() => navigate("/pricing")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Pricing</button>
+            <button type="button" onClick={() => navigate("/playbooks")} className="text-base transition-colors duration-300 font-medium tracking-wide text-white/80 hover:text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Playbooks</button>
           </nav>
-          <Button
-            size="default"
-            className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${
-              scrolledPastHero
-                ? "bg-gray-900 hover:bg-black text-white border border-gray-900 shadow-sm"
-                : lightMode
-                ? "bg-white/80 hover:bg-white text-gray-900 border border-gray-300 shadow-sm"
-                : "bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40"
-            }`}
-            onClick={() => navigate("/auth")}
-          >
+          <Button size="default" className={`backdrop-blur-md rounded-full px-6 py-2.5 text-base font-medium transition-all duration-300 ${lightMode ? 'bg-white/80 hover:bg-white text-gray-900 border border-gray-300 shadow-sm' : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'}`} onClick={() => navigate("/auth")}>
             Log in
           </Button>
         </div>
@@ -307,7 +274,7 @@ export default function Index() {
       {/* Main content */}
       <main className="relative w-full">
         {/* Hero Banner Image */}
-        <section ref={heroRef} className="w-full">
+        <section className="w-full">
           <img src={heroBanner} alt="" className="block w-full h-auto select-none" draggable={false} />
         </section>
 
