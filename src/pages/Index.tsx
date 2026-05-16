@@ -47,6 +47,18 @@ export default function Index() {
   const [entryValue, setEntryValue] = useState("");
   const [entrySubmitting, setEntrySubmitting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const h = heroRef.current?.offsetHeight ?? window.innerHeight;
+      setScrolledPastHero(window.scrollY > h - 80);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [entered]);
 
   const ACCESS_PASSWORD = "summit2026";
 
